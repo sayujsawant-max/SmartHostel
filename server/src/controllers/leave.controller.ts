@@ -43,11 +43,11 @@ export async function getLeaves(req: Request, res: Response) {
 }
 
 export async function approveLeave(req: Request<{ id: string }>, res: Response) {
-  const leave = await leaveService.approveLeave(req.params.id, req.user!._id, req.correlationId);
+  const { leave, gatePass } = await leaveService.approveLeave(req.params.id, req.user!._id, req.correlationId);
 
   res.json({
     success: true,
-    data: { leave },
+    data: { leave, gatePass: { id: gatePass._id, passCode: gatePass.passCode, expiresAt: gatePass.expiresAt } },
     correlationId: req.correlationId,
   });
 }

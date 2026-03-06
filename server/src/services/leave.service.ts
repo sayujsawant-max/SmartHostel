@@ -4,6 +4,7 @@ import { Leave } from '@models/leave.model.js';
 import { Notification } from '@models/notification.model.js';
 import { AppError } from '@utils/app-error.js';
 import { logger } from '@utils/logger.js';
+import { createGatePass } from '@services/gate-pass.service.js';
 
 export async function createLeave(studentId: string, data: CreateLeaveInput, correlationId?: string) {
   const startDate = new Date(data.startDate);
@@ -79,12 +80,14 @@ export async function approveLeave(leaveId: string, wardenId: string, correlatio
     body: `Your ${leave.type} leave from ${leave.startDate.toISOString().slice(0, 10)} to ${leave.endDate.toISOString().slice(0, 10)} has been approved.`,
   });
 
+  const gatePass = await createGatePass(leave, correlationId);
+
   logger.info(
     { eventType: 'LEAVE_APPROVED', correlationId, leaveId, wardenId },
     'Leave approved',
   );
 
-  return leave;
+  return { leave, gatePass };
 }
 
 export async function rejectLeave(leaveId: string, wardenId: string, reason?: string, correlationId?: string) {

@@ -4,6 +4,7 @@ export { ErrorCode, ERROR_STATUS_MAP } from './constants/error-codes.js';
 export { LeaveStatus } from './constants/leave-status.js';
 export { LeaveType } from './constants/leave-types.js';
 export { NotificationType } from './constants/notification-types.js';
+export { GatePassStatus } from './constants/gate-pass-status.js';
 
 // Types
 export type { ApiSuccess, ApiError, PaginatedResponse } from './types/api-responses.js';
