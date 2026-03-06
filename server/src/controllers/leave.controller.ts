@@ -3,6 +3,10 @@ import { createLeaveSchema, Role } from '@smarthostel/shared';
 import * as leaveService from '@services/leave.service.js';
 import { AppError } from '@utils/app-error.js';
 
+interface RejectBody {
+  reason?: string;
+}
+
 export async function createLeave(req: Request, res: Response) {
   const parsed = createLeaveSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -34,6 +38,27 @@ export async function getLeaves(req: Request, res: Response) {
   res.json({
     success: true,
     data: { leaves },
+    correlationId: req.correlationId,
+  });
+}
+
+export async function approveLeave(req: Request<{ id: string }>, res: Response) {
+  const leave = await leaveService.approveLeave(req.params.id, req.user!._id, req.correlationId);
+
+  res.json({
+    success: true,
+    data: { leave },
+    correlationId: req.correlationId,
+  });
+}
+
+export async function rejectLeave(req: Request<{ id: string }>, res: Response) {
+  const { reason } = req.body as RejectBody;
+  const leave = await leaveService.rejectLeave(req.params.id, req.user!._id, reason, req.correlationId);
+
+  res.json({
+    success: true,
+    data: { leave },
     correlationId: req.correlationId,
   });
 }

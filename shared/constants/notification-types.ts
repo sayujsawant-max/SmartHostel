@@ -1,0 +1,12 @@
+export const NotificationType = {
+  LEAVE_APPROVED: 'LEAVE_APPROVED',
+  LEAVE_REJECTED: 'LEAVE_REJECTED',
+  OVERRIDE_ALERT: 'OVERRIDE_ALERT',
+  SLA_REMINDER: 'SLA_REMINDER',
+  SLA_BREACH: 'SLA_BREACH',
+  COMPLAINT_ASSIGNED: 'COMPLAINT_ASSIGNED',
+  COMPLAINT_RESOLVED: 'COMPLAINT_RESOLVED',
+  NOTICE_PUBLISHED: 'NOTICE_PUBLISHED',
+} as const;
+
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];
