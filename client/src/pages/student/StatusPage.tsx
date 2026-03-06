@@ -13,6 +13,41 @@ interface Leave {
   createdAt: string;
 }
 
+interface Complaint {
+  _id: string;
+  category: string;
+  description: string;
+  status: string;
+  priority: string;
+  dueAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const COMPLAINT_STATUS_COLORS: Record<string, string> = {
+  OPEN: 'bg-blue-100 text-blue-800',
+  ASSIGNED: 'bg-purple-100 text-purple-800',
+  IN_PROGRESS: 'bg-amber-100 text-amber-800',
+  RESOLVED: 'bg-green-100 text-green-800',
+  CLOSED: 'bg-gray-100 text-gray-800',
+};
+
+const PRIORITY_COLORS: Record<string, string> = {
+  CRITICAL: 'bg-red-100 text-red-800',
+  HIGH: 'bg-orange-100 text-orange-800',
+  MEDIUM: 'bg-yellow-100 text-yellow-800',
+  LOW: 'bg-green-100 text-green-800',
+};
+
+function SLABadge({ dueAt }: { dueAt: string }) {
+  const due = new Date(dueAt);
+  const diffMs = due.getTime() - Date.now();
+  const diffH = Math.round(diffMs / (1000 * 60 * 60));
+  if (diffMs < 0) return <span className="text-xs font-medium text-red-700 bg-red-50 px-2 py-0.5 rounded-full">Overdue {Math.abs(diffH)}h</span>;
+  if (diffH <= 2) return <span className="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">Due in {diffH}h</span>;
+  return <span className="text-xs text-[hsl(var(--muted-foreground))]">Due in {diffH}h</span>;
+}
+
 const STATUS_COLORS: Record<string, string> = {
   PENDING: 'bg-yellow-100 text-yellow-800',
   APPROVED: 'bg-green-100 text-green-800',
@@ -30,12 +65,19 @@ function formatDate(iso: string) {
 
 export default function StatusPage() {
   const [leaves, setLeaves] = useState<Leave[]>([]);
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    apiFetch<{ leaves: Leave[] }>('/leaves')
-      .then((res) => setLeaves(res.data.leaves))
+    Promise.all([
+      apiFetch<{ leaves: Leave[] }>('/leaves'),
+      apiFetch<{ complaints: Complaint[] }>('/complaints'),
+    ])
+      .then(([leavesRes, complaintsRes]) => {
+        setLeaves(leavesRes.data.leaves);
+        setComplaints(complaintsRes.data.complaints);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
@@ -94,6 +136,47 @@ export default function StatusPage() {
                 Submitted {formatDate(leave.createdAt)}
               </p>
             </div>
+          ))}
+        </div>
+      )}
+
+      {/* Complaints Section */}
+      <h2 className="text-xl font-bold text-[hsl(var(--foreground))] pt-4">My Complaints</h2>
+
+      {complaints.length === 0 ? (
+        <div className="text-center py-6 text-[hsl(var(--muted-foreground))]">
+          <p>No complaints filed.</p>
+          <Link to="/student/actions/report-issue" className="text-blue-600 mt-2 inline-block">
+            Report an Issue
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {complaints.map((c) => (
+            <Link
+              key={c._id}
+              to={`/student/status/complaint/${c._id}`}
+              className="block border rounded-lg p-4 bg-[hsl(var(--card))] space-y-1"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-[hsl(var(--foreground))]">
+                  {c.category.replace(/_/g, ' ')}
+                </span>
+                <div className="flex gap-2">
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${COMPLAINT_STATUS_COLORS[c.status] ?? ''}`}>
+                    {c.status.replace(/_/g, ' ')}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${PRIORITY_COLORS[c.priority] ?? ''}`}>
+                    {c.priority}
+                  </span>
+                </div>
+              </div>
+              <p className="text-sm text-[hsl(var(--muted-foreground))] truncate">{c.description}</p>
+              <div className="flex items-center gap-3 text-xs text-[hsl(var(--muted-foreground))]">
+                <SLABadge dueAt={c.dueAt} />
+                <span>Updated {formatDate(c.updatedAt)}</span>
+              </div>
+            </Link>
           ))}
         </div>
       )}
