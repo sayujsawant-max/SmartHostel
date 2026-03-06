@@ -352,74 +352,74 @@ epics:
           closed: complete
   - id: 6
     name: "Dashboards, Notifications & Notices"
-    status: pending
+    status: complete
     stories:
       - id: 6.1
         name: "Student Dashboard"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
       - id: 6.2
         name: "Warden Dashboard & KPIs"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
       - id: 6.3
         name: "Warden Complaint & Leave Management Views"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
       - id: 6.4
         name: "Maintenance History View"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
       - id: 6.5
         name: "In-App Notification System"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
       - id: 6.6
         name: "Notice Broadcasting (Warden)"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
   - id: 7
     name: "Self-Service Assistant & FAQ"
     status: pending
