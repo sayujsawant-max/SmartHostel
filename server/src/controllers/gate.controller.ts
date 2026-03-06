@@ -29,3 +29,33 @@ export async function validate(req: Request, res: Response) {
     correlationId: req.correlationId,
   });
 }
+
+interface ReconcileBody {
+  scanAttemptId: string;
+  qrToken?: string;
+  passCode?: string;
+  scannedAt: string;
+  directionOverride?: 'ENTRY' | 'EXIT';
+  offlineStatus: 'OFFLINE_OVERRIDE' | 'OFFLINE_DENY_LOGGED';
+  reason?: string;
+}
+
+export async function reconcile(req: Request, res: Response) {
+  const body = req.body as ReconcileBody;
+
+  if (!body.scanAttemptId || !body.offlineStatus) {
+    throw new AppError('VALIDATION_ERROR', 'scanAttemptId and offlineStatus are required', 400);
+  }
+
+  const result = await gateService.reconcileOfflineScan({
+    ...body,
+    guardId: req.user!._id,
+    correlationId: req.correlationId,
+  });
+
+  res.json({
+    success: true,
+    data: result,
+    correlationId: req.correlationId,
+  });
+}

@@ -185,6 +185,89 @@ export async function verifyPass(input: VerifyInput): Promise<VerifyResult> {
   return result;
 }
 
+interface ReconcileInput {
+  scanAttemptId: string;
+  qrToken?: string;
+  passCode?: string;
+  guardId: string;
+  scannedAt: string;
+  directionOverride?: 'ENTRY' | 'EXIT';
+  offlineStatus: 'OFFLINE_OVERRIDE' | 'OFFLINE_DENY_LOGGED';
+  reason?: string;
+  correlationId?: string;
+}
+
+interface ReconcileResult {
+  scanAttemptId: string;
+  reconcileStatus: 'SUCCESS' | 'FAIL';
+  reconcileErrorCode?: string;
+}
+
+export async function reconcileOfflineScan(input: ReconcileInput): Promise<ReconcileResult> {
+  // Idempotency: check if already reconciled
+  const existing = await GateScan.findOne({ scanAttemptId: input.scanAttemptId });
+  if (existing && existing.reconcileStatus === 'SUCCESS') {
+    return { scanAttemptId: input.scanAttemptId, reconcileStatus: 'SUCCESS' };
+  }
+
+  // If guard chose OFFLINE_DENY_LOGGED, just log it — no state transition
+  if (input.offlineStatus === 'OFFLINE_DENY_LOGGED') {
+    await GateScan.create({
+      guardId: input.guardId,
+      verdict: 'DENY',
+      scanResult: ScanResult.NETWORK_UNVERIFIED,
+      method: input.qrToken ? 'QR' : 'PASSCODE',
+      offlineStatus: 'OFFLINE_DENY_LOGGED',
+      reconcileStatus: 'SUCCESS',
+      reconciledAt: new Date(),
+      scanAttemptId: input.scanAttemptId,
+      latencyMs: 0,
+      timeoutTriggered: true,
+      directionSource: 'AUTO',
+      lastGateStateBeforeScan: 'UNKNOWN',
+    });
+    return { scanAttemptId: input.scanAttemptId, reconcileStatus: 'SUCCESS' };
+  }
+
+  // OFFLINE_OVERRIDE: attempt the actual verification now
+  try {
+    const result = await verifyPass({
+      qrToken: input.qrToken,
+      passCode: input.passCode,
+      guardId: input.guardId,
+      directionOverride: input.directionOverride,
+      correlationId: input.correlationId,
+    });
+
+    // Update the GateScan that was just created by verifyPass
+    await GateScan.findOneAndUpdate(
+      { guardId: input.guardId, scanResult: result.scanResult },
+      {
+        $set: {
+          offlineStatus: 'OFFLINE_OVERRIDE',
+          reconcileStatus: result.verdict === 'ALLOW' ? 'SUCCESS' : 'FAIL',
+          reconcileErrorCode: result.verdict === 'DENY' ? result.scanResult : null,
+          reconciledAt: new Date(),
+          scanAttemptId: input.scanAttemptId,
+        },
+      },
+      { sort: { createdAt: -1 } },
+    );
+
+    return {
+      scanAttemptId: input.scanAttemptId,
+      reconcileStatus: result.verdict === 'ALLOW' ? 'SUCCESS' : 'FAIL',
+      reconcileErrorCode: result.verdict === 'DENY' ? result.scanResult : undefined,
+    };
+  } catch {
+    return {
+      scanAttemptId: input.scanAttemptId,
+      reconcileStatus: 'FAIL',
+      reconcileErrorCode: 'RECONCILE_ERROR',
+    };
+  }
+}
+
 function getScanResultForStatus(status: string): string {
   switch (status) {
     case LeaveStatus.SCANNED_OUT: return ScanResult.ALREADY_SCANNED_OUT;

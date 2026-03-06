@@ -5,6 +5,30 @@ import { apiFetch, ApiError } from '@services/api';
 
 type Verdict = 'ALLOW' | 'DENY' | 'OFFLINE' | null;
 
+interface OfflineScanEntry {
+  scanAttemptId: string;
+  qrToken?: string;
+  passCode?: string;
+  scannedAt: string;
+  directionOverride?: 'ENTRY' | 'EXIT';
+  offlineStatus: 'OFFLINE_OVERRIDE' | 'OFFLINE_DENY_LOGGED';
+  reason?: string;
+}
+
+const OFFLINE_STORAGE_KEY = 'offlineGateScans';
+
+function getOfflineQueue(): OfflineScanEntry[] {
+  try {
+    return JSON.parse(localStorage.getItem(OFFLINE_STORAGE_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function saveOfflineQueue(queue: OfflineScanEntry[]) {
+  localStorage.setItem(OFFLINE_STORAGE_KEY, JSON.stringify(queue));
+}
+
 interface ScanResponse {
   verdict: 'ALLOW' | 'DENY';
   scanResult: string;
@@ -24,7 +48,10 @@ export default function ScanPage() {
   const [passCodeInput, setPassCodeInput] = useState('');
   const [showPassCodeHint, setShowPassCodeHint] = useState(false);
   const [directionOverride, setDirectionOverride] = useState<'ENTRY' | 'EXIT' | null>(null);
+  const [offlineCount, setOfflineCount] = useState(() => getOfflineQueue().length);
+  const [syncing, setSyncing] = useState(false);
   const lastScanRef = useRef<string>('');
+  const lastOfflineTokenRef = useRef<{ qrToken?: string; passCode?: string }>({});
   const verdictTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hintTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const slowTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -77,12 +104,14 @@ export default function ScanPage() {
       if (slowTimeoutRef.current) clearTimeout(slowTimeoutRef.current);
 
       if (err instanceof DOMException && err.name === 'AbortError') {
+        lastOfflineTokenRef.current = { qrToken, passCode };
         setVerdict('OFFLINE');
         setScanData({ verdict: 'DENY', scanResult: 'NETWORK_UNVERIFIED', reason: 'Request timed out' });
       } else if (err instanceof ApiError) {
         setVerdict('DENY');
         setScanData({ verdict: 'DENY', scanResult: err.code, reason: err.message });
       } else {
+        lastOfflineTokenRef.current = { qrToken, passCode };
         setVerdict('OFFLINE');
         setScanData({ verdict: 'DENY', scanResult: 'NETWORK_UNVERIFIED', reason: 'Network error' });
       }
@@ -154,6 +183,51 @@ export default function ScanPage() {
     }
   };
 
+  const handleOfflineAction = (offlineStatus: 'OFFLINE_OVERRIDE' | 'OFFLINE_DENY_LOGGED') => {
+    const entry: OfflineScanEntry = {
+      scanAttemptId: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      ...lastOfflineTokenRef.current,
+      scannedAt: new Date().toISOString(),
+      directionOverride: directionOverride ?? undefined,
+      offlineStatus,
+    };
+    const queue = getOfflineQueue();
+    queue.push(entry);
+    saveOfflineQueue(queue);
+    setOfflineCount(queue.length);
+    dismissVerdict();
+  };
+
+  const flushOfflineQueue = async () => {
+    if (syncing) return;
+    const queue = getOfflineQueue();
+    if (queue.length === 0) return;
+
+    setSyncing(true);
+    const remaining: OfflineScanEntry[] = [];
+    for (const entry of queue) {
+      try {
+        await apiFetch('/gate/reconcile', {
+          method: 'POST',
+          body: JSON.stringify(entry),
+        });
+      } catch {
+        remaining.push(entry);
+      }
+    }
+    saveOfflineQueue(remaining);
+    setOfflineCount(remaining.length);
+    setSyncing(false);
+  };
+
+  // Auto-sync on reconnection
+  useEffect(() => {
+    const onOnline = () => { void flushOfflineQueue(); };
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const dismissVerdict = () => {
     if (verdictTimeoutRef.current) clearTimeout(verdictTimeoutRef.current);
     setVerdict(null);
@@ -185,7 +259,23 @@ export default function ScanPage() {
         {!isAllow && scanData?.scanResult && (
           <p className="text-sm mt-4 opacity-80">{scanData.scanResult.replace(/_/g, ' ')}</p>
         )}
-        {!isAllow && (
+        {isOffline && (
+          <div className="mt-8 flex flex-col gap-3 w-64">
+            <button
+              onClick={(e) => { e.stopPropagation(); handleOfflineAction('OFFLINE_OVERRIDE'); }}
+              className="px-6 py-3 bg-green-600 rounded-lg text-lg font-medium"
+            >
+              Override to Allow
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); handleOfflineAction('OFFLINE_DENY_LOGGED'); }}
+              className="px-6 py-3 bg-white/20 rounded-lg text-lg font-medium"
+            >
+              Deny (Log Attempt)
+            </button>
+          </div>
+        )}
+        {!isAllow && !isOffline && (
           <button
             onClick={dismissVerdict}
             className="mt-8 px-6 py-3 bg-white/20 rounded-lg text-lg font-medium"
@@ -233,6 +323,23 @@ export default function ScanPage() {
           Logout
         </button>
       </div>
+
+      {/* Offline sync indicator */}
+      {offlineCount > 0 && (
+        <div className="flex items-center justify-between px-3 py-2 bg-amber-700 text-white text-sm">
+          <span className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-300 animate-pulse" />
+            {offlineCount} offline scan{offlineCount > 1 ? 's' : ''} pending
+          </span>
+          <button
+            onClick={() => void flushOfflineQueue()}
+            disabled={syncing}
+            className="px-3 py-1 rounded bg-white/20 text-xs font-medium disabled:opacity-50"
+          >
+            {syncing ? 'Syncing...' : 'Sync Now'}
+          </button>
+        </div>
+      )}
 
       {/* Camera or fallback */}
       <div className="flex-1 relative">
