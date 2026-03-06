@@ -6,6 +6,7 @@ import { authMiddleware } from '@middleware/auth.middleware.js';
 import { requireRole } from '@middleware/rbac.middleware.js';
 import { GateScan } from '@models/gate-scan.model.js';
 import { CronLog } from '@models/cron-log.model.js';
+import { getWardenDashboardStats } from '@services/dashboard.service.js';
 
 const router = Router();
 
@@ -52,6 +53,16 @@ router.get('/admin/health', authMiddleware, requireRole(Role.WARDEN_ADMIN), asyn
       lastCronRun: lastCronRun?.createdAt ?? null,
       uptime: process.uptime(),
     },
+    correlationId: req.correlationId,
+  });
+});
+
+// Warden dashboard KPIs
+router.get('/admin/dashboard-stats', authMiddleware, requireRole(Role.WARDEN_ADMIN), async (req: Request, res: Response) => {
+  const stats = await getWardenDashboardStats();
+  res.json({
+    success: true,
+    data: stats,
     correlationId: req.correlationId,
   });
 });
