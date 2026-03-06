@@ -223,7 +223,7 @@ epics:
           closed: complete
   - id: 4
     name: "Override Governance & Audit Trail"
-    status: in_progress
+    status: complete
     stories:
       - id: 4.1
         name: "Guard Override Flow"
@@ -271,15 +271,15 @@ epics:
           closed: complete
       - id: 4.5
         name: "Operational Health & Data Retention"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
   - id: 5
     name: "Complaint Lifecycle & SLA Automation"
     status: pending
