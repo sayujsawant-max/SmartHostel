@@ -9,6 +9,7 @@ export const ScanResult = {
   NOT_FOUND: 'NOT_FOUND',
   NETWORK_UNVERIFIED: 'NETWORK_UNVERIFIED',
   NOT_YET_VALID: 'NOT_YET_VALID',
+  RATE_LIMITED: 'RATE_LIMITED',
 } as const;
 
 export type ScanResult = (typeof ScanResult)[keyof typeof ScanResult];
