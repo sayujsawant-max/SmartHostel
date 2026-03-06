@@ -23,10 +23,12 @@ export default function ScanPage() {
   const [cameraError, setCameraError] = useState('');
   const [passCodeInput, setPassCodeInput] = useState('');
   const [showPassCodeHint, setShowPassCodeHint] = useState(false);
+  const [directionOverride, setDirectionOverride] = useState<'ENTRY' | 'EXIT' | null>(null);
   const lastScanRef = useRef<string>('');
   const verdictTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hintTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const slowTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleVerify = useCallback(async (qrToken?: string, passCode?: string) => {
     if (verifying) return;
@@ -44,6 +46,7 @@ export default function ScanPage() {
       const body: Record<string, string> = {};
       if (qrToken) body.qrToken = qrToken;
       if (passCode) body.passCode = passCode;
+      if (directionOverride) body.directionOverride = directionOverride;
 
       const res = await apiFetch<ScanResponse>('/gate/validate', {
         method: 'POST',
@@ -87,8 +90,9 @@ export default function ScanPage() {
     } finally {
       setVerifying(false);
       setVerifyingSlow(false);
+      setDirectionOverride(null);
     }
-  }, [verifying]);
+  }, [verifying, directionOverride]);
 
   // Start camera
   useEffect(() => {
@@ -115,6 +119,7 @@ export default function ScanPage() {
       if (verdictTimeoutRef.current) clearTimeout(verdictTimeoutRef.current);
       if (hintTimeoutRef.current) clearTimeout(hintTimeoutRef.current);
       if (slowTimeoutRef.current) clearTimeout(slowTimeoutRef.current);
+      if (longPressRef.current) clearTimeout(longPressRef.current);
       scanner.stop().catch(() => {});
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -125,6 +130,27 @@ export default function ScanPage() {
     if (passCodeInput.length === 6) {
       void handleVerify(undefined, passCodeInput);
       setPassCodeInput('');
+    }
+  };
+
+  const handleDirectionLongPress = () => {
+    longPressRef.current = setTimeout(() => {
+      const current = directionOverride;
+      const next = current === 'ENTRY' ? null : current === 'EXIT' ? null : undefined;
+      if (next === undefined) {
+        // No override set — prompt for which direction
+        const choice = window.confirm('Override next scan to ENTRY?\n\n(OK = ENTRY, Cancel = EXIT)');
+        setDirectionOverride(choice ? 'ENTRY' : 'EXIT');
+      } else {
+        setDirectionOverride(null);
+      }
+    }, 600);
+  };
+
+  const cancelLongPress = () => {
+    if (longPressRef.current) {
+      clearTimeout(longPressRef.current);
+      longPressRef.current = null;
     }
   };
 
@@ -188,6 +214,17 @@ export default function ScanPage() {
         <div>
           <p className="text-sm font-medium">{user?.name}</p>
           <p className="text-xs opacity-60">Guard</p>
+        </div>
+        <div
+          className={`px-3 py-1.5 rounded text-xs font-mono select-none ${directionOverride ? 'bg-yellow-600' : 'bg-white/10'}`}
+          onTouchStart={handleDirectionLongPress}
+          onTouchEnd={cancelLongPress}
+          onTouchCancel={cancelLongPress}
+          onMouseDown={handleDirectionLongPress}
+          onMouseUp={cancelLongPress}
+          onMouseLeave={cancelLongPress}
+        >
+          {directionOverride ? `Override: ${directionOverride}` : 'Auto'}
         </div>
         <button
           onClick={() => void logout()}
