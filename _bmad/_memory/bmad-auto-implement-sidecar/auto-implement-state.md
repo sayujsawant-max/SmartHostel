@@ -61,15 +61,15 @@ epics:
           closed: complete
       - id: 1.5
         name: "Frontend Auth Flow & Role-Specific Shells"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
       - id: 1.6
         name: "Consent Flow & First-Login Experience"
         status: pending

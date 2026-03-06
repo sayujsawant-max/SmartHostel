@@ -37,7 +37,9 @@
       "Bash(npx -w server eslint src/scripts/seed-users.ts)",
       "Bash(node -e \"const pkg = require\\(''./package.json''\\); console.log\\(''Root seed:'', pkg.scripts.seed\\); console.log\\(''Root seed:users:'', pkg.scripts[''seed:users'']\\)\")",
       "Bash(node -e \"const pkg = require\\(''./server/package.json''\\); console.log\\(''Server seed:'', pkg.scripts.seed\\); console.log\\(''Server seed:users:'', pkg.scripts[''seed:users'']\\)\")",
-      "Bash(node -e \"const data = require\\(''c:/Projects/Agent/server/src/scripts/seed-data/faqs.json''\\); console.log\\(''FAQ count:'', data.length\\); const cats = [...new Set\\(data.map\\(f => f.category\\)\\)]; console.log\\(''Categories:'', cats.join\\('', ''\\)\\)\")"
+      "Bash(node -e \"const data = require\\(''c:/Projects/Agent/server/src/scripts/seed-data/faqs.json''\\); console.log\\(''FAQ count:'', data.length\\); const cats = [...new Set\\(data.map\\(f => f.category\\)\\)]; console.log\\(''Categories:'', cats.join\\('', ''\\)\\)\")",
+      "Bash(npx -w client tsc --noEmit -p client/tsconfig.app.json)",
+      "Bash(npx tsc --noEmit -p tsconfig.app.json)"
     ]
   }
 }

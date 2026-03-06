@@ -1,52 +1,106 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Role } from '@smarthostel/shared';
 import { useAuth } from '@hooks/useAuth';
+import { getRoleHomePath } from '@utils/role-home';
 import LoginPage from '@pages/LoginPage';
+import ProtectedRoute from '@components/layout/ProtectedRoute';
+import RoleRoute from '@components/layout/RoleRoute';
+import StudentShell from '@components/layout/StudentShell';
+import WardenShell from '@components/layout/WardenShell';
+import GuardShell from '@components/layout/GuardShell';
+import MaintenanceShell from '@components/layout/MaintenanceShell';
 
-function DashboardPlaceholder() {
-  const { user, logout } = useAuth();
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))]">
-      <div className="text-center p-8 rounded-xl bg-[hsl(var(--card))] shadow-lg border border-[hsl(var(--border))]">
-        <h1 className="text-3xl font-bold text-[hsl(var(--foreground))] mb-2">SmartHostel</h1>
-        <p className="text-[hsl(var(--muted-foreground))]">
-          Welcome, {user?.name} ({user?.role})
-        </p>
-        <button
-          onClick={() => logout()}
-          className="mt-4 px-4 py-2 rounded-lg bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] font-medium hover:opacity-90"
-        >
-          Sign out
-        </button>
-      </div>
-    </div>
-  );
+// Student pages
+import StudentStatusPage from '@pages/student/StatusPage';
+import StudentActionsPage from '@pages/student/ActionsPage';
+import StudentFaqPage from '@pages/student/FaqPage';
+
+// Warden pages
+import WardenDashboardPage from '@pages/warden/DashboardPage';
+import WardenStudentsPage from '@pages/warden/StudentsPage';
+import WardenComplaintsPage from '@pages/warden/ComplaintsPage';
+import WardenSettingsPage from '@pages/warden/SettingsPage';
+
+// Guard pages
+import GuardScanPage from '@pages/guard/ScanPage';
+
+// Maintenance pages
+import MaintenanceTasksPage from '@pages/maintenance/TasksPage';
+import MaintenanceHistoryPage from '@pages/maintenance/HistoryPage';
+import MaintenanceFaqPage from '@pages/maintenance/FaqPage';
+
+function RoleHomeRedirect() {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/login" replace />;
+  return <Navigate to={getRoleHomePath(user.role)} replace />;
 }
 
-function LoadingSkeleton() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))]">
-      <div className="animate-pulse text-[hsl(var(--muted-foreground))]">Loading...</div>
-    </div>
-  );
+function LoginRoute() {
+  const { isAuthenticated, isLoading, user } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))]">
+        <div className="animate-pulse text-[hsl(var(--muted-foreground))]">Loading...</div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated && user) {
+    return <Navigate to={getRoleHomePath(user.role)} replace />;
+  }
+
+  return <LoginPage />;
 }
 
 function AppRoutes() {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <LoadingSkeleton />;
-  }
-
   return (
     <Routes>
-      <Route
-        path="/login"
-        element={isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />}
-      />
-      <Route
-        path="/"
-        element={isAuthenticated ? <DashboardPlaceholder /> : <Navigate to="/login" replace />}
-      />
+      {/* Public route */}
+      <Route path="/login" element={<LoginRoute />} />
+
+      {/* Protected routes */}
+      <Route element={<ProtectedRoute />}>
+        {/* Root redirects to role home */}
+        <Route path="/" element={<RoleHomeRedirect />} />
+
+        {/* Student routes */}
+        <Route element={<RoleRoute allowedRoles={[Role.STUDENT]} />}>
+          <Route element={<StudentShell />}>
+            <Route path="/student/status" element={<StudentStatusPage />} />
+            <Route path="/student/actions" element={<StudentActionsPage />} />
+            <Route path="/student/faq" element={<StudentFaqPage />} />
+          </Route>
+        </Route>
+
+        {/* Warden routes */}
+        <Route element={<RoleRoute allowedRoles={[Role.WARDEN_ADMIN]} />}>
+          <Route element={<WardenShell />}>
+            <Route path="/warden/dashboard" element={<WardenDashboardPage />} />
+            <Route path="/warden/students" element={<WardenStudentsPage />} />
+            <Route path="/warden/complaints" element={<WardenComplaintsPage />} />
+            <Route path="/warden/settings" element={<WardenSettingsPage />} />
+          </Route>
+        </Route>
+
+        {/* Guard routes */}
+        <Route element={<RoleRoute allowedRoles={[Role.GUARD]} />}>
+          <Route element={<GuardShell />}>
+            <Route path="/guard/scan" element={<GuardScanPage />} />
+          </Route>
+        </Route>
+
+        {/* Maintenance routes */}
+        <Route element={<RoleRoute allowedRoles={[Role.MAINTENANCE]} />}>
+          <Route element={<MaintenanceShell />}>
+            <Route path="/maintenance/tasks" element={<MaintenanceTasksPage />} />
+            <Route path="/maintenance/history" element={<MaintenanceHistoryPage />} />
+            <Route path="/maintenance/faq" element={<MaintenanceFaqPage />} />
+          </Route>
+        </Route>
+      </Route>
+
+      {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

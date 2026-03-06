@@ -24,12 +24,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string): Promise<UserProfile> => {
     const res = await apiFetch<{ user: UserProfile }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
     setUser(res.data.user);
+    return res.data.user;
   }, []);
 
   const logout = useCallback(async () => {

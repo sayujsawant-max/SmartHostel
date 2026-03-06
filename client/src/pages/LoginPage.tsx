@@ -5,6 +5,7 @@ import { loginSchema, type LoginInput } from '@smarthostel/shared';
 import { useAuth } from '@hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { ApiError } from '@services/api';
+import { getRoleHomePath } from '@utils/role-home';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -54,8 +55,8 @@ export default function LoginPage() {
     setServerError(null);
     setIsSubmitting(true);
     try {
-      await login(data.email, data.password);
-      navigate('/', { replace: true });
+      const loggedInUser = await login(data.email, data.password);
+      navigate(getRoleHomePath(loggedInUser.role), { replace: true });
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.code === 'RATE_LIMITED' && err.retryAfterMs) {
