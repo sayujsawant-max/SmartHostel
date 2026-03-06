@@ -23,6 +23,7 @@ import WardenDashboardPage from '@pages/warden/DashboardPage';
 import WardenStudentsPage from '@pages/warden/StudentsPage';
 import WardenComplaintsPage from '@pages/warden/ComplaintsPage';
 import WardenSettingsPage from '@pages/warden/SettingsPage';
+import WardenNoticesPage from '@pages/warden/NoticesPage';
 
 // Guard pages
 import GuardScanPage from '@pages/guard/ScanPage';
@@ -85,6 +86,7 @@ function AppRoutes() {
             <Route path="/warden/dashboard" element={<WardenDashboardPage />} />
             <Route path="/warden/students" element={<WardenStudentsPage />} />
             <Route path="/warden/complaints" element={<WardenComplaintsPage />} />
+            <Route path="/warden/notices" element={<WardenNoticesPage />} />
             <Route path="/warden/settings" element={<WardenSettingsPage />} />
           </Route>
         </Route>

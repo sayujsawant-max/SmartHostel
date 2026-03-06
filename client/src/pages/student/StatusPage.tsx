@@ -3,6 +3,15 @@ import { Link } from 'react-router-dom';
 import { apiFetch } from '@services/api';
 import { useAuth } from '@hooks/useAuth';
 
+interface NoticeItem {
+  _id: string;
+  title: string;
+  content: string;
+  target: string;
+  authorId?: { _id: string; name: string };
+  createdAt: string;
+}
+
 interface Leave {
   _id: string;
   type: string;
@@ -68,6 +77,7 @@ export default function StatusPage() {
   const { user } = useAuth();
   const [leaves, setLeaves] = useState<Leave[]>([]);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [notices, setNotices] = useState<NoticeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -75,10 +85,12 @@ export default function StatusPage() {
     Promise.all([
       apiFetch<{ leaves: Leave[] }>('/leaves'),
       apiFetch<{ complaints: Complaint[] }>('/complaints'),
+      apiFetch<{ notices: NoticeItem[] }>('/notices/my-notices').catch(() => ({ data: { notices: [] } })),
     ])
-      .then(([leavesRes, complaintsRes]) => {
+      .then(([leavesRes, complaintsRes, noticesRes]) => {
         setLeaves(leavesRes.data.leaves);
         setComplaints(complaintsRes.data.complaints);
+        setNotices(noticesRes.data.notices);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -103,6 +115,25 @@ export default function StatusPage() {
           {user.floor && <span> · Floor {user.floor}</span>}
           {user.roomNumber && <span> · Room {user.roomNumber}</span>}
         </div>
+      )}
+
+      {/* Notices */}
+      {notices.length > 0 && (
+        <>
+          <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">Notices</h2>
+          <div className="space-y-2">
+            {notices.map((n) => (
+              <div key={n._id} className="p-3 rounded-xl bg-blue-50 border border-blue-200 space-y-1">
+                <p className="font-medium text-sm text-blue-900">{n.title}</p>
+                <p className="text-sm text-blue-800">{n.content}</p>
+                <p className="text-xs text-blue-600">
+                  {new Date(n.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                  {n.authorId?.name && ` · ${n.authorId.name}`}
+                </p>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">My Leaves</h2>
