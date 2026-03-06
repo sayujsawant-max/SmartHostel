@@ -31,6 +31,16 @@ export async function createLeave(studentId: string, data: CreateLeaveInput, cor
     status: LeaveStatus.PENDING,
   });
 
+  await AuditEvent.create({
+    entityType: 'Leave',
+    entityId: leave._id,
+    eventType: 'PASS_REQUESTED',
+    actorId: studentId,
+    actorRole: 'STUDENT',
+    metadata: { type: data.type, startDate: data.startDate, endDate: data.endDate },
+    correlationId,
+  });
+
   logger.info(
     { eventType: 'LEAVE_CREATED', correlationId, leaveId: leave._id.toString(), studentId },
     'Leave request created',
@@ -83,6 +93,16 @@ export async function approveLeave(leaveId: string, wardenId: string, correlatio
 
   const gatePass = await createGatePass(leave, correlationId);
 
+  await AuditEvent.create({
+    entityType: 'Leave',
+    entityId: leave._id,
+    eventType: 'LEAVE_APPROVED',
+    actorId: wardenId,
+    actorRole: 'WARDEN_ADMIN',
+    metadata: { studentId: leave.studentId.toString() },
+    correlationId,
+  });
+
   logger.info(
     { eventType: 'LEAVE_APPROVED', correlationId, leaveId, wardenId },
     'Leave approved',
@@ -124,6 +144,16 @@ export async function rejectLeave(leaveId: string, wardenId: string, reason?: st
       : 'Your leave request was rejected.',
   });
 
+  await AuditEvent.create({
+    entityType: 'Leave',
+    entityId: leave._id,
+    eventType: 'LEAVE_REJECTED',
+    actorId: wardenId,
+    actorRole: 'WARDEN_ADMIN',
+    metadata: { reason: reason ?? null },
+    correlationId,
+  });
+
   logger.info(
     { eventType: 'LEAVE_REJECTED', correlationId, leaveId, wardenId, reason },
     'Leave rejected',
@@ -163,6 +193,16 @@ export async function cancelLeave(leaveId: string, studentId: string, correlatio
   if (leave.approvedBy) {
     await invalidatePassByLeaveId(leaveId, correlationId);
   }
+
+  await AuditEvent.create({
+    entityType: 'Leave',
+    entityId: leave._id,
+    eventType: 'LEAVE_CANCELLED',
+    actorId: studentId,
+    actorRole: 'STUDENT',
+    metadata: { previousStatus: leave.approvedBy ? 'APPROVED' : 'PENDING' },
+    correlationId,
+  });
 
   logger.info(
     { eventType: 'LEAVE_CANCELLED', correlationId, leaveId, studentId },

@@ -6,6 +6,7 @@ import { Leave } from '@models/leave.model.js';
 import { GatePass } from '@models/gate-pass.model.js';
 import { GateScan } from '@models/gate-scan.model.js';
 import { User } from '@models/user.model.js';
+import { AuditEvent } from '@models/audit-event.model.js';
 import { logger } from '@utils/logger.js';
 
 interface VerifyInput {
@@ -179,6 +180,16 @@ export async function verifyPass(input: VerifyInput): Promise<VerifyResult> {
 
   // Cache for dedup
   dedupeCache.set(dedupeKey, { result, timestamp: Date.now() });
+
+  await AuditEvent.create({
+    entityType: 'GateScan',
+    entityId: gatePass._id,
+    eventType: 'SCAN_VERIFIED',
+    actorId: input.guardId,
+    actorRole: 'GUARD',
+    metadata: { direction: directionUsed, leaveId: leaveRequestId, verdict: 'ALLOW' },
+    correlationId: input.correlationId,
+  });
 
   await logScan(input, result, method, leaveRequestId, gatePass._id.toString(), gatePass.studentId.toString(), startTime, directionDetected, lastGateState, directionUsed);
 
