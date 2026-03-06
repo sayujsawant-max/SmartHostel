@@ -90,6 +90,26 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+function getLeaveHint(status: string): { text: string; link?: { label: string; to: string } } | null {
+  switch (status) {
+    case 'PENDING': return { text: 'Waiting for warden approval.' };
+    case 'APPROVED': return { text: 'Your pass is ready.', link: { label: 'Show QR at Gate', to: '/student/actions/show-qr' } };
+    case 'REJECTED': return { text: 'Rejected.', link: { label: 'Request a New Leave', to: '/student/actions' } };
+    case 'SCANNED_OUT': return { text: 'You are currently out. Return before your pass expires.' };
+    default: return null;
+  }
+}
+
+function getComplaintHint(status: string): string | null {
+  switch (status) {
+    case 'OPEN': return 'Waiting for assignment. You\'ll be notified when someone is on it.';
+    case 'ASSIGNED': return 'Assigned to maintenance staff. Work will begin soon.';
+    case 'IN_PROGRESS': return 'Work is in progress. You\'ll be notified when resolved.';
+    case 'RESOLVED': return 'Issue resolved. Check resolution notes above.';
+    default: return null;
+  }
+}
+
 export default function StatusPage() {
   const { user } = useAuth();
   const [leaves, setLeaves] = useState<Leave[]>([]);
@@ -215,9 +235,9 @@ export default function StatusPage() {
 
       {leaves.length === 0 ? (
         <div className="text-center py-8 text-[hsl(var(--muted-foreground))]">
-          <p>No leave requests yet.</p>
+          <p>No active leaves.</p>
           <Link to="/student/actions" className="text-blue-600 mt-2 inline-block">
-            Request a leave
+            Request Leave &rarr;
           </Link>
         </div>
       ) : (
@@ -242,6 +262,16 @@ export default function StatusPage() {
               <p className="text-xs text-[hsl(var(--muted-foreground))] mt-2">
                 Submitted {formatDate(leave.createdAt)}
               </p>
+              {(() => {
+                const hint = getLeaveHint(leave.status);
+                if (!hint) return null;
+                return (
+                  <p className="text-xs text-blue-600 mt-1">
+                    {hint.text}
+                    {hint.link && <Link to={hint.link.to} className="ml-1 underline">{hint.link.label}</Link>}
+                  </p>
+                );
+              })()}
             </div>
           ))}
         </div>
@@ -254,7 +284,7 @@ export default function StatusPage() {
         <div className="text-center py-6 text-[hsl(var(--muted-foreground))]">
           <p>No complaints filed.</p>
           <Link to="/student/actions/report-issue" className="text-blue-600 mt-2 inline-block">
-            Report an Issue
+            Report an Issue &rarr;
           </Link>
         </div>
       ) : (
@@ -283,6 +313,9 @@ export default function StatusPage() {
                 <SLABadge dueAt={c.dueAt} />
                 <span>Updated {formatDate(c.updatedAt)}</span>
               </div>
+              {getComplaintHint(c.status) && (
+                <p className="text-xs text-blue-600">{getComplaintHint(c.status)}</p>
+              )}
             </Link>
           ))}
         </div>
