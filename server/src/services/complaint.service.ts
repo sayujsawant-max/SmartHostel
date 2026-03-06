@@ -258,3 +258,13 @@ export async function getAssignedComplaints(assigneeId: string) {
     .sort({ dueAt: 1 })
     .lean();
 }
+
+export async function getResolvedComplaints(assigneeId: string) {
+  return Complaint.find({
+    assigneeId,
+    status: { $in: [ComplaintStatus.RESOLVED, ComplaintStatus.CLOSED] },
+  })
+    .populate('studentId', 'name block roomNumber')
+    .sort({ updatedAt: -1 })
+    .lean();
+}

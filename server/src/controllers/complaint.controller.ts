@@ -147,3 +147,13 @@ export async function getAssignedTasks(req: Request, res: Response) {
     correlationId: req.correlationId,
   });
 }
+
+export async function getResolvedTasks(req: Request, res: Response) {
+  const complaints = await complaintService.getResolvedComplaints(req.user!._id);
+
+  res.json({
+    success: true,
+    data: { complaints },
+    correlationId: req.correlationId,
+  });
+}

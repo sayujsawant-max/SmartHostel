@@ -20,6 +20,9 @@ router.get('/maintenance-staff', requireRole(Role.WARDEN_ADMIN), complaintContro
 // Maintenance: get assigned tasks
 router.get('/my-tasks', requireRole(Role.MAINTENANCE), complaintController.getAssignedTasks);
 
+// Maintenance: get resolved history
+router.get('/my-history', requireRole(Role.MAINTENANCE), complaintController.getResolvedTasks);
+
 // Any authenticated user with access: get complaint by ID
 router.get('/:id', requireRole(Role.STUDENT, Role.WARDEN_ADMIN, Role.MAINTENANCE), complaintController.getComplaintById);
 
