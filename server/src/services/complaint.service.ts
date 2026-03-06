@@ -179,3 +179,89 @@ export async function updatePriority(
 export async function getMaintenanceStaff() {
   return User.find({ role: Role.MAINTENANCE, isActive: true }, '_id name').lean();
 }
+
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  [ComplaintStatus.OPEN]: [ComplaintStatus.ASSIGNED],
+  [ComplaintStatus.ASSIGNED]: [ComplaintStatus.IN_PROGRESS],
+  [ComplaintStatus.IN_PROGRESS]: [ComplaintStatus.RESOLVED],
+  [ComplaintStatus.RESOLVED]: [ComplaintStatus.CLOSED],
+  [ComplaintStatus.CLOSED]: [],
+};
+
+export async function updateStatus(
+  complaintId: string,
+  newStatus: string,
+  actorId: string,
+  actorRole: string,
+  resolutionNotes: string | null,
+  correlationId: string,
+) {
+  const complaint = await Complaint.findById(complaintId);
+  if (!complaint) {
+    throw new AppError('NOT_FOUND', 'Complaint not found', 404);
+  }
+
+  const allowed = VALID_TRANSITIONS[complaint.status] ?? [];
+  if (!allowed.includes(newStatus)) {
+    throw new AppError(
+      'CONFLICT',
+      `Cannot transition from ${complaint.status} to ${newStatus}. Valid: ${allowed.join(', ') || 'none'}`,
+      409,
+    );
+  }
+
+  complaint.status = newStatus as ComplaintStatus;
+  if (newStatus === ComplaintStatus.RESOLVED && resolutionNotes) {
+    complaint.resolutionNotes = resolutionNotes;
+  }
+  await complaint.save();
+
+  const eventType =
+    newStatus === ComplaintStatus.IN_PROGRESS ? 'WORK_STARTED' :
+    newStatus === ComplaintStatus.RESOLVED ? 'COMPLAINT_RESOLVED' :
+    `STATUS_${newStatus}`;
+
+  await ComplaintEvent.create({
+    complaintId: complaint._id,
+    eventType,
+    actorId,
+    actorRole,
+    note: resolutionNotes,
+  });
+
+  await AuditEvent.create({
+    entityType: 'Complaint',
+    entityId: complaint._id,
+    eventType,
+    actorId,
+    actorRole,
+    metadata: { from: complaint.status, to: newStatus },
+    correlationId,
+  });
+
+  // Notify student when resolved
+  if (newStatus === ComplaintStatus.RESOLVED) {
+    await Notification.create({
+      recipientId: complaint.studentId,
+      type: NotificationType.COMPLAINT_RESOLVED,
+      entityType: 'Complaint',
+      entityId: complaint._id,
+      title: 'Complaint Resolved',
+      body: `Your ${complaint.category} complaint has been resolved.`,
+    });
+  }
+
+  logger.info({ complaintId, newStatus, correlationId }, 'Complaint status updated');
+
+  return complaint;
+}
+
+export async function getAssignedComplaints(assigneeId: string) {
+  return Complaint.find({
+    assigneeId,
+    status: { $in: [ComplaintStatus.ASSIGNED, ComplaintStatus.IN_PROGRESS] },
+  })
+    .populate('studentId', 'name block roomNumber')
+    .sort({ dueAt: 1 })
+    .lean();
+}

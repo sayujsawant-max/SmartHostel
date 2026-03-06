@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { createComplaintSchema, ComplaintPriority, Role } from '@smarthostel/shared';
+import { createComplaintSchema, ComplaintPriority, ComplaintStatus, Role } from '@smarthostel/shared';
 import * as complaintService from '@services/complaint.service.js';
 import { AppError } from '@utils/app-error.js';
 
@@ -109,6 +109,41 @@ export async function updatePriority(req: Request<{ id: string }>, res: Response
   res.json({
     success: true,
     data: { complaint },
+    correlationId: req.correlationId,
+  });
+}
+
+export async function updateStatus(req: Request<{ id: string }>, res: Response) {
+  const { status, resolutionNotes } = req.body as { status?: string; resolutionNotes?: string };
+  const validStatuses = Object.values(ComplaintStatus);
+  if (!status || !validStatuses.includes(status as ComplaintStatus)) {
+    throw new AppError('VALIDATION_ERROR', `status must be one of: ${validStatuses.join(', ')}`, 400, {
+      field: 'status',
+    });
+  }
+
+  const complaint = await complaintService.updateStatus(
+    req.params.id,
+    status,
+    req.user!._id,
+    req.user!.role,
+    resolutionNotes ?? null,
+    req.correlationId,
+  );
+
+  res.json({
+    success: true,
+    data: { complaint },
+    correlationId: req.correlationId,
+  });
+}
+
+export async function getAssignedTasks(req: Request, res: Response) {
+  const complaints = await complaintService.getAssignedComplaints(req.user!._id);
+
+  res.json({
+    success: true,
+    data: { complaints },
     correlationId: req.correlationId,
   });
 }

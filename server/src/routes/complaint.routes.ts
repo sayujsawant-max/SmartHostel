@@ -17,6 +17,9 @@ router.get('/', requireRole(Role.STUDENT, Role.WARDEN_ADMIN), complaintControlle
 // Warden: get maintenance staff for assignment dropdown
 router.get('/maintenance-staff', requireRole(Role.WARDEN_ADMIN), complaintController.getMaintenanceStaff);
 
+// Maintenance: get assigned tasks
+router.get('/my-tasks', requireRole(Role.MAINTENANCE), complaintController.getAssignedTasks);
+
 // Any authenticated user with access: get complaint by ID
 router.get('/:id', requireRole(Role.STUDENT, Role.WARDEN_ADMIN, Role.MAINTENANCE), complaintController.getComplaintById);
 
@@ -28,5 +31,8 @@ router.patch('/:id/assign', requireRole(Role.WARDEN_ADMIN), complaintController.
 
 // Warden: override priority
 router.patch('/:id/priority', requireRole(Role.WARDEN_ADMIN), complaintController.updatePriority);
+
+// Maintenance/Warden: update complaint status
+router.patch('/:id/status', requireRole(Role.MAINTENANCE, Role.WARDEN_ADMIN), complaintController.updateStatus);
 
 export default router;
