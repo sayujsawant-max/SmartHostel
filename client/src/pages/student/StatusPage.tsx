@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '@services/api';
+import { useAuth } from '@hooks/useAuth';
 
 interface Leave {
   _id: string;
@@ -64,6 +65,7 @@ function formatDate(iso: string) {
 }
 
 export default function StatusPage() {
+  const { user } = useAuth();
   const [leaves, setLeaves] = useState<Leave[]>([]);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,6 +96,15 @@ export default function StatusPage() {
 
   return (
     <div className="p-4 space-y-4">
+      {/* Room Info */}
+      {user && (user.block || user.roomNumber) && (
+        <div className="p-3 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-sm text-[hsl(var(--muted-foreground))]">
+          {user.block && <span>Block {user.block}</span>}
+          {user.floor && <span> · Floor {user.floor}</span>}
+          {user.roomNumber && <span> · Room {user.roomNumber}</span>}
+        </div>
+      )}
+
       <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">My Leaves</h2>
 
       {activeLeave && (
