@@ -15,6 +15,7 @@ import StudentStatusPage from '@pages/student/StatusPage';
 import StudentActionsPage from '@pages/student/ActionsPage';
 import StudentFaqPage from '@pages/student/FaqPage';
 import ShowQRPage from '@pages/student/ShowQRPage';
+import ReportIssuePage from '@pages/student/ReportIssuePage';
 
 // Warden pages
 import WardenDashboardPage from '@pages/warden/DashboardPage';
@@ -71,6 +72,7 @@ function AppRoutes() {
             <Route path="/student/status" element={<StudentStatusPage />} />
             <Route path="/student/actions" element={<StudentActionsPage />} />
             <Route path="/student/actions/show-qr" element={<ShowQRPage />} />
+            <Route path="/student/actions/report-issue" element={<ReportIssuePage />} />
             <Route path="/student/faq" element={<StudentFaqPage />} />
           </Route>
         </Route>
