@@ -1,0 +1,29 @@
+[
+  {
+    "feeType": "HOSTEL_FEE",
+    "amount": 45000,
+    "currency": "INR",
+    "dueDate": "2026-04-15T00:00:00.000Z",
+    "status": "UNPAID",
+    "semester": "Spring 2026",
+    "academicYear": "2025-2026"
+  },
+  {
+    "feeType": "MESS_FEE",
+    "amount": 18000,
+    "currency": "INR",
+    "dueDate": "2026-03-01T00:00:00.000Z",
+    "status": "PAID",
+    "semester": "Spring 2026",
+    "academicYear": "2025-2026"
+  },
+  {
+    "feeType": "MAINTENANCE_FEE",
+    "amount": 5000,
+    "currency": "INR",
+    "dueDate": "2026-03-20T00:00:00.000Z",
+    "status": "OVERDUE",
+    "semester": "Spring 2026",
+    "academicYear": "2025-2026"
+  }
+]

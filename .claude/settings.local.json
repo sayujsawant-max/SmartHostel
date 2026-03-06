@@ -31,7 +31,13 @@
       "Bash(cp -r \"c:/Projects/Agent/_bmad/bmm/_memory/bmad-auto-implement-sidecar/workflows\" \"c:/Projects/Agent/_bmad/_memory/bmad-auto-implement-sidecar/\")",
       "Bash(npm install --save-exact -D jsdom -w client)",
       "Bash(npm -w client run test)",
-      "Bash(npm test)"
+      "Bash(npm test)",
+      "Bash(npx -w server tsc --noEmit)",
+      "Bash(npx -w server eslint src/models/faq-entry.model.ts src/models/fee.model.ts src/models/category-default.model.ts src/scripts/seed.ts)",
+      "Bash(npx -w server eslint src/scripts/seed-users.ts)",
+      "Bash(node -e \"const pkg = require\\(''./package.json''\\); console.log\\(''Root seed:'', pkg.scripts.seed\\); console.log\\(''Root seed:users:'', pkg.scripts[''seed:users'']\\)\")",
+      "Bash(node -e \"const pkg = require\\(''./server/package.json''\\); console.log\\(''Server seed:'', pkg.scripts.seed\\); console.log\\(''Server seed:users:'', pkg.scripts[''seed:users'']\\)\")",
+      "Bash(node -e \"const data = require\\(''c:/Projects/Agent/server/src/scripts/seed-data/faqs.json''\\); console.log\\(''FAQ count:'', data.length\\); const cats = [...new Set\\(data.map\\(f => f.category\\)\\)]; console.log\\(''Categories:'', cats.join\\('', ''\\)\\)\")"
     ]
   }
 }

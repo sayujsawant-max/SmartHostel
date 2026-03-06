@@ -1,0 +1,134 @@
+[
+  {
+    "question": "How do I apply for a day outing leave?",
+    "answer": "Go to the Leaves section in your dashboard, click 'New Leave Request', select 'Day Outing', fill in the departure and return times, and submit. Your warden will review and approve/reject the request.",
+    "category": "leaves",
+    "keywords": ["leave", "day outing", "apply", "request", "go out"]
+  },
+  {
+    "question": "How do I apply for an overnight leave?",
+    "answer": "Navigate to Leaves, click 'New Leave Request', select 'Overnight', enter your departure date, expected return date, and reason. Overnight leaves require warden approval and may take longer to process.",
+    "category": "leaves",
+    "keywords": ["leave", "overnight", "stay out", "night", "apply"]
+  },
+  {
+    "question": "Can I cancel an approved leave?",
+    "answer": "Yes, you can cancel an approved leave before you scan out at the gate. Go to your leave details and click 'Cancel'. Once you have scanned out, the leave cannot be cancelled.",
+    "category": "leaves",
+    "keywords": ["cancel", "leave", "approved", "revoke"]
+  },
+  {
+    "question": "What happens if my leave expires?",
+    "answer": "If you do not scan out before your leave's scheduled departure time, the leave will automatically expire. You will need to apply for a new leave. Expired leaves are recorded in your history.",
+    "category": "leaves",
+    "keywords": ["expire", "leave", "timeout", "missed"]
+  },
+  {
+    "question": "How does the gate pass QR code work?",
+    "answer": "When your leave is approved, a QR code gate pass is generated. Show this QR code to the guard at the gate. The guard scans it to verify and log your exit. A new QR code is generated for re-entry.",
+    "category": "gate-pass",
+    "keywords": ["QR", "gate pass", "scan", "exit", "entry", "code"]
+  },
+  {
+    "question": "What if the QR scanner is not working?",
+    "answer": "If the QR scanner is unavailable, the guard can use the 4-digit pass code displayed on your gate pass. In case of network issues, the guard can log an offline entry which will be reconciled when connectivity is restored.",
+    "category": "gate-pass",
+    "keywords": ["scanner", "not working", "offline", "pass code", "fallback"]
+  },
+  {
+    "question": "How do I report a maintenance issue?",
+    "answer": "Go to 'Report Issue' in your dashboard, select the appropriate category (Plumbing, Electrical, etc.), describe the problem, optionally attach a photo, and submit. Your complaint will be assigned to a maintenance staff member.",
+    "category": "complaints",
+    "keywords": ["report", "issue", "complaint", "maintenance", "problem", "broken"]
+  },
+  {
+    "question": "How long will it take to resolve my complaint?",
+    "answer": "Resolution time depends on the category and priority. Electrical issues (CRITICAL) have a 12-hour SLA, Plumbing (HIGH) has 24 hours, and General issues (LOW) have 48 hours. You can track progress in your complaint details.",
+    "category": "complaints",
+    "keywords": ["resolve", "time", "SLA", "how long", "complaint", "priority"]
+  },
+  {
+    "question": "Can I track the status of my complaint?",
+    "answer": "Yes, go to your dashboard and click on the complaint. You will see a timeline showing all status updates: OPEN, ASSIGNED, IN_PROGRESS, and RESOLVED. You will also receive notifications when the status changes.",
+    "category": "complaints",
+    "keywords": ["track", "status", "complaint", "progress", "timeline"]
+  },
+  {
+    "question": "What are the complaint categories available?",
+    "answer": "Available categories are: Plumbing, Electrical, Carpentry, Cleaning, General, Pest Control, Internet, and Other. Choose the most appropriate category so your issue is assigned to the right maintenance staff.",
+    "category": "complaints",
+    "keywords": ["categories", "complaint", "type", "plumbing", "electrical"]
+  },
+  {
+    "question": "How do I view my fee details?",
+    "answer": "Navigate to the Fees section in your dashboard. You can see all your fee records including hostel fees, mess fees, and maintenance charges. Fee amounts, due dates, and payment status are displayed.",
+    "category": "fees",
+    "keywords": ["fee", "view", "payment", "charges", "dues"]
+  },
+  {
+    "question": "Can I pay fees through the app?",
+    "answer": "Currently, fee payment is not available through the app. Fee records are displayed for your reference only. Please pay fees through the official hostel office or designated payment channels.",
+    "category": "fees",
+    "keywords": ["pay", "fee", "online", "payment", "app"]
+  },
+  {
+    "question": "What if my fee status shows OVERDUE?",
+    "answer": "An OVERDUE status means your fee payment has passed the due date. Please contact the hostel office immediately to settle the outstanding amount. Overdue fees may affect your leave approval privileges.",
+    "category": "fees",
+    "keywords": ["overdue", "fee", "late", "payment", "due date"]
+  },
+  {
+    "question": "What are the hostel timings?",
+    "answer": "General hostel timings are: Entry closes at 10:00 PM on weekdays and 11:00 PM on weekends. Early morning exit is available from 6:00 AM. Any entry/exit outside these hours requires special permission via the leave system.",
+    "category": "hostel-rules",
+    "keywords": ["timing", "hostel", "curfew", "hours", "entry", "exit"]
+  },
+  {
+    "question": "What items are not allowed in the hostel?",
+    "answer": "Prohibited items include: cooking appliances (heaters, induction stoves), alcohol, tobacco products, weapons, and pets. Electrical appliances beyond personal laptops, phones, and grooming devices require prior approval.",
+    "category": "hostel-rules",
+    "keywords": ["prohibited", "not allowed", "banned", "items", "rules"]
+  },
+  {
+    "question": "How are room assignments handled?",
+    "answer": "Room assignments are managed by the warden and are pre-assigned at the start of each academic year. Your room details (block, floor, room number) are visible in your profile. Room change requests should be submitted to the warden office.",
+    "category": "hostel-rules",
+    "keywords": ["room", "assignment", "block", "floor", "change"]
+  },
+  {
+    "question": "Who do I contact for emergency maintenance?",
+    "answer": "For emergencies (electrical hazards, water leaks, etc.), report an issue through the app with the appropriate category. Electrical issues are flagged as CRITICAL priority with a 12-hour SLA. For immediate danger, contact the hostel security desk.",
+    "category": "maintenance",
+    "keywords": ["emergency", "maintenance", "urgent", "contact", "hazard"]
+  },
+  {
+    "question": "How do maintenance staff receive task assignments?",
+    "answer": "Maintenance staff receive notifications when a complaint is assigned to them. Tasks appear in the Tasks section of their dashboard, sorted by priority and SLA deadline. Staff can update task status as they work on issues.",
+    "category": "maintenance",
+    "keywords": ["maintenance", "task", "assignment", "notification", "staff"]
+  },
+  {
+    "question": "What happens when an SLA deadline is missed?",
+    "answer": "If a complaint is not resolved within its SLA window, the system automatically escalates it: a reminder is sent to the assigned staff 2 hours before the deadline, and upon breach, the warden is notified and the complaint priority is elevated.",
+    "category": "maintenance",
+    "keywords": ["SLA", "deadline", "missed", "escalation", "breach"]
+  },
+  {
+    "question": "How do I reset my password?",
+    "answer": "Use the password reset option on the login page. You will need to verify your identity. If you are unable to reset your password, contact the hostel warden who can initiate a password reset from the admin panel.",
+    "category": "general",
+    "keywords": ["password", "reset", "forgot", "login", "account"]
+  },
+  {
+    "question": "How do I update my profile information?",
+    "answer": "Your basic profile information (name, email, room assignment) is managed by the hostel administration. If any information is incorrect, please contact the warden office to request an update.",
+    "category": "general",
+    "keywords": ["profile", "update", "information", "edit", "personal"]
+  },
+  {
+    "question": "Is my data secure in the system?",
+    "answer": "Yes, the system uses encrypted connections (HTTPS), secure authentication tokens, and passwords are stored using industry-standard hashing. Your personal data is only accessible to authorized hostel staff based on their role.",
+    "category": "general",
+    "keywords": ["security", "data", "privacy", "safe", "encrypted"]
+  }
+]

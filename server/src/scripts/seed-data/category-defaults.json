@@ -1,0 +1,50 @@
+[
+  {
+    "category": "PLUMBING",
+    "defaultPriority": "HIGH",
+    "slaHours": 24,
+    "description": "Water supply, drainage, leaks, pipe repairs, bathroom fixtures"
+  },
+  {
+    "category": "ELECTRICAL",
+    "defaultPriority": "CRITICAL",
+    "slaHours": 12,
+    "description": "Power outages, wiring issues, electrical hazards, switch/socket repairs"
+  },
+  {
+    "category": "CARPENTRY",
+    "defaultPriority": "MEDIUM",
+    "slaHours": 48,
+    "description": "Furniture repair, door/window fixes, shelf installation, lock issues"
+  },
+  {
+    "category": "CLEANING",
+    "defaultPriority": "MEDIUM",
+    "slaHours": 24,
+    "description": "Room cleaning, common area maintenance, waste disposal, sanitation"
+  },
+  {
+    "category": "GENERAL",
+    "defaultPriority": "LOW",
+    "slaHours": 48,
+    "description": "General maintenance requests that do not fit other categories"
+  },
+  {
+    "category": "PEST_CONTROL",
+    "defaultPriority": "HIGH",
+    "slaHours": 36,
+    "description": "Insect infestations, rodent issues, fumigation requests"
+  },
+  {
+    "category": "INTERNET",
+    "defaultPriority": "HIGH",
+    "slaHours": 12,
+    "description": "WiFi connectivity, network issues, LAN port problems"
+  },
+  {
+    "category": "OTHER",
+    "defaultPriority": "LOW",
+    "slaHours": 48,
+    "description": "Miscellaneous issues not covered by other categories"
+  }
+]
