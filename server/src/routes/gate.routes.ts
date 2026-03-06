@@ -11,5 +11,8 @@ router.use(authMiddleware);
 
 router.post('/validate', requireRole(Role.GUARD), passCodeRateLimiter, gateController.validate);
 router.post('/reconcile', requireRole(Role.GUARD), gateController.reconcile);
+router.post('/override', requireRole(Role.GUARD), gateController.override);
+router.get('/overrides', requireRole(Role.WARDEN_ADMIN), gateController.getOverrides);
+router.patch('/overrides/:id/review', requireRole(Role.WARDEN_ADMIN), gateController.reviewOverride);
 
 export default router;

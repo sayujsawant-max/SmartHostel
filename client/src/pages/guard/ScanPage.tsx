@@ -50,6 +50,9 @@ export default function ScanPage() {
   const [directionOverride, setDirectionOverride] = useState<'ENTRY' | 'EXIT' | null>(null);
   const [offlineCount, setOfflineCount] = useState(() => getOfflineQueue().length);
   const [syncing, setSyncing] = useState(false);
+  const [showOverrideSheet, setShowOverrideSheet] = useState(false);
+  const [overrideReason, setOverrideReason] = useState('');
+  const [overrideNote, setOverrideNote] = useState('');
   const lastScanRef = useRef<string>('');
   const lastOfflineTokenRef = useRef<{ qrToken?: string; passCode?: string }>({});
   const verdictTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -228,10 +231,44 @@ export default function ScanPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const OVERRIDE_REASONS = ['Medical Emergency', 'Family Emergency', 'Staff Instruction', 'Other'];
+
+  const handleOverrideOpen = () => {
+    setShowOverrideSheet(true);
+    setOverrideReason('');
+    setOverrideNote('');
+  };
+
+  const handleOverrideSubmit = async () => {
+    if (!overrideReason || overrideNote.length < 5) return;
+    try {
+      await apiFetch('/gate/override', {
+        method: 'POST',
+        body: JSON.stringify({
+          reason: overrideReason,
+          note: overrideNote,
+          method: 'MANUAL_OVERRIDE',
+        }),
+      });
+      setShowOverrideSheet(false);
+      setScanData({ verdict: 'ALLOW', scanResult: 'OVERRIDE', reason: `Override — ${overrideReason}` });
+      setVerdict('ALLOW');
+      navigator.vibrate?.(100);
+      verdictTimeoutRef.current = setTimeout(() => {
+        setVerdict(null);
+        setScanData(null);
+        lastScanRef.current = '';
+      }, 1200);
+    } catch {
+      // Keep the sheet open on error
+    }
+  };
+
   const dismissVerdict = () => {
     if (verdictTimeoutRef.current) clearTimeout(verdictTimeoutRef.current);
     setVerdict(null);
     setScanData(null);
+    setShowOverrideSheet(false);
     lastScanRef.current = '';
   };
 
@@ -276,12 +313,70 @@ export default function ScanPage() {
           </div>
         )}
         {!isAllow && !isOffline && (
-          <button
-            onClick={dismissVerdict}
-            className="mt-8 px-6 py-3 bg-white/20 rounded-lg text-lg font-medium"
+          <div className="mt-8 flex flex-col gap-3 w-64">
+            <button
+              onClick={(e) => { e.stopPropagation(); handleOverrideOpen(); }}
+              className="px-6 py-3 bg-yellow-600 rounded-lg text-lg font-medium"
+            >
+              Override
+            </button>
+            <button
+              onClick={dismissVerdict}
+              className="px-6 py-3 bg-white/20 rounded-lg text-lg font-medium"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+        {/* Override bottom sheet */}
+        {showOverrideSheet && (
+          <div
+            className="fixed bottom-0 left-0 right-0 bg-gray-900 rounded-t-2xl p-6 max-h-[70vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
           >
-            Dismiss
-          </button>
+            <p className="text-lg font-semibold mb-4">Override — Select Reason</p>
+            <div className="flex flex-col gap-2 mb-4">
+              {OVERRIDE_REASONS.map((r) => (
+                <button
+                  key={r}
+                  onClick={() => {
+                    setOverrideReason(r);
+                    const time = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                    setOverrideNote(`${r} — allowed at ${time}`);
+                  }}
+                  className={`px-4 py-3 rounded-lg text-left text-sm font-medium ${
+                    overrideReason === r ? 'bg-yellow-600' : 'bg-white/10'
+                  }`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+            {overrideReason && (
+              <>
+                <textarea
+                  value={overrideNote}
+                  onChange={(e) => setOverrideNote(e.target.value)}
+                  rows={2}
+                  className="w-full px-4 py-3 rounded-lg bg-white/10 text-white text-sm mb-4"
+                  placeholder="Note (min 5 characters)"
+                />
+                <button
+                  onClick={() => void handleOverrideSubmit()}
+                  disabled={overrideNote.length < 5}
+                  className="w-full px-6 py-3 bg-green-600 rounded-lg text-lg font-medium disabled:opacity-40"
+                >
+                  Confirm Override
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => setShowOverrideSheet(false)}
+              className="w-full mt-3 px-6 py-3 bg-white/10 rounded-lg text-sm"
+            >
+              Cancel
+            </button>
+          </div>
         )}
       </div>
     );

@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import * as gateService from '@services/gate.service.js';
+import * as overrideService from '@services/override.service.js';
 import { AppError } from '@utils/app-error.js';
 
 interface ValidateBody {
@@ -28,6 +29,55 @@ export async function validate(req: Request, res: Response) {
     data: result,
     correlationId: req.correlationId,
   });
+}
+
+interface OverrideBody {
+  reason: string;
+  note: string;
+  method: 'MANUAL_OVERRIDE' | 'OFFLINE_OVERRIDE';
+  leaveId?: string;
+  gatePassId?: string;
+  gateScanId?: string;
+  studentId?: string;
+}
+
+export async function override(req: Request, res: Response) {
+  const body = req.body as OverrideBody;
+
+  if (!body.reason || !body.note || body.note.length < 5) {
+    throw new AppError('VALIDATION_ERROR', 'Reason and note (min 5 chars) are required', 400);
+  }
+
+  const result = await overrideService.createOverride({
+    ...body,
+    guardId: req.user!._id,
+    correlationId: req.correlationId,
+  });
+
+  res.status(201).json({
+    success: true,
+    data: { overrideId: result._id, verdict: 'ALLOW', scanResult: 'OVERRIDE' },
+    correlationId: req.correlationId,
+  });
+}
+
+export async function getOverrides(_req: Request, res: Response) {
+  const overrides = await overrideService.getPendingOverrides();
+  res.json({ success: true, data: overrides });
+}
+
+export async function reviewOverride(req: Request<{ id: string }>, res: Response) {
+  const result = await overrideService.markReviewed(
+    req.params.id,
+    req.user!._id,
+    req.correlationId,
+  );
+
+  if (!result) {
+    throw new AppError('NOT_FOUND', 'Override not found', 404);
+  }
+
+  res.json({ success: true, data: result });
 }
 
 interface ReconcileBody {
