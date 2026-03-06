@@ -34,18 +34,88 @@ export function generateTokens(userId: string, role: string): TokenPair {
 }
 
 export async function login(email: string, password: string, correlationId?: string) {
-  const user = await User.findOne({ email, isActive: true });
+  // Select lockout fields explicitly (they have select: false)
+  const user = await User.findOne({ email, isActive: true })
+    .select('+failedLoginAttempts +lockedUntil');
+
+  // Check if account is locked before doing anything
+  if (user?.lockedUntil) {
+    if (user.lockedUntil.getTime() > Date.now()) {
+      const retryAfterMs = user.lockedUntil.getTime() - Date.now();
+      logger.warn(
+        { eventType: 'AUTH_LOCKED_ATTEMPT', correlationId, userId: user._id.toString() },
+        'Login attempt on locked account',
+      );
+      throw new AppError('RATE_LIMITED', 'Account temporarily locked', 429, {
+        retryable: true,
+        retryAfterMs,
+      });
+    }
+    // Lockout has expired — reset counter so the next wrong password doesn't immediately re-lock
+    user.failedLoginAttempts = 0;
+    user.lockedUntil = null;
+    await User.updateOne({ _id: user._id }, { $set: { failedLoginAttempts: 0, lockedUntil: null } });
+  }
 
   // Always run bcrypt.compare to prevent timing attacks (constant-time regardless of user existence)
   const isMatch = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_HASH);
+
   if (!user || !isMatch) {
+    // If user exists, track failed attempt
+    if (user) {
+      const newFailedAttempts = (user.failedLoginAttempts || 0) + 1;
+      const updateFields: Record<string, unknown> = {
+        failedLoginAttempts: newFailedAttempts,
+      };
+
+      if (newFailedAttempts >= env.MAX_LOGIN_ATTEMPTS) {
+        updateFields.lockedUntil = new Date(Date.now() + env.LOGIN_LOCKOUT_DURATION_MS);
+        logger.warn(
+          {
+            eventType: 'AUTH_LOCKOUT',
+            correlationId,
+            userId: user._id.toString(),
+            failedAttempts: newFailedAttempts,
+          },
+          'Account locked due to too many failed login attempts',
+        );
+      }
+
+      await User.updateOne({ _id: user._id }, { $set: updateFields });
+
+      logger.info(
+        {
+          eventType: 'AUTH_FAILED',
+          correlationId,
+          userId: user._id.toString(),
+          failedAttempts: newFailedAttempts,
+        },
+        'Failed login attempt',
+      );
+
+      // If this attempt triggered the lockout, return RATE_LIMITED
+      if (newFailedAttempts >= env.MAX_LOGIN_ATTEMPTS) {
+        throw new AppError('RATE_LIMITED', 'Account temporarily locked', 429, {
+          retryable: true,
+          retryAfterMs: env.LOGIN_LOCKOUT_DURATION_MS,
+        });
+      }
+    }
+
     throw new AppError('UNAUTHORIZED', 'Invalid email or password', 401);
   }
 
+  // Successful login — reset failed attempts and lockedUntil
   const tokens = generateTokens(user._id.toString(), user.role);
   const hashedJti = hashJti(tokens.jti);
 
-  await User.updateOne({ _id: user._id }, { $push: { refreshTokenJtis: hashedJti } });
+  await User.updateOne(
+    { _id: user._id },
+    {
+      $push: { refreshTokenJtis: hashedJti },
+      $set: { failedLoginAttempts: 0, lockedUntil: null },
+    },
+  );
 
   logger.info(
     { eventType: 'AUTH_LOGIN', correlationId, userId: user._id.toString(), role: user.role },

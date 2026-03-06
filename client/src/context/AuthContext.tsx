@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, type ReactNode } from 'react';
-import { apiFetch } from '@services/api';
+import { apiFetch, AUTH_REFRESH_FAILED_EVENT } from '@services/api';
 import { AuthContext, type UserProfile } from './auth-context-value';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -11,6 +11,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then((res) => setUser(res.data.user))
       .catch(() => setUser(null))
       .finally(() => setIsLoading(false));
+  }, []);
+
+  // Listen for refresh-failure signal to clear auth state
+  useEffect(() => {
+    function handleRefreshFailed() {
+      setUser(null);
+    }
+    window.addEventListener(AUTH_REFRESH_FAILED_EVENT, handleRefreshFailed);
+    return () => {
+      window.removeEventListener(AUTH_REFRESH_FAILED_EVENT, handleRefreshFailed);
+    };
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {

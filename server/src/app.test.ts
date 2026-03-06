@@ -9,7 +9,7 @@ describe('Server Smoke Tests', () => {
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({
       success: true,
-      data: { status: 'ok' },
+      data: { status: 'healthy' },
     });
     expect(res.body.correlationId).toBeDefined();
   });

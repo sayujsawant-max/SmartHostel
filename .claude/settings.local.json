@@ -28,7 +28,10 @@
       "Bash(cp \"c:/Projects/Agent/_bmad/_config/custom/bmm/_memory/bmad-auto-implement-sidecar/instructions.md\" \"c:/Projects/Agent/_bmad/_memory/bmad-auto-implement-sidecar/instructions.md\")",
       "Bash(cp \"c:/Projects/Agent/_bmad/_config/custom/bmm/_memory/bmad-auto-implement-sidecar/auto-implement-state.md\" \"c:/Projects/Agent/_bmad/_memory/bmad-auto-implement-sidecar/auto-implement-state.md\")",
       "Bash(cp -r \"c:/Projects/Agent/_bmad/bmm/_memory/bmad-auto-implement-sidecar/knowledge\" \"c:/Projects/Agent/_bmad/_memory/bmad-auto-implement-sidecar/\")",
-      "Bash(cp -r \"c:/Projects/Agent/_bmad/bmm/_memory/bmad-auto-implement-sidecar/workflows\" \"c:/Projects/Agent/_bmad/_memory/bmad-auto-implement-sidecar/\")"
+      "Bash(cp -r \"c:/Projects/Agent/_bmad/bmm/_memory/bmad-auto-implement-sidecar/workflows\" \"c:/Projects/Agent/_bmad/_memory/bmad-auto-implement-sidecar/\")",
+      "Bash(npm install --save-exact -D jsdom -w client)",
+      "Bash(npm -w client run test)",
+      "Bash(npm test)"
     ]
   }
 }

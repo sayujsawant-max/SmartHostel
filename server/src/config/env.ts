@@ -54,6 +54,26 @@ const envSchema = z.object({
   CRON_ENABLED: booleanString,
   ACCESS_TOKEN_EXPIRY: durationMs.default('1h'),
   REFRESH_TOKEN_EXPIRY: durationMs.default('7d'),
+  MAX_LOGIN_ATTEMPTS: z.coerce.number().default(5),
+  LOGIN_LOCKOUT_DURATION_MS: z
+    .string()
+    .optional()
+    .transform((v, ctx) => {
+      if (!v) return 900_000; // 15 minutes default
+      const match = v.match(/^(\d+)(ms|s|m|h|d)$/);
+      if (match) {
+        const num = Number(match[1]);
+        const unit = match[2];
+        const multipliers: Record<string, number> = {
+          ms: 1, s: 1_000, m: 60_000, h: 3_600_000, d: 86_400_000,
+        };
+        return num * multipliers[unit];
+      }
+      const asNum = Number(v);
+      if (!Number.isNaN(asNum) && v.trim() !== '') return asNum;
+      ctx.addIssue(`Invalid duration: "${v}". Use e.g. "15m", "7d", or a number in ms.`);
+      return z.NEVER;
+    }),
   ALLOWED_ORIGINS: z.string().default('http://localhost:5173'),
 });
 

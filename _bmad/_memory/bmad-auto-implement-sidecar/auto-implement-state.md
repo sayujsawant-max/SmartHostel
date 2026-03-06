@@ -17,6 +17,17 @@ epics:
     stories:
       - id: 1.1
         name: "Project Scaffolding & Dev Environment"
+        status: complete
+        phases:
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
+      - id: 1.2
+        name: "User Model, Auth API & JWT Token Lifecycle"
         status: in_progress
         phases:
           create_story: complete
@@ -25,17 +36,6 @@ epics:
           codex_review: skipped
           reconcile: complete
           fix: complete
-          closed: pending
-      - id: 1.2
-        name: "User Model, Auth API & JWT Token Lifecycle"
-        status: pending
-        phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
           closed: pending
       - id: 1.3
         name: "RBAC Middleware & Role-Based Data Visibility"

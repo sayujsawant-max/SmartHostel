@@ -7,6 +7,9 @@ export interface UserProfile {
   email: string;
   role: Role;
   hasConsented?: boolean;
+  block?: string;
+  floor?: string;
+  roomNumber?: string;
 }
 
 export interface AuthContextType {

@@ -18,6 +18,7 @@
     "dev:worker": "npm -w server run dev:worker",
     "build": "npm -w shared run build && npm -w client run build && npm -w server run build",
     "seed": "npm -w server run seed",
+    "seed:users": "npm -w server run seed:users",
     "lint": "npm -w client run lint && npm -w server run lint",
     "test": "npm -w client run test && npm -w server run test"
   },

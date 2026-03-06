@@ -13,6 +13,8 @@ export interface IUser extends Document {
   consentedAt?: Date;
   isActive: boolean;
   refreshTokenJtis: string[];
+  failedLoginAttempts: number;
+  lockedUntil: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +36,8 @@ const userSchema = new Schema<IUser>(
     consentedAt: { type: Date },
     isActive: { type: Boolean, default: true },
     refreshTokenJtis: { type: [String], default: [], select: false },
+    failedLoginAttempts: { type: Number, default: 0, select: false },
+    lockedUntil: { type: Date, default: null, select: false },
   },
   {
     collection: 'users',
@@ -46,6 +50,8 @@ userSchema.set('toJSON', {
   transform: (_doc, ret) => {
     delete ret.passwordHash;
     delete ret.refreshTokenJtis;
+    delete ret.failedLoginAttempts;
+    delete ret.lockedUntil;
     delete ret.__v;
     return ret;
   },

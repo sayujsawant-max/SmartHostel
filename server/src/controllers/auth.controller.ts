@@ -45,6 +45,9 @@ export async function me(req: Request, res: Response) {
         email: user.email,
         role: user.role,
         hasConsented: user.hasConsented,
+        block: user.block,
+        floor: user.floor,
+        roomNumber: user.roomNumber,
       },
     },
     correlationId: req.correlationId,
@@ -54,6 +57,7 @@ export async function me(req: Request, res: Response) {
 export async function refresh(req: Request, res: Response) {
   const token = req.cookies?.refreshToken;
   if (!token) {
+    clearAuthCookies(res);
     throw new AppError('UNAUTHORIZED', 'Refresh token required', 401);
   }
 
@@ -61,10 +65,17 @@ export async function refresh(req: Request, res: Response) {
   try {
     payload = jwt.verify(token, env.JWT_SECRET) as { userId: string; jti: string };
   } catch {
+    clearAuthCookies(res);
     throw new AppError('UNAUTHORIZED', 'Invalid or expired refresh token', 401);
   }
 
-  const result = await authService.refresh(payload.userId, payload.jti, req.correlationId);
+  let result;
+  try {
+    result = await authService.refresh(payload.userId, payload.jti, req.correlationId);
+  } catch (err) {
+    clearAuthCookies(res);
+    throw err;
+  }
 
   setAuthCookies(res, result.tokens);
 

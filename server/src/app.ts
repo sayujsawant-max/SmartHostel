@@ -4,9 +4,11 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import pinoHttp from 'pino-http';
 import { correlationIdMiddleware } from '@middleware/correlation-id.middleware.js';
+import { csrfMiddleware } from '@middleware/csrf.middleware.js';
 import { errorHandlerMiddleware } from '@middleware/error-handler.middleware.js';
 import { AppError } from '@utils/app-error.js';
 import { logger } from '@utils/logger.js';
+import { env } from '@config/env.js';
 import healthRoutes from '@/routes/health.routes.js';
 import authRoutes from '@/routes/auth.routes.js';
 
@@ -18,8 +20,8 @@ app.set('trust proxy', 1);
 // Security headers
 app.use(helmet());
 
-// CORS — reads ALLOWED_ORIGINS directly to avoid importing env.ts (keeps app.ts test-safe)
-const origins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173')
+// CORS — use validated env config
+const origins = env.ALLOWED_ORIGINS
   .split(',')
   .map((s) => s.trim());
 app.use(cors({ origin: origins, credentials: true }));
@@ -41,6 +43,9 @@ app.use(
     }),
   }),
 );
+
+// CSRF protection — Origin/Referer allowlist on state-changing methods
+app.use(csrfMiddleware);
 
 // Routes
 app.use('/api', healthRoutes);

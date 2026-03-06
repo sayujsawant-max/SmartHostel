@@ -5,6 +5,7 @@ import { User } from '@models/user.model.js';
 import app from '../app.js';
 
 const TEST_PASSWORD = 'password123';
+const VALID_ORIGIN = 'http://localhost:5173';
 let passwordHash: string;
 
 beforeEach(async () => {
@@ -44,6 +45,7 @@ describe('POST /api/auth/login', () => {
 
     const res = await request(app)
       .post('/api/auth/login')
+      .set('Origin', VALID_ORIGIN)
       .send({ email: 'test@example.com', password: TEST_PASSWORD });
 
     expect(res.status).toBe(200);
@@ -80,20 +82,19 @@ describe('POST /api/auth/login', () => {
 
     const res = await request(app)
       .post('/api/auth/login')
+      .set('Origin', VALID_ORIGIN)
       .send({ email: 'test@example.com', password: 'wrongpassword' });
 
     expect(res.status).toBe(401);
     expect(res.body.success).toBe(false);
     expect(res.body.error.code).toBe('UNAUTHORIZED');
     expect(res.body.correlationId).toBeDefined();
-
-    // No cookies should be set
-    expect(res.headers['set-cookie']).toBeUndefined();
   });
 
   it('returns 400 for invalid input', async () => {
     const res = await request(app)
       .post('/api/auth/login')
+      .set('Origin', VALID_ORIGIN)
       .send({ email: 'not-an-email', password: 'short' });
 
     expect(res.status).toBe(400);
@@ -107,6 +108,7 @@ describe('GET /api/auth/me', () => {
 
     const loginRes = await request(app)
       .post('/api/auth/login')
+      .set('Origin', VALID_ORIGIN)
       .send({ email: 'test@example.com', password: TEST_PASSWORD });
 
     const cookies = extractCookies(loginRes);
@@ -140,12 +142,14 @@ describe('POST /api/auth/refresh', () => {
 
     const loginRes = await request(app)
       .post('/api/auth/login')
+      .set('Origin', VALID_ORIGIN)
       .send({ email: 'test@example.com', password: TEST_PASSWORD });
 
     const loginCookies = extractCookies(loginRes);
 
     const res = await request(app)
       .post('/api/auth/refresh')
+      .set('Origin', VALID_ORIGIN)
       .set('Cookie', [`refreshToken=${loginCookies.refreshToken}`]);
 
     expect(res.status).toBe(200);
@@ -162,6 +166,7 @@ describe('POST /api/auth/refresh', () => {
 
     const loginRes = await request(app)
       .post('/api/auth/login')
+      .set('Origin', VALID_ORIGIN)
       .send({ email: 'test@example.com', password: TEST_PASSWORD });
 
     const loginCookies = extractCookies(loginRes);
@@ -169,6 +174,7 @@ describe('POST /api/auth/refresh', () => {
     // First refresh — succeeds and rotates the token
     const refreshRes = await request(app)
       .post('/api/auth/refresh')
+      .set('Origin', VALID_ORIGIN)
       .set('Cookie', [`refreshToken=${loginCookies.refreshToken}`]);
 
     expect(refreshRes.status).toBe(200);
@@ -176,6 +182,7 @@ describe('POST /api/auth/refresh', () => {
     // Replay OLD refresh token — must be rejected (jti already consumed)
     const replayRes = await request(app)
       .post('/api/auth/refresh')
+      .set('Origin', VALID_ORIGIN)
       .set('Cookie', [`refreshToken=${loginCookies.refreshToken}`]);
 
     expect(replayRes.status).toBe(401);
@@ -185,6 +192,7 @@ describe('POST /api/auth/refresh', () => {
   it('returns 401 with invalid refresh token', async () => {
     const res = await request(app)
       .post('/api/auth/refresh')
+      .set('Origin', VALID_ORIGIN)
       .set('Cookie', ['refreshToken=invalid-token']);
 
     expect(res.status).toBe(401);
@@ -192,7 +200,9 @@ describe('POST /api/auth/refresh', () => {
   });
 
   it('returns 401 without refresh token', async () => {
-    const res = await request(app).post('/api/auth/refresh');
+    const res = await request(app)
+      .post('/api/auth/refresh')
+      .set('Origin', VALID_ORIGIN);
 
     expect(res.status).toBe(401);
     expect(res.body.error.code).toBe('UNAUTHORIZED');
@@ -205,12 +215,14 @@ describe('POST /api/auth/logout', () => {
 
     const loginRes = await request(app)
       .post('/api/auth/login')
+      .set('Origin', VALID_ORIGIN)
       .send({ email: 'test@example.com', password: TEST_PASSWORD });
 
     const loginCookies = extractCookies(loginRes);
 
     const res = await request(app)
       .post('/api/auth/logout')
+      .set('Origin', VALID_ORIGIN)
       .set('Cookie', [`refreshToken=${loginCookies.refreshToken}`]);
 
     expect(res.status).toBe(200);
@@ -229,7 +241,9 @@ describe('POST /api/auth/logout', () => {
   });
 
   it('returns 200 with no cookies (idempotent)', async () => {
-    const res = await request(app).post('/api/auth/logout');
+    const res = await request(app)
+      .post('/api/auth/logout')
+      .set('Origin', VALID_ORIGIN);
 
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);

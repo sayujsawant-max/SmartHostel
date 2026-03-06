@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { env } from '@config/env.js';
@@ -60,6 +60,76 @@ describe('authService.login', () => {
       code: 'UNAUTHORIZED',
       statusCode: 401,
     });
+  });
+
+  it('always calls bcrypt.compare even when user not found (timing attack prevention)', async () => {
+    const compareSpy = vi.spyOn(bcrypt, 'compare');
+
+    await expect(
+      authService.login('nonexistent@example.com', 'wrongpass'),
+    ).rejects.toThrow();
+
+    expect(compareSpy).toHaveBeenCalled();
+    compareSpy.mockRestore();
+  });
+
+  it('increments failedLoginAttempts on wrong password', async () => {
+    const user = await createTestUser();
+    await expect(
+      authService.login('test@example.com', 'wrongpassword'),
+    ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+
+    const updated = await User.findById(user._id).select('+failedLoginAttempts');
+    expect(updated!.failedLoginAttempts).toBe(1);
+  });
+
+  it('sets lockedUntil when failedLoginAttempts reaches MAX_LOGIN_ATTEMPTS', async () => {
+    const user = await createTestUser();
+    // Set failed attempts to one below threshold
+    await User.updateOne({ _id: user._id }, { $set: { failedLoginAttempts: env.MAX_LOGIN_ATTEMPTS - 1 } });
+
+    await expect(
+      authService.login('test@example.com', 'wrongpassword'),
+    ).rejects.toMatchObject({ code: 'RATE_LIMITED' });
+
+    const updated = await User.findById(user._id).select('+failedLoginAttempts +lockedUntil');
+    expect(updated!.failedLoginAttempts).toBe(env.MAX_LOGIN_ATTEMPTS);
+    expect(updated!.lockedUntil).toBeTruthy();
+    expect(updated!.lockedUntil!.getTime()).toBeGreaterThan(Date.now());
+  });
+
+  it('resets failedLoginAttempts and lockedUntil on successful login', async () => {
+    const user = await createTestUser();
+    await User.updateOne(
+      { _id: user._id },
+      { $set: { failedLoginAttempts: 3, lockedUntil: null } },
+    );
+
+    await authService.login('test@example.com', TEST_PASSWORD);
+
+    const updated = await User.findById(user._id).select('+failedLoginAttempts +lockedUntil');
+    expect(updated!.failedLoginAttempts).toBe(0);
+    expect(updated!.lockedUntil).toBeNull();
+  });
+
+  it('throws RATE_LIMITED with correct retryAfterMs when account is locked', async () => {
+    const user = await createTestUser();
+    const lockedUntil = new Date(Date.now() + 60_000);
+    await User.updateOne(
+      { _id: user._id },
+      { $set: { failedLoginAttempts: 5, lockedUntil } },
+    );
+
+    try {
+      await authService.login('test@example.com', TEST_PASSWORD);
+      expect.fail('Should have thrown');
+    } catch (err: unknown) {
+      const error = err as { code: string; retryAfterMs: number; statusCode: number };
+      expect(error.code).toBe('RATE_LIMITED');
+      expect(error.statusCode).toBe(429);
+      expect(error.retryAfterMs).toBeGreaterThan(0);
+      expect(error.retryAfterMs).toBeLessThanOrEqual(60_000);
+    }
   });
 
   it('stores hashed jti in user refreshTokenJtis', async () => {
