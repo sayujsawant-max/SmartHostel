@@ -72,3 +72,20 @@ export async function cancelLeave(req: Request<{ id: string }>, res: Response) {
     correlationId: req.correlationId,
   });
 }
+
+export async function correctLeave(req: Request<{ id: string }>, res: Response) {
+  const { reason } = req.body as { reason?: string };
+  if (!reason || typeof reason !== 'string' || reason.trim().length < 5) {
+    throw new AppError('VALIDATION_ERROR', 'Correction reason is required (min 5 characters)', 400, {
+      field: 'reason',
+    });
+  }
+
+  const leave = await leaveService.correctLeave(req.params.id, req.user!._id, reason.trim(), req.correlationId);
+
+  res.json({
+    success: true,
+    data: { leave },
+    correlationId: req.correlationId,
+  });
+}

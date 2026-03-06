@@ -5,6 +5,7 @@ import { Notification } from '@models/notification.model.js';
 import { AppError } from '@utils/app-error.js';
 import { logger } from '@utils/logger.js';
 import { createGatePass, invalidatePassByLeaveId } from '@services/gate-pass.service.js';
+import { AuditEvent } from '@models/audit-event.model.js';
 
 export async function createLeave(studentId: string, data: CreateLeaveInput, correlationId?: string) {
   const startDate = new Date(data.startDate);
@@ -169,4 +170,46 @@ export async function cancelLeave(leaveId: string, studentId: string, correlatio
   );
 
   return leave;
+}
+
+export async function correctLeave(leaveId: string, wardenId: string, reason: string, correlationId?: string) {
+  const leave = await Leave.findOneAndUpdate(
+    {
+      _id: leaveId,
+      status: { $in: [LeaveStatus.SCANNED_OUT, LeaveStatus.SCANNED_IN] },
+    },
+    { $set: { status: LeaveStatus.CORRECTED } },
+    { new: false }, // Return the ORIGINAL document for audit trail
+  );
+
+  if (!leave) {
+    const existing = await Leave.findById(leaveId);
+    if (!existing) {
+      throw new AppError('NOT_FOUND', 'Leave request not found', 404);
+    }
+    throw new AppError('CONFLICT', `Leave is ${existing.status}, only SCANNED_OUT or SCANNED_IN can be corrected`, 409);
+  }
+
+  // Record audit event preserving original state
+  await AuditEvent.create({
+    entityType: 'leave',
+    entityId: leave._id,
+    eventType: 'PASS_CORRECTED',
+    actorRole: 'WARDEN_ADMIN',
+    actorId: wardenId,
+    metadata: {
+      previousStatus: leave.status,
+      reason,
+    },
+    correlationId: correlationId ?? '',
+  });
+
+  logger.info(
+    { eventType: 'PASS_CORRECTED', correlationId, leaveId, wardenId, previousStatus: leave.status, reason },
+    'Leave corrected by warden',
+  );
+
+  // Return the updated leave
+  const updated = await Leave.findById(leaveId);
+  return updated;
 }

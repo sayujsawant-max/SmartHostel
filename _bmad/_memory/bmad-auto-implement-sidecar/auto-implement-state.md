@@ -94,7 +94,7 @@ epics:
           closed: complete
   - id: 2
     name: "Leave Management & Gate Pass Generation"
-    status: in_progress
+    status: complete
     stories:
       - id: 2.1
         name: "Leave Request Creation (Student)"
@@ -153,15 +153,15 @@ epics:
           closed: complete
       - id: 2.6
         name: "Post-Exit Pass Correction (Warden)"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
   - id: 3
     name: "Gate Verification & Scanner"
     status: pending
