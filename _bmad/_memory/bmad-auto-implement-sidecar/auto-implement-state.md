@@ -422,39 +422,39 @@ epics:
           closed: complete
   - id: 7
     name: "Self-Service Assistant & FAQ"
-    status: pending
+    status: complete
     stories:
       - id: 7.1
         name: "Status Shortcuts & Structured Card Responses"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
       - id: 7.2
         name: "FAQ Search with Fuzzy Matching"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
       - id: 7.3
         name: "Contextual Next-Action Suggestions"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
 ```
