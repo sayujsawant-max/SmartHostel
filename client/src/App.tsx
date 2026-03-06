@@ -14,6 +14,7 @@ import MaintenanceShell from '@components/layout/MaintenanceShell';
 import StudentStatusPage from '@pages/student/StatusPage';
 import StudentActionsPage from '@pages/student/ActionsPage';
 import StudentFaqPage from '@pages/student/FaqPage';
+import ShowQRPage from '@pages/student/ShowQRPage';
 
 // Warden pages
 import WardenDashboardPage from '@pages/warden/DashboardPage';
@@ -69,6 +70,7 @@ function AppRoutes() {
           <Route element={<StudentShell />}>
             <Route path="/student/status" element={<StudentStatusPage />} />
             <Route path="/student/actions" element={<StudentActionsPage />} />
+            <Route path="/student/actions/show-qr" element={<ShowQRPage />} />
             <Route path="/student/faq" element={<StudentFaqPage />} />
           </Route>
         </Route>
