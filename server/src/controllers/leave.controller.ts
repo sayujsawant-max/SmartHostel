@@ -62,3 +62,13 @@ export async function rejectLeave(req: Request<{ id: string }>, res: Response) {
     correlationId: req.correlationId,
   });
 }
+
+export async function cancelLeave(req: Request<{ id: string }>, res: Response) {
+  const leave = await leaveService.cancelLeave(req.params.id, req.user!._id, req.correlationId);
+
+  res.json({
+    success: true,
+    data: { leave },
+    correlationId: req.correlationId,
+  });
+}

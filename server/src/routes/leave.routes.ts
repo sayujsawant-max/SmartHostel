@@ -12,5 +12,6 @@ router.post('/', requireRole(Role.STUDENT), leaveController.createLeave);
 router.get('/', requireRole(Role.STUDENT, Role.WARDEN_ADMIN), leaveController.getLeaves);
 router.patch('/:id/approve', requireRole(Role.WARDEN_ADMIN), leaveController.approveLeave);
 router.patch('/:id/reject', requireRole(Role.WARDEN_ADMIN), leaveController.rejectLeave);
+router.patch('/:id/cancel', requireRole(Role.STUDENT), leaveController.cancelLeave);
 
 export default router;

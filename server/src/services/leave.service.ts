@@ -4,7 +4,7 @@ import { Leave } from '@models/leave.model.js';
 import { Notification } from '@models/notification.model.js';
 import { AppError } from '@utils/app-error.js';
 import { logger } from '@utils/logger.js';
-import { createGatePass } from '@services/gate-pass.service.js';
+import { createGatePass, invalidatePassByLeaveId } from '@services/gate-pass.service.js';
 
 export async function createLeave(studentId: string, data: CreateLeaveInput, correlationId?: string) {
   const startDate = new Date(data.startDate);
@@ -126,6 +126,46 @@ export async function rejectLeave(leaveId: string, wardenId: string, reason?: st
   logger.info(
     { eventType: 'LEAVE_REJECTED', correlationId, leaveId, wardenId, reason },
     'Leave rejected',
+  );
+
+  return leave;
+}
+
+export async function cancelLeave(leaveId: string, studentId: string, correlationId?: string) {
+  // Only PENDING or APPROVED can be cancelled
+  const leave = await Leave.findOneAndUpdate(
+    {
+      _id: leaveId,
+      studentId,
+      status: { $in: [LeaveStatus.PENDING, LeaveStatus.APPROVED] },
+    },
+    { $set: { status: LeaveStatus.CANCELLED } },
+    { new: true },
+  );
+
+  if (!leave) {
+    const existing = await Leave.findOne({ _id: leaveId, studentId });
+    if (!existing) {
+      throw new AppError('NOT_FOUND', 'Leave request not found', 404);
+    }
+    if (existing.status === LeaveStatus.SCANNED_OUT) {
+      throw new AppError(
+        'CONFLICT',
+        "Cannot cancel — you've already exited. Contact your warden for corrections.",
+        409,
+      );
+    }
+    throw new AppError('CONFLICT', `Leave is ${existing.status}, cannot be cancelled`, 409);
+  }
+
+  // If the leave was APPROVED, invalidate the associated gate pass
+  if (leave.approvedBy) {
+    await invalidatePassByLeaveId(leaveId, correlationId);
+  }
+
+  logger.info(
+    { eventType: 'LEAVE_CANCELLED', correlationId, leaveId, studentId },
+    'Leave cancelled',
   );
 
   return leave;

@@ -142,15 +142,15 @@ epics:
           closed: complete
       - id: 2.5
         name: "Leave Cancellation (Student)"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
       - id: 2.6
         name: "Post-Exit Pass Correction (Warden)"
         status: pending
