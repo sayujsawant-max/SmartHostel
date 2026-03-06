@@ -1,0 +1,5 @@
+code: bmm
+name: "My Custom Agents"
+header: "Custom BMAD automation agents"
+subheader: "Axiom — Autonomous Implementation Orchestrator"
+default_selected: false

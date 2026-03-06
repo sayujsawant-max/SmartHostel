@@ -1,0 +1,56 @@
+import mongoose, { Schema, type Document } from 'mongoose';
+import { Role } from '@smarthostel/shared';
+
+export interface IUser extends Document {
+  name: string;
+  email: string;
+  passwordHash: string;
+  role: Role;
+  block?: string;
+  floor?: string;
+  roomNumber?: string;
+  hasConsented: boolean;
+  consentedAt?: Date;
+  isActive: boolean;
+  refreshTokenJtis: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const userSchema = new Schema<IUser>(
+  {
+    name: { type: String, required: true, trim: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    passwordHash: { type: String, required: true },
+    role: {
+      type: String,
+      required: true,
+      enum: [Role.STUDENT, Role.WARDEN_ADMIN, Role.GUARD, Role.MAINTENANCE],
+    },
+    block: { type: String },
+    floor: { type: String },
+    roomNumber: { type: String },
+    hasConsented: { type: Boolean, default: false },
+    consentedAt: { type: Date },
+    isActive: { type: Boolean, default: true },
+    refreshTokenJtis: { type: [String], default: [], select: false },
+  },
+  {
+    collection: 'users',
+    timestamps: true,
+    strict: true,
+  },
+);
+
+userSchema.set('toJSON', {
+  transform: (_doc, ret) => {
+    delete ret.passwordHash;
+    delete ret.refreshTokenJtis;
+    delete ret.__v;
+    return ret;
+  },
+});
+
+userSchema.index({ role: 1, isActive: 1 });
+
+export const User = mongoose.model<IUser>('User', userSchema);

@@ -1,0 +1,57 @@
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
+import pinoHttp from 'pino-http';
+import { correlationIdMiddleware } from '@middleware/correlation-id.middleware.js';
+import { errorHandlerMiddleware } from '@middleware/error-handler.middleware.js';
+import { AppError } from '@utils/app-error.js';
+import { logger } from '@utils/logger.js';
+import healthRoutes from '@/routes/health.routes.js';
+import authRoutes from '@/routes/auth.routes.js';
+
+const app = express();
+
+// Trust proxy (for rate limiting, secure cookies behind reverse proxy)
+app.set('trust proxy', 1);
+
+// Security headers
+app.use(helmet());
+
+// CORS — reads ALLOWED_ORIGINS directly to avoid importing env.ts (keeps app.ts test-safe)
+const origins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173')
+  .split(',')
+  .map((s) => s.trim());
+app.use(cors({ origin: origins, credentials: true }));
+
+// Body parsing
+app.use(cookieParser());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Correlation ID — must come before pino-http so logs include it
+app.use(correlationIdMiddleware);
+
+// Structured logging
+app.use(
+  pinoHttp({
+    logger,
+    customProps: (req) => ({
+      correlationId: (req as express.Request).correlationId,
+    }),
+  }),
+);
+
+// Routes
+app.use('/api', healthRoutes);
+app.use('/api/auth', authRoutes);
+
+// 404 catch-all — undefined routes return JSON, not HTML
+app.use((_req, _res, next) => {
+  next(new AppError('NOT_FOUND', 'Resource not found', 404));
+});
+
+// Global error handler — must be last
+app.use(errorHandlerMiddleware);
+
+export default app;

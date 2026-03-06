@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \":*)",
+      "Bash(node -e \":*)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(npm install --save-exact -D concurrently)",
+      "Bash(npm create vite@latest client -- --template react-ts)",
+      "Bash(npm install --save-exact -w client react-router-dom @tanstack/react-query react-hook-form @hookform/resolvers zod fuse.js html5-qrcode)",
+      "Bash(npm install --save-exact -w client -D tailwindcss @tailwindcss/vite vite-tsconfig-paths vitest)",
+      "Bash(npm install --save-exact -w server express cookie-parser cors helmet dotenv mongoose jsonwebtoken bcryptjs node-cron cloudinary multer express-rate-limit pino pino-http uuid zod)",
+      "Bash(npm install)",
+      "Bash(npm install --save-exact -w server -D typescript tsx tsconfig-paths tsc-alias @types/node @types/cookie-parser @types/cors @types/jsonwebtoken @types/bcryptjs @types/uuid @types/multer pino-pretty vitest supertest @types/supertest mongodb-memory-server)",
+      "Bash(npm install --save-exact -w shared zod)",
+      "Bash(npm install --save-exact -w shared -D typescript)",
+      "Bash(npm -w shared run build)",
+      "Bash(npm install --save-exact -w server -D eslint @eslint/js typescript-eslint globals)",
+      "Bash(npm install --save-exact -w server -D vite-tsconfig-paths)",
+      "Bash(npm -w server run test)",
+      "Bash(npm run test)",
+      "Bash(npm run lint)",
+      "Bash(npm -w server run lint)",
+      "Bash(node -e \"const shared = await import\\(''@smarthostel/shared''\\); console.log\\(''Shared import works:'', Object.keys\\(shared\\)\\)\")",
+      "Bash(timeout 15 npm run dev)",
+      "Bash(npm -w client run lint)",
+      "Bash(npx @kayvan/markdown-tree-parser explode \"_bmad-output/planning-artifacts/epics.md\" \"_bmad-output/planning-artifacts/epics\")",
+      "Bash(cp \"c:/Projects/Agent/_bmad/_config/custom/bmm/_memory/bmad-auto-implement-sidecar/memories.md\" \"c:/Projects/Agent/_bmad/_memory/bmad-auto-implement-sidecar/memories.md\")",
+      "Bash(cp \"c:/Projects/Agent/_bmad/_config/custom/bmm/_memory/bmad-auto-implement-sidecar/instructions.md\" \"c:/Projects/Agent/_bmad/_memory/bmad-auto-implement-sidecar/instructions.md\")",
+      "Bash(cp \"c:/Projects/Agent/_bmad/_config/custom/bmm/_memory/bmad-auto-implement-sidecar/auto-implement-state.md\" \"c:/Projects/Agent/_bmad/_memory/bmad-auto-implement-sidecar/auto-implement-state.md\")",
+      "Bash(cp -r \"c:/Projects/Agent/_bmad/bmm/_memory/bmad-auto-implement-sidecar/knowledge\" \"c:/Projects/Agent/_bmad/_memory/bmad-auto-implement-sidecar/\")",
+      "Bash(cp -r \"c:/Projects/Agent/_bmad/bmm/_memory/bmad-auto-implement-sidecar/workflows\" \"c:/Projects/Agent/_bmad/_memory/bmad-auto-implement-sidecar/\")"
+    ]
+  }
+}

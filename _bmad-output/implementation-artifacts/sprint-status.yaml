@@ -1,0 +1,183 @@
+# generated: 2026-03-02
+# project: Agent
+# project_key: SMART
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-03-02
+project: Agent
+project_key: SMART
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+# SCOPE FENCING:
+# ==============
+# MVP = Epics 1-7 (39 core + 3 enhancement stories)
+# Post-MVP = Epic 8 (release engineering) + Story 6.7 (bulk import, PRD exception)
+scope:
+  mvp_excludes:
+    - 6-7-bulk-student-import-csv-upload
+    - 8-1-docker-and-production-build-configuration
+    - 8-2-platform-deployment-and-production-checklist
+  post_mvp_epics:
+    - epic-8
+
+# SPRINT ASSIGNMENTS:
+# ===================
+planning:
+  current_sprint: sprint-1
+  sprint_1:
+    # Week 1: Epic 1 + Epic 2 — Auth, shells, leave, QR
+    - 1-1-project-scaffolding-and-dev-environment
+    - 1-2-user-login-and-jwt-authentication
+    - 1-3-api-standards-error-handling-and-validation
+    - 1-4-security-controls-and-rbac-enforcement
+    - 1-5-role-specific-shells-and-client-navigation
+    - 1-6-warden-account-management-and-privacy-consent
+    - 1-7-platform-observability-and-health
+    - 1-8-platform-config-seed-data-and-ci
+    - 1-9-self-service-password-change
+    - 1-10-warden-delegation-settings
+    - 2-1-leave-request-creation-and-policy-validation
+    - 2-2-warden-leave-approval-and-rejection
+    - 2-3-gate-pass-issuance-and-qr-token-generation
+    - 2-4-student-qr-pass-display
+    - 2-5-student-leave-status-timeline
+    - 2-6-student-leave-cancellation-and-pass-revocation
+  sprint_2:
+    # Week 2: Epic 3 + Epic 4 — Scanner, offline, override, correction
+    - 3-1-gatescan-model-and-verification-endpoint
+    - 3-2-guard-scanner-page-and-verdictscreen
+    - 3-3-passcode-fallback-and-rate-limiting
+    - 3-4-direction-control-and-shift-panel
+    - 3-5-offline-handling-and-deferred-reconciliation
+    - 4-1-override-model-and-execution-endpoint
+    - 4-2-guard-override-ui-and-offline-override-upgrade
+    - 4-3-warden-override-review-and-spike-detection
+    - 4-4-warden-post-exit-pass-correction
+  sprint_3:
+    # Week 3: Epic 5 + Epic 6 (minus 6.7) + Epic 7 — Complaints, SLA, dashboards, assistant
+    - 5-1-complaint-and-complaintevent-models-state-machine
+    - 5-2-student-complaint-submission
+    - 5-3-warden-complaint-assignment-and-management
+    - 5-4-maintenance-task-queue-and-resolution
+    - 5-5-student-complaint-timeline-and-status
+    - 5-6-sla-cron-worker-and-escalation-automation
+    - 6-1-warden-dashboard-and-needsattentionwidget
+    - 6-2-system-health-widget-and-operational-metrics
+    - 6-3-notice-broadcast-and-student-notices-feed
+    - 6-4-student-dashboard-full
+    - 6-5-notification-list-and-bundling
+    - 6-6-data-retention-and-audit-export
+    - 6-8-print-export-daily-gate-log
+    - 7-1-status-shortcut-endpoints-and-assistant-cards
+    - 7-2-assistantshortcuts-component-and-contextual-suggestions
+    - 7-3-faq-search-and-categorized-display
+    - 7-4-faq-crud-api-post-mvp-ready
+
+development_status:
+  # Epic 1: Project Foundation, Authentication & Platform Infrastructure
+  epic-1: in-progress
+  1-1-project-scaffolding-and-dev-environment: done
+  1-2-user-login-and-jwt-authentication: done
+  1-3-api-standards-error-handling-and-validation: ready-for-dev
+  1-4-security-controls-and-rbac-enforcement: backlog
+  1-5-role-specific-shells-and-client-navigation: backlog
+  1-6-warden-account-management-and-privacy-consent: backlog
+  1-7-platform-observability-and-health: backlog
+  1-8-platform-config-seed-data-and-ci: backlog
+  1-9-self-service-password-change: backlog
+  1-10-warden-delegation-settings: backlog
+  epic-1-retrospective: optional
+
+  # Epic 2: Leave Management & QR Gate Pass
+  epic-2: backlog
+  2-1-leave-request-creation-and-policy-validation: backlog
+  2-2-warden-leave-approval-and-rejection: backlog
+  2-3-gate-pass-issuance-and-qr-token-generation: backlog
+  2-4-student-qr-pass-display: backlog
+  2-5-student-leave-status-timeline: backlog
+  2-6-student-leave-cancellation-and-pass-revocation: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: Gate Verification & Scanner
+  epic-3: backlog
+  3-1-gatescan-model-and-verification-endpoint: backlog
+  3-2-guard-scanner-page-and-verdictscreen: backlog
+  3-3-passcode-fallback-and-rate-limiting: backlog
+  3-4-direction-control-and-shift-panel: backlog
+  3-5-offline-handling-and-deferred-reconciliation: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Override & Exception Governance
+  epic-4: backlog
+  4-1-override-model-and-execution-endpoint: backlog
+  4-2-guard-override-ui-and-offline-override-upgrade: backlog
+  4-3-warden-override-review-and-spike-detection: backlog
+  4-4-warden-post-exit-pass-correction: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: Complaint Lifecycle & SLA Automation
+  epic-5: backlog
+  5-1-complaint-and-complaintevent-models-state-machine: backlog
+  5-2-student-complaint-submission: backlog
+  5-3-warden-complaint-assignment-and-management: backlog
+  5-4-maintenance-task-queue-and-resolution: backlog
+  5-5-student-complaint-timeline-and-status: backlog
+  5-6-sla-cron-worker-and-escalation-automation: backlog
+  epic-5-retrospective: optional
+
+  # Epic 6: Dashboards, Notices & Operational Intelligence
+  epic-6: backlog
+  6-1-warden-dashboard-and-needsattentionwidget: backlog
+  6-2-system-health-widget-and-operational-metrics: backlog
+  6-3-notice-broadcast-and-student-notices-feed: backlog
+  6-4-student-dashboard-full: backlog
+  6-5-notification-list-and-bundling: backlog
+  6-6-data-retention-and-audit-export: backlog
+  6-7-bulk-student-import-csv-upload: backlog  # post-mvp: PRD exception
+  6-8-print-export-daily-gate-log: backlog
+  epic-6-retrospective: optional
+
+  # Epic 7: Self-Service Assistant & FAQ
+  epic-7: backlog
+  7-1-status-shortcut-endpoints-and-assistant-cards: backlog
+  7-2-assistantshortcuts-component-and-contextual-suggestions: backlog
+  7-3-faq-search-and-categorized-display: backlog
+  7-4-faq-crud-api-post-mvp-ready: backlog
+  epic-7-retrospective: optional
+
+  # Epic 8: Release Engineering & Deployment (post-mvp: release engineering)
+  epic-8: backlog
+  8-1-docker-and-production-build-configuration: backlog  # post-mvp
+  8-2-platform-deployment-and-production-checklist: backlog  # post-mvp
+  epic-8-retrospective: optional

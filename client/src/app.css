@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+:root {
+  --primary: 222 47% 19%;
+  --primary-foreground: 0 0% 100%;
+  --accent: 173 78% 24%;
+  --accent-foreground: 0 0% 100%;
+  --background: 210 40% 98%;
+  --card: 0 0% 100%;
+  --border: 214 32% 91%;
+  --foreground: 222 47% 11%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --input: 214 32% 91%;
+  --ring: 173 78% 24%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --radius: 0.75rem;
+}
+
+*,
+*::before,
+*::after {
+  border-color: hsl(var(--border));
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
+}

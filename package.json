@@ -1,0 +1,27 @@
+{
+  "name": "smarthostel",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently -n client,server -c cyan,green \"npm run dev:client\" \"npm run dev:server\"",
+    "dev:client": "npm -w client run dev",
+    "dev:server": "npm -w server run dev",
+    "dev:worker": "npm -w server run dev:worker",
+    "build": "npm -w shared run build && npm -w client run build && npm -w server run build",
+    "seed": "npm -w server run seed",
+    "lint": "npm -w client run lint && npm -w server run lint",
+    "test": "npm -w client run test && npm -w server run test"
+  },
+  "devDependencies": {
+    "concurrently": "9.2.1"
+  }
+}
