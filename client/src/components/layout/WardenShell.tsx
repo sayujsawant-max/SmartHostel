@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import { useAuth } from '@hooks/useAuth';
+import NotificationBell from '@components/NotificationBell';
 
 const navLinks = [
   { label: 'Dashboard', to: '/warden/dashboard' },
@@ -84,7 +85,8 @@ export default function WardenShell() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <h1 className="ml-3 text-lg font-bold text-[hsl(var(--foreground))]">SmartHostel</h1>
+          <h1 className="ml-3 flex-1 text-lg font-bold text-[hsl(var(--foreground))]">SmartHostel</h1>
+          <NotificationBell />
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">

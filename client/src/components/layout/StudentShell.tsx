@@ -1,5 +1,6 @@
 import { Outlet, NavLink } from 'react-router-dom';
 import { useAuth } from '@hooks/useAuth';
+import NotificationBell from '@components/NotificationBell';
 
 const tabs = [
   { label: 'Status', to: '/student/status' },
@@ -16,6 +17,7 @@ export default function StudentShell() {
       <header className="flex items-center justify-between px-4 py-3 bg-[hsl(var(--card))] border-b border-[hsl(var(--border))] shadow-sm">
         <h1 className="text-lg font-bold text-[hsl(var(--foreground))]">SmartHostel</h1>
         <div className="flex items-center gap-3">
+          <NotificationBell />
           <span className="text-sm text-[hsl(var(--muted-foreground))]">{user?.name}</span>
           <button
             onClick={() => void logout()}
