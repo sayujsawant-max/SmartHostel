@@ -77,6 +77,44 @@ export async function createOverride(input: CreateOverrideInput) {
   return override;
 }
 
+export async function getOverrideStats() {
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+
+  const [todayCount, hourCount, perGuard] = await Promise.all([
+    Override.countDocuments({ createdAt: { $gte: startOfDay } }),
+    Override.countDocuments({ createdAt: { $gte: oneHourAgo } }),
+    Override.aggregate([
+      { $match: { createdAt: { $gte: startOfDay } } },
+      { $group: { _id: '$guardId', count: { $sum: 1 } } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'guard',
+        },
+      },
+      { $unwind: { path: '$guard', preserveNullAndEmptyArrays: true } },
+      { $project: { guardId: '$_id', guardName: '$guard.name', count: 1, _id: 0 } },
+      { $sort: { count: -1 } },
+    ]),
+  ]);
+
+  const spikeAlert = todayCount > 5 || hourCount > 3;
+
+  return {
+    today: todayCount,
+    lastHour: hourCount,
+    spikeAlert,
+    spikeMessage: spikeAlert
+      ? `Override rate above threshold (${todayCount} today / ${hourCount} this hour)`
+      : null,
+    perGuard,
+  };
+}
+
 export async function getPendingOverrides() {
   return Override.find({ reviewedAt: null })
     .populate('guardId', 'name')

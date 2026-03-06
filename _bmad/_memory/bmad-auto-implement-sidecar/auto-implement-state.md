@@ -249,15 +249,15 @@ epics:
           closed: complete
       - id: 4.3
         name: "Override Spike Tracking"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
       - id: 4.4
         name: "Audit Event System & Correlation Tracking"
         status: pending

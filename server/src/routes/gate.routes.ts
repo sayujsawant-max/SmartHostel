@@ -13,6 +13,7 @@ router.post('/validate', requireRole(Role.GUARD), passCodeRateLimiter, gateContr
 router.post('/reconcile', requireRole(Role.GUARD), gateController.reconcile);
 router.post('/override', requireRole(Role.GUARD), gateController.override);
 router.get('/overrides', requireRole(Role.WARDEN_ADMIN), gateController.getOverrides);
+router.get('/override-stats', requireRole(Role.WARDEN_ADMIN), gateController.getOverrideStats);
 router.patch('/overrides/:id/review', requireRole(Role.WARDEN_ADMIN), gateController.reviewOverride);
 
 export default router;

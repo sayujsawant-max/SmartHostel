@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
 
+interface OverrideStats {
+  today: number;
+  lastHour: number;
+  spikeAlert: boolean;
+  spikeMessage: string | null;
+  perGuard: { guardId: string; guardName: string; count: number }[];
+}
+
 interface OverrideItem {
   _id: string;
   reason: string;
@@ -13,12 +21,17 @@ interface OverrideItem {
 
 export default function DashboardPage() {
   const [overrides, setOverrides] = useState<OverrideItem[]>([]);
+  const [stats, setStats] = useState<OverrideStats | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchOverrides = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     try {
-      const res = await apiFetch<OverrideItem[]>('/gate/overrides');
-      setOverrides(res.data);
+      const [overridesRes, statsRes] = await Promise.all([
+        apiFetch<OverrideItem[]>('/gate/overrides'),
+        apiFetch<OverrideStats>('/gate/override-stats'),
+      ]);
+      setOverrides(overridesRes.data);
+      setStats(statsRes.data);
     } catch {
       // silently fail
     } finally {
@@ -27,8 +40,8 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    void fetchOverrides();
-  }, [fetchOverrides]);
+    void fetchData();
+  }, [fetchData]);
 
   const handleReview = async (id: string) => {
     try {
@@ -45,6 +58,34 @@ export default function DashboardPage() {
         <h2 className="text-2xl font-bold text-[hsl(var(--foreground))]">Warden Dashboard</h2>
         <p className="mt-1 text-[hsl(var(--muted-foreground))]">Overview of hostel operations, pending approvals, and alerts.</p>
       </div>
+
+      {/* Override Spike Alert */}
+      {stats?.spikeAlert && (
+        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-800">
+          <p className="font-semibold">{stats.spikeMessage}</p>
+          {stats.perGuard.length > 0 && (
+            <div className="mt-2 text-sm">
+              {stats.perGuard.map((g) => (
+                <p key={g.guardId}>{g.guardName}: {g.count} override{g.count > 1 ? 's' : ''} today</p>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Override Stats (non-spike) */}
+      {stats && !stats.spikeAlert && (
+        <div className="flex gap-4">
+          <div className="flex-1 p-3 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center">
+            <p className="text-2xl font-bold text-[hsl(var(--foreground))]">{stats.today}</p>
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">Overrides today</p>
+          </div>
+          <div className="flex-1 p-3 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center">
+            <p className="text-2xl font-bold text-[hsl(var(--foreground))]">{stats.lastHour}</p>
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">Last hour</p>
+          </div>
+        </div>
+      )}
 
       {/* Overrides Pending Review */}
       <div className="bg-[hsl(var(--card))] rounded-xl border border-[hsl(var(--border))] p-4">

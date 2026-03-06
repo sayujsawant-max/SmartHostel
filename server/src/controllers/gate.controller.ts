@@ -66,6 +66,11 @@ export async function getOverrides(_req: Request, res: Response) {
   res.json({ success: true, data: overrides });
 }
 
+export async function getOverrideStats(_req: Request, res: Response) {
+  const stats = await overrideService.getOverrideStats();
+  res.json({ success: true, data: stats });
+}
+
 export async function reviewOverride(req: Request<{ id: string }>, res: Response) {
   const result = await overrideService.markReviewed(
     req.params.id,
