@@ -83,14 +83,14 @@ epics:
           closed: complete
       - id: 1.7
         name: "Account Management (Warden)"
-        status: pending
+        status: in_progress
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
           closed: pending
   - id: 2
     name: "Leave Management & Gate Pass Generation"

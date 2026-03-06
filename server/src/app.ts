@@ -12,6 +12,7 @@ import { env } from '@config/env.js';
 import healthRoutes from '@/routes/health.routes.js';
 import authRoutes from '@/routes/auth.routes.js';
 import consentRoutes from '@/routes/consent.routes.js';
+import adminRoutes from '@/routes/admin.routes.js';
 
 const app = express();
 
@@ -52,6 +53,7 @@ app.use(csrfMiddleware);
 app.use('/api', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/consents', consentRoutes);
+app.use('/api/admin/users', adminRoutes);
 
 // Test-only routes for RBAC integration testing (static import, only registered in test)
 if (env.NODE_ENV === 'test') {

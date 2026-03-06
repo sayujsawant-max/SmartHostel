@@ -8,3 +8,5 @@ export type { ApiSuccess, ApiError, PaginatedResponse } from './types/api-respon
 // Schemas
 export { loginSchema } from './schemas/auth.schema.js';
 export type { LoginInput } from './schemas/auth.schema.js';
+export { createUserSchema, resetPasswordSchema } from './schemas/admin.schema.js';
+export type { CreateUserInput, ResetPasswordInput } from './schemas/admin.schema.js';
