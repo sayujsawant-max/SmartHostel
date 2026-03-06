@@ -5,6 +5,7 @@ import { Role } from '@smarthostel/shared';
 import { authMiddleware } from '@middleware/auth.middleware.js';
 import { requireRole } from '@middleware/rbac.middleware.js';
 import { GateScan } from '@models/gate-scan.model.js';
+import { CronLog } from '@models/cron-log.model.js';
 
 const router = Router();
 
@@ -28,10 +29,15 @@ router.get('/admin/health', authMiddleware, requireRole(Role.WARDEN_ADMIN), asyn
     dbLatencyMs = Date.now() - dbStart;
   }
 
-  const [offlinePending, offlineFailed] = await Promise.all([
+  const [offlinePending, offlineFailed, lastCronRun] = await Promise.all([
     GateScan.countDocuments({ reconcileStatus: 'PENDING' }),
     GateScan.countDocuments({ reconcileStatus: 'FAIL' }),
+    CronLog.findOne({ jobName: 'sla-check' }).sort({ createdAt: -1 }).lean(),
   ]);
+
+  const cronOverdue = lastCronRun
+    ? Date.now() - new Date(lastCronRun.createdAt).getTime() > 20 * 60 * 1000
+    : true;
 
   res.json({
     success: true,
@@ -42,6 +48,8 @@ router.get('/admin/health', authMiddleware, requireRole(Role.WARDEN_ADMIN), asyn
       },
       offlineScansPending: offlinePending,
       offlineScansFailed: offlineFailed,
+      cronOverdue,
+      lastCronRun: lastCronRun?.createdAt ?? null,
       uptime: process.uptime(),
     },
     correlationId: req.correlationId,
