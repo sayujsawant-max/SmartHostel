@@ -1,7 +1,12 @@
 import type { Request, Response } from 'express';
-import { createComplaintSchema, Role } from '@smarthostel/shared';
+import { createComplaintSchema, ComplaintPriority, Role } from '@smarthostel/shared';
 import * as complaintService from '@services/complaint.service.js';
 import { AppError } from '@utils/app-error.js';
+
+export async function getMaintenanceStaff(_req: Request, res: Response) {
+  const staff = await complaintService.getMaintenanceStaff();
+  res.json({ success: true, data: { staff }, correlationId: _req.correlationId });
+}
 
 export async function createComplaint(req: Request, res: Response) {
   const parsed = createComplaintSchema.safeParse(req.body);
@@ -61,6 +66,49 @@ export async function getComplaintTimeline(req: Request<{ id: string }>, res: Re
   res.json({
     success: true,
     data: { events },
+    correlationId: req.correlationId,
+  });
+}
+
+export async function assignComplaint(req: Request<{ id: string }>, res: Response) {
+  const { assigneeId } = req.body as { assigneeId?: string };
+  if (!assigneeId) {
+    throw new AppError('VALIDATION_ERROR', 'assigneeId is required', 400, { field: 'assigneeId' });
+  }
+
+  const complaint = await complaintService.assignComplaint(
+    req.params.id,
+    assigneeId,
+    req.user!._id,
+    req.correlationId,
+  );
+
+  res.json({
+    success: true,
+    data: { complaint },
+    correlationId: req.correlationId,
+  });
+}
+
+export async function updatePriority(req: Request<{ id: string }>, res: Response) {
+  const { priority } = req.body as { priority?: string };
+  const validPriorities = Object.values(ComplaintPriority);
+  if (!priority || !validPriorities.includes(priority as ComplaintPriority)) {
+    throw new AppError('VALIDATION_ERROR', `priority must be one of: ${validPriorities.join(', ')}`, 400, {
+      field: 'priority',
+    });
+  }
+
+  const complaint = await complaintService.updatePriority(
+    req.params.id,
+    priority as ComplaintPriority,
+    req.user!._id,
+    req.correlationId,
+  );
+
+  res.json({
+    success: true,
+    data: { complaint },
     correlationId: req.correlationId,
   });
 }

@@ -1,10 +1,19 @@
-import type { CreateComplaintInput } from '@smarthostel/shared';
-import { ComplaintStatus, SLA_CATEGORY_DEFAULTS, Role } from '@smarthostel/shared';
+import type { CreateComplaintInput, ComplaintPriority } from '@smarthostel/shared';
+import { ComplaintStatus, SLA_CATEGORY_DEFAULTS, NotificationType, Role } from '@smarthostel/shared';
 import { Complaint } from '@models/complaint.model.js';
+import { User } from '@models/user.model.js';
 import { ComplaintEvent } from '@models/complaint-event.model.js';
 import { AuditEvent } from '@models/audit-event.model.js';
+import { Notification } from '@models/notification.model.js';
 import { AppError } from '@utils/app-error.js';
 import { logger } from '@utils/logger.js';
+
+const SLA_HOURS_BY_PRIORITY: Record<string, number> = {
+  LOW: 72,
+  MEDIUM: 48,
+  HIGH: 24,
+  CRITICAL: 12,
+};
 
 export async function createComplaint(
   studentId: string,
@@ -77,4 +86,96 @@ export async function getAllComplaints(filter?: { status?: string }) {
     .populate('assigneeId', 'name')
     .sort({ createdAt: -1 })
     .lean();
+}
+
+export async function assignComplaint(
+  complaintId: string,
+  assigneeId: string,
+  actorId: string,
+  correlationId: string,
+) {
+  const complaint = await Complaint.findOneAndUpdate(
+    { _id: complaintId, status: ComplaintStatus.OPEN },
+    { status: ComplaintStatus.ASSIGNED, assigneeId },
+    { new: true },
+  );
+
+  if (!complaint) {
+    throw new AppError('CONFLICT', 'Complaint is not in OPEN status or does not exist', 409);
+  }
+
+  await ComplaintEvent.create({
+    complaintId: complaint._id,
+    eventType: 'COMPLAINT_ASSIGNED',
+    actorId,
+    actorRole: Role.WARDEN_ADMIN,
+    note: `Assigned to staff ${assigneeId}`,
+  });
+
+  await AuditEvent.create({
+    entityType: 'Complaint',
+    entityId: complaint._id,
+    eventType: 'COMPLAINT_ASSIGNED',
+    actorId,
+    actorRole: Role.WARDEN_ADMIN,
+    metadata: { assigneeId },
+    correlationId,
+  });
+
+  await Notification.create({
+    recipientId: assigneeId,
+    type: NotificationType.COMPLAINT_ASSIGNED,
+    entityType: 'Complaint',
+    entityId: complaint._id,
+    title: 'New Complaint Assigned',
+    body: `You have been assigned a ${complaint.category} complaint (${complaint.priority} priority).`,
+  });
+
+  logger.info({ complaintId, assigneeId, correlationId }, 'Complaint assigned');
+
+  return complaint;
+}
+
+export async function updatePriority(
+  complaintId: string,
+  priority: ComplaintPriority,
+  actorId: string,
+  correlationId: string,
+) {
+  const slaHours = SLA_HOURS_BY_PRIORITY[priority] ?? 48;
+  const complaint = await Complaint.findById(complaintId);
+  if (!complaint) {
+    throw new AppError('NOT_FOUND', 'Complaint not found', 404);
+  }
+
+  const oldPriority = complaint.priority;
+  complaint.priority = priority;
+  complaint.dueAt = new Date(complaint.createdAt.getTime() + slaHours * 60 * 60 * 1000);
+  await complaint.save();
+
+  await ComplaintEvent.create({
+    complaintId: complaint._id,
+    eventType: 'PRIORITY_CHANGED',
+    actorId,
+    actorRole: Role.WARDEN_ADMIN,
+    note: `Priority changed from ${oldPriority} to ${priority}`,
+  });
+
+  await AuditEvent.create({
+    entityType: 'Complaint',
+    entityId: complaint._id,
+    eventType: 'PRIORITY_CHANGED',
+    actorId,
+    actorRole: Role.WARDEN_ADMIN,
+    metadata: { oldPriority, newPriority: priority, newDueAt: complaint.dueAt },
+    correlationId,
+  });
+
+  logger.info({ complaintId, oldPriority, newPriority: priority, correlationId }, 'Complaint priority updated');
+
+  return complaint;
+}
+
+export async function getMaintenanceStaff() {
+  return User.find({ role: Role.MAINTENANCE, isActive: true }, '_id name').lean();
 }
