@@ -42,6 +42,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const setConsented = useCallback(() => {
+    setUser((prev) => (prev ? { ...prev, hasConsented: true } : prev));
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -50,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!user,
         login,
         logout,
+        setConsented,
       }}
     >
       {children}

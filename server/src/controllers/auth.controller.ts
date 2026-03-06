@@ -27,6 +27,7 @@ export async function login(req: Request, res: Response) {
         name: result.user.name,
         email: result.user.email,
         role: result.user.role,
+        hasConsented: result.user.hasConsented,
       },
     },
     correlationId: req.correlationId,
