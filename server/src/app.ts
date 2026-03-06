@@ -51,6 +51,12 @@ app.use(csrfMiddleware);
 app.use('/api', healthRoutes);
 app.use('/api/auth', authRoutes);
 
+// Test-only routes for RBAC integration testing (static import, only registered in test)
+if (env.NODE_ENV === 'test') {
+  const { default: rbacTestRoutes } = await import('@/routes/rbac-test.routes.js');
+  app.use('/api/test', rbacTestRoutes);
+}
+
 // 404 catch-all — undefined routes return JSON, not HTML
 app.use((_req, _res, next) => {
   next(new AppError('NOT_FOUND', 'Resource not found', 404));

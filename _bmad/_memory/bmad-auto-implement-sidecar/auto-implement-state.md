@@ -28,7 +28,7 @@ epics:
           closed: complete
       - id: 1.2
         name: "User Model, Auth API & JWT Token Lifecycle"
-        status: in_progress
+        status: complete
         phases:
           create_story: complete
           dev_story: complete
@@ -36,18 +36,18 @@ epics:
           codex_review: skipped
           reconcile: complete
           fix: complete
-          closed: pending
+          closed: complete
       - id: 1.3
         name: "RBAC Middleware & Role-Based Data Visibility"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
       - id: 1.4
         name: "Seed Script & Demo Data"
         status: pending
