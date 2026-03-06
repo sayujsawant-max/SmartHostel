@@ -13,7 +13,7 @@ last_updated: 2026-03-06
 epics:
   - id: 1
     name: "Project Foundation & Authentication"
-    status: in_progress
+    status: complete
     stories:
       - id: 1.1
         name: "Project Scaffolding & Dev Environment"
@@ -83,6 +83,21 @@ epics:
           closed: complete
       - id: 1.7
         name: "Account Management (Warden)"
+        status: complete
+        phases:
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
+  - id: 2
+    name: "Leave Management & Gate Pass Generation"
+    status: in_progress
+    stories:
+      - id: 2.1
+        name: "Leave Request Creation (Student)"
         status: in_progress
         phases:
           create_story: complete
@@ -91,21 +106,6 @@ epics:
           codex_review: skipped
           reconcile: complete
           fix: complete
-          closed: pending
-  - id: 2
-    name: "Leave Management & Gate Pass Generation"
-    status: pending
-    stories:
-      - id: 2.1
-        name: "Leave Request Creation (Student)"
-        status: pending
-        phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
           closed: pending
       - id: 2.2
         name: "Leave Approval & Rejection (Warden)"

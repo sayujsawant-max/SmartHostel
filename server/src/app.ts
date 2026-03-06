@@ -13,6 +13,7 @@ import healthRoutes from '@/routes/health.routes.js';
 import authRoutes from '@/routes/auth.routes.js';
 import consentRoutes from '@/routes/consent.routes.js';
 import adminRoutes from '@/routes/admin.routes.js';
+import leaveRoutes from '@/routes/leave.routes.js';
 
 const app = express();
 
@@ -54,6 +55,7 @@ app.use('/api', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/consents', consentRoutes);
 app.use('/api/admin/users', adminRoutes);
+app.use('/api/leaves', leaveRoutes);
 
 // Test-only routes for RBAC integration testing (static import, only registered in test)
 if (env.NODE_ENV === 'test') {
