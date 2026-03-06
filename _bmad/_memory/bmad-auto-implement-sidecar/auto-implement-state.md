@@ -282,74 +282,74 @@ epics:
           closed: complete
   - id: 5
     name: "Complaint Lifecycle & SLA Automation"
-    status: pending
+    status: complete
     stories:
       - id: 5.1
         name: "Complaint Submission (Student)"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
       - id: 5.2
         name: "Complaint Assignment & Priority (Warden)"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
       - id: 5.3
         name: "Maintenance Task Queue & Status Updates"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
       - id: 5.4
         name: "Complaint Status Timeline (Student)"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
       - id: 5.5
         name: "SLA Computation & Category Defaults"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
       - id: 5.6
         name: "SLA Cron Worker — Reminders & Escalation"
-        status: pending
+        status: complete
         phases:
-          create_story: pending
-          dev_story: pending
-          claude_review: pending
-          codex_review: pending
-          reconcile: pending
-          fix: pending
-          closed: pending
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
   - id: 6
     name: "Dashboards, Notifications & Notices"
     status: pending
