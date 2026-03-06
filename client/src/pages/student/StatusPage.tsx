@@ -3,6 +3,17 @@ import { Link } from 'react-router-dom';
 import { apiFetch } from '@services/api';
 import { useAuth } from '@hooks/useAuth';
 
+interface FeeItem {
+  _id: string;
+  feeType: string;
+  amount: number;
+  currency: string;
+  dueDate: string;
+  status: string;
+  semester: string;
+  academicYear: string;
+}
+
 interface NoticeItem {
   _id: string;
   title: string;
@@ -69,6 +80,12 @@ const STATUS_COLORS: Record<string, string> = {
   EXPIRED: 'bg-orange-100 text-orange-800',
 };
 
+const FEE_STATUS_COLORS: Record<string, string> = {
+  PAID: 'bg-green-100 text-green-800',
+  UNPAID: 'bg-yellow-100 text-yellow-800',
+  OVERDUE: 'bg-red-100 text-red-800',
+};
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
@@ -78,6 +95,8 @@ export default function StatusPage() {
   const [leaves, setLeaves] = useState<Leave[]>([]);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [notices, setNotices] = useState<NoticeItem[]>([]);
+  const [fees, setFees] = useState<FeeItem[]>([]);
+  const [showFees, setShowFees] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -86,11 +105,13 @@ export default function StatusPage() {
       apiFetch<{ leaves: Leave[] }>('/leaves'),
       apiFetch<{ complaints: Complaint[] }>('/complaints'),
       apiFetch<{ notices: NoticeItem[] }>('/notices/my-notices').catch(() => ({ data: { notices: [] } })),
+      apiFetch<{ fees: FeeItem[] }>('/assistant/fees').catch(() => ({ data: { fees: [] } })),
     ])
-      .then(([leavesRes, complaintsRes, noticesRes]) => {
+      .then(([leavesRes, complaintsRes, noticesRes, feesRes]) => {
         setLeaves(leavesRes.data.leaves);
         setComplaints(complaintsRes.data.complaints);
         setNotices(noticesRes.data.notices);
+        setFees(feesRes.data.fees);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -117,6 +138,50 @@ export default function StatusPage() {
         </div>
       )}
 
+      {/* Quick Action Shortcuts */}
+      <div className="grid grid-cols-2 gap-2">
+        <a href="#complaints" className="p-3 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center hover:bg-[hsl(var(--muted))]">
+          <p className="text-2xl font-bold text-[hsl(var(--foreground))]">{complaints.filter((c) => c.status !== 'CLOSED' && c.status !== 'RESOLVED').length}</p>
+          <p className="text-xs text-[hsl(var(--muted-foreground))]">Active Complaints</p>
+        </a>
+        <a href="#leaves" className="p-3 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center hover:bg-[hsl(var(--muted))]">
+          <p className="text-2xl font-bold text-[hsl(var(--foreground))]">{leaves.filter((l) => l.status === 'PENDING' || l.status === 'APPROVED' || l.status === 'SCANNED_OUT').length}</p>
+          <p className="text-xs text-[hsl(var(--muted-foreground))]">Active Leaves</p>
+        </a>
+        <button onClick={() => setShowFees(!showFees)} className="p-3 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center hover:bg-[hsl(var(--muted))]">
+          <p className="text-2xl font-bold text-[hsl(var(--foreground))]">{fees.filter((f) => f.status !== 'PAID').length}</p>
+          <p className="text-xs text-[hsl(var(--muted-foreground))]">Pending Fees</p>
+        </button>
+        <Link to="/student/faq" className="p-3 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center hover:bg-[hsl(var(--muted))]">
+          <p className="text-2xl font-bold text-[hsl(var(--foreground))]">?</p>
+          <p className="text-xs text-[hsl(var(--muted-foreground))]">Ask a Question</p>
+        </Link>
+      </div>
+
+      {/* Fee Status */}
+      {showFees && (
+        <div className="space-y-2">
+          <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">Fee Status</h2>
+          {fees.length === 0 ? (
+            <p className="text-sm text-[hsl(var(--muted-foreground))]">No fee records found.</p>
+          ) : (
+            fees.map((f) => (
+              <div key={f._id} className="p-3 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] flex justify-between items-center">
+                <div>
+                  <p className="text-sm font-medium text-[hsl(var(--foreground))]">{f.feeType.replace(/_/g, ' ')}</p>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">{f.semester} · {f.academicYear}</p>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">Due {formatDate(f.dueDate)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-[hsl(var(--foreground))]">{f.currency} {f.amount.toLocaleString('en-IN')}</p>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${FEE_STATUS_COLORS[f.status] ?? ''}`}>{f.status}</span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
       {/* Notices */}
       {notices.length > 0 && (
         <>
@@ -136,7 +201,7 @@ export default function StatusPage() {
         </>
       )}
 
-      <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">My Leaves</h2>
+      <h2 id="leaves" className="text-xl font-bold text-[hsl(var(--foreground))]">My Leaves</h2>
 
       {activeLeave && (
         <Link
@@ -183,7 +248,7 @@ export default function StatusPage() {
       )}
 
       {/* Complaints Section */}
-      <h2 className="text-xl font-bold text-[hsl(var(--foreground))] pt-4">My Complaints</h2>
+      <h2 id="complaints" className="text-xl font-bold text-[hsl(var(--foreground))] pt-4">My Complaints</h2>
 
       {complaints.length === 0 ? (
         <div className="text-center py-6 text-[hsl(var(--muted-foreground))]">

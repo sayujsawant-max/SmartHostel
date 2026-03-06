@@ -19,6 +19,7 @@ import gateRoutes from '@/routes/gate.routes.js';
 import complaintRoutes from '@/routes/complaint.routes.js';
 import notificationRoutes from '@/routes/notification.routes.js';
 import noticeRoutes from '@/routes/notice.routes.js';
+import assistantRoutes from '@/routes/assistant.routes.js';
 
 const app = express();
 
@@ -66,6 +67,7 @@ app.use('/api/gate', gateRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/notices', noticeRoutes);
+app.use('/api/assistant', assistantRoutes);
 
 // Test-only routes for RBAC integration testing (static import, only registered in test)
 if (env.NODE_ENV === 'test') {
