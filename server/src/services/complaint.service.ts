@@ -1,5 +1,5 @@
 import type { CreateComplaintInput, ComplaintPriority } from '@smarthostel/shared';
-import { ComplaintStatus, SLA_CATEGORY_DEFAULTS, NotificationType, Role } from '@smarthostel/shared';
+import { ComplaintStatus, SLA_CATEGORY_DEFAULTS, SLA_HOURS_BY_PRIORITY, NotificationType, Role } from '@smarthostel/shared';
 import { Complaint } from '@models/complaint.model.js';
 import { User } from '@models/user.model.js';
 import { ComplaintEvent } from '@models/complaint-event.model.js';
@@ -7,13 +7,6 @@ import { AuditEvent } from '@models/audit-event.model.js';
 import { Notification } from '@models/notification.model.js';
 import { AppError } from '@utils/app-error.js';
 import { logger } from '@utils/logger.js';
-
-const SLA_HOURS_BY_PRIORITY: Record<string, number> = {
-  LOW: 72,
-  MEDIUM: 48,
-  HIGH: 24,
-  CRITICAL: 12,
-};
 
 export async function createComplaint(
   studentId: string,

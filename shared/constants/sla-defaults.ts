@@ -6,6 +6,13 @@ export interface SlaCategoryDefault {
   slaHours: number;
 }
 
+export const SLA_HOURS_BY_PRIORITY: Record<ComplaintPriority, number> = {
+  LOW: 72,
+  MEDIUM: 48,
+  HIGH: 24,
+  CRITICAL: 12,
+};
+
 export const SLA_CATEGORY_DEFAULTS: Record<ComplaintCategory, SlaCategoryDefault> = {
   PLUMBING: { priority: 'HIGH', slaHours: 24 },
   ELECTRICAL: { priority: 'CRITICAL', slaHours: 12 },

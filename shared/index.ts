@@ -9,7 +9,7 @@ export { ScanResult } from './constants/scan-results.js';
 export { ComplaintStatus } from './constants/complaint-status.js';
 export { ComplaintCategory } from './constants/complaint-category.js';
 export { ComplaintPriority } from './constants/complaint-priority.js';
-export { SLA_CATEGORY_DEFAULTS } from './constants/sla-defaults.js';
+export { SLA_CATEGORY_DEFAULTS, SLA_HOURS_BY_PRIORITY } from './constants/sla-defaults.js';
 export type { SlaCategoryDefault } from './constants/sla-defaults.js';
 
 // Types
