@@ -41,9 +41,9 @@ const gatePassSchema = new Schema<IGatePass>(
   },
 );
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 gatePassSchema.set('toJSON', {
-  transform: (_doc: any, ret: any) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  transform: (_doc: Document, ret: any) => {
     delete ret.__v;
     return ret;
   },

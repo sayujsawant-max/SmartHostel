@@ -3,7 +3,7 @@ import request from 'supertest';
 import bcrypt from 'bcryptjs';
 import { User } from '@models/user.model.js';
 import { Leave } from '@models/leave.model.js';
-import { GatePass } from '@models/gate-pass.model.js';
+
 import app from '../app.js';
 
 const TEST_PASSWORD = 'password123';

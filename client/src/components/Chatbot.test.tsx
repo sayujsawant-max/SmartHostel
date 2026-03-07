@@ -121,8 +121,6 @@ describe('Chatbot', () => {
     fireEvent.change(input, { target: { value: '   ' } });
     fireEvent.keyDown(input, { key: 'Enter' });
 
-    // Only the initial greeting message should exist
-    const messages = screen.getAllByText(/./);
     // No user message bubble should appear
     expect(screen.queryByText('   ')).not.toBeInTheDocument();
   });

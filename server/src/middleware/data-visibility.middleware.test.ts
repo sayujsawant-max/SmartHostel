@@ -26,9 +26,9 @@ describe('buildVisibilityFilter', () => {
 
       try {
         buildVisibilityFilter({ _id: 'guard-1', role: 'GUARD' }, 'ownedByStudent');
-      } catch (err: any) {
-        expect(err.statusCode).toBe(403);
-        expect(err.code).toBe('FORBIDDEN');
+      } catch (err: unknown) {
+        expect((err as Record<string, unknown>).statusCode).toBe(403);
+        expect((err as Record<string, unknown>).code).toBe('FORBIDDEN');
       }
     });
 
@@ -71,9 +71,9 @@ describe('buildVisibilityFilter', () => {
 
       try {
         buildVisibilityFilter({ _id: 'guard-1', role: 'GUARD' }, 'assignedToMaintenance');
-      } catch (err: any) {
-        expect(err.statusCode).toBe(403);
-        expect(err.code).toBe('FORBIDDEN');
+      } catch (err: unknown) {
+        expect((err as Record<string, unknown>).statusCode).toBe(403);
+        expect((err as Record<string, unknown>).code).toBe('FORBIDDEN');
       }
     });
   });

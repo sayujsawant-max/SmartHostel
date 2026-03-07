@@ -34,11 +34,17 @@ const EVENT_LABELS: Record<string, string> = {
 };
 
 function SLABadge({ dueAt, status }: { dueAt: string; status: string }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
   if (status === 'RESOLVED' || status === 'CLOSED') {
     return <span className="text-sm text-green-700 font-medium">Resolved</span>;
   }
   const due = new Date(dueAt);
-  const diffMs = due.getTime() - Date.now();
+  const diffMs = due.getTime() - now;
   const diffH = Math.round(diffMs / (1000 * 60 * 60));
   if (diffMs < 0) return <span className="text-sm font-semibold text-red-700">Overdue {Math.abs(diffH)}h</span>;
   if (diffH <= 2) return <span className="text-sm font-semibold text-amber-700">Due in {diffH}h</span>;

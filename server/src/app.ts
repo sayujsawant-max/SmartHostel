@@ -1,4 +1,6 @@
 import express from 'express';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
@@ -77,7 +79,32 @@ if (env.NODE_ENV === 'test') {
   app.use('/api/test', rbacTestRoutes);
 }
 
-// 404 catch-all — undefined routes return JSON, not HTML
+// In production, serve the built client SPA
+if (env.NODE_ENV === 'production') {
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  const clientDist = path.resolve(__dirname, '../../client/dist');
+  app.use(express.static(clientDist));
+
+  // SPA fallback — serve index.html for GET navigation requests only
+  app.use((req, _res, next) => {
+    // Only GET requests can be SPA navigations
+    if (req.method !== 'GET') {
+      return next(new AppError('NOT_FOUND', 'Resource not found', 404));
+    }
+    // API routes fall through to the 404 handler
+    if (req.path.startsWith('/api')) {
+      return next(new AppError('NOT_FOUND', 'Resource not found', 404));
+    }
+    // Static asset requests that weren't found by express.static should 404
+    // Match common asset extensions (Vite outputs hashed filenames like index-abc123.js)
+    if (/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot|map|json)$/i.test(req.path)) {
+      return next(new AppError('NOT_FOUND', 'Resource not found', 404));
+    }
+    _res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
+
+// 404 catch-all — undefined API routes return JSON, not HTML
 app.use((_req, _res, next) => {
   next(new AppError('NOT_FOUND', 'Resource not found', 404));
 });

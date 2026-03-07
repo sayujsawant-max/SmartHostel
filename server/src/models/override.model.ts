@@ -37,9 +37,9 @@ const overrideSchema = new Schema<IOverride>(
   },
 );
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 overrideSchema.set('toJSON', {
-  transform: (_doc: any, ret: any) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  transform: (_doc: Document, ret: any) => {
     delete ret.__v;
     return ret;
   },

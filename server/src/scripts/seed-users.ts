@@ -10,6 +10,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) {
+  // eslint-disable-next-line no-console
   console.error('MONGODB_URI is required');
   process.exit(1);
 }
@@ -51,8 +52,10 @@ const seedUsers = [
 ];
 
 async function seed() {
+  // eslint-disable-next-line no-console
   console.log('Connecting to MongoDB...');
   await mongoose.connect(MONGODB_URI!);
+  // eslint-disable-next-line no-console
   console.log('Connected.');
 
   const passwordHash = await bcrypt.hash(DEV_PASSWORD, 10);
@@ -77,14 +80,17 @@ async function seed() {
     const action = result?.createdAt.getTime() === result?.updatedAt.getTime()
       ? 'Created'
       : 'Updated';
+    // eslint-disable-next-line no-console
     console.log(`${action}: ${userData.name} (${userData.email}) — role: ${userData.role}`);
   }
 
+  // eslint-disable-next-line no-console
   console.log('\nSeed complete. All users have password: password123');
   await mongoose.disconnect();
 }
 
 seed().catch((err) => {
+  // eslint-disable-next-line no-console
   console.error('Seed failed:', err);
   process.exit(1);
 });

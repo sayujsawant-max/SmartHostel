@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import type { Request, Response, NextFunction } from 'express';
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
@@ -35,10 +36,10 @@ async function createUserAndToken(role: string, email?: string) {
 describe('requireRole() middleware — unit tests', () => {
   it('allows request when user role matches single allowed role', () => {
     const middleware = requireRole('WARDEN_ADMIN');
-    const req = { user: { _id: 'u1', role: 'WARDEN_ADMIN' } } as any;
-    const res = {} as any;
+    const req = { user: { _id: 'u1', role: 'WARDEN_ADMIN' } } as unknown as Request;
+    const res = {} as unknown as Response;
     let called = false;
-    const next = () => { called = true; };
+    const next = (() => { called = true; }) as NextFunction;
 
     middleware(req, res, next);
     expect(called).toBe(true);
@@ -46,15 +47,16 @@ describe('requireRole() middleware — unit tests', () => {
 
   it('rejects request when user role does not match (403)', () => {
     const middleware = requireRole('WARDEN_ADMIN');
-    const req = { user: { _id: 'u1', role: 'STUDENT' } } as any;
-    const res = {} as any;
+    const req = { user: { _id: 'u1', role: 'STUDENT' } } as unknown as Request;
+    const res = {} as unknown as Response;
+    const next = (() => {}) as NextFunction;
 
-    expect(() => middleware(req, res, () => {})).toThrow();
+    expect(() => middleware(req, res, next)).toThrow();
     try {
-      middleware(req, res, () => {});
-    } catch (err: any) {
-      expect(err.statusCode).toBe(403);
-      expect(err.code).toBe('FORBIDDEN');
+      middleware(req, res, next);
+    } catch (err: unknown) {
+      expect((err as Record<string, unknown>).statusCode).toBe(403);
+      expect((err as Record<string, unknown>).code).toBe('FORBIDDEN');
     }
   });
 
@@ -64,55 +66,59 @@ describe('requireRole() middleware — unit tests', () => {
 
     // Test STUDENT
     middleware(
-      { user: { _id: 'u1', role: 'STUDENT' } } as any,
-      {} as any,
-      () => { called = true; },
+      { user: { _id: 'u1', role: 'STUDENT' } } as unknown as Request,
+      {} as unknown as Response,
+      (() => { called = true; }) as NextFunction,
     );
     expect(called).toBe(true);
 
     // Test WARDEN_ADMIN
     called = false;
     middleware(
-      { user: { _id: 'u2', role: 'WARDEN_ADMIN' } } as any,
-      {} as any,
-      () => { called = true; },
+      { user: { _id: 'u2', role: 'WARDEN_ADMIN' } } as unknown as Request,
+      {} as unknown as Response,
+      (() => { called = true; }) as NextFunction,
     );
     expect(called).toBe(true);
   });
 
   it('returns 401 when req.user is not set', () => {
     const middleware = requireRole('GUARD');
-    const req = {} as any;
+    const req = {} as unknown as Request;
 
     try {
-      middleware(req, {} as any, () => {});
-    } catch (err: any) {
-      expect(err.statusCode).toBe(401);
-      expect(err.code).toBe('UNAUTHORIZED');
+      middleware(req, {} as unknown as Response, (() => {}) as NextFunction);
+    } catch (err: unknown) {
+      expect((err as Record<string, unknown>).statusCode).toBe(401);
+      expect((err as Record<string, unknown>).code).toBe('UNAUTHORIZED');
     }
   });
 
   it('rejects GUARD from warden-only endpoint (403)', () => {
     const middleware = requireRole('WARDEN_ADMIN');
-    const req = { user: { _id: 'u1', role: 'GUARD' } } as any;
+    const req = { user: { _id: 'u1', role: 'GUARD' } } as unknown as Request;
+    const res = {} as unknown as Response;
+    const next = (() => {}) as NextFunction;
 
-    expect(() => middleware(req, {} as any, () => {})).toThrow();
+    expect(() => middleware(req, res, next)).toThrow();
     try {
-      middleware(req, {} as any, () => {});
-    } catch (err: any) {
-      expect(err.statusCode).toBe(403);
+      middleware(req, res, next);
+    } catch (err: unknown) {
+      expect((err as Record<string, unknown>).statusCode).toBe(403);
     }
   });
 
   it('rejects GUARD from complaint endpoints (403)', () => {
     const middleware = requireRole('STUDENT', 'WARDEN_ADMIN', 'MAINTENANCE');
-    const req = { user: { _id: 'u1', role: 'GUARD' } } as any;
+    const req = { user: { _id: 'u1', role: 'GUARD' } } as unknown as Request;
+    const res = {} as unknown as Response;
+    const next = (() => {}) as NextFunction;
 
-    expect(() => middleware(req, {} as any, () => {})).toThrow();
+    expect(() => middleware(req, res, next)).toThrow();
     try {
-      middleware(req, {} as any, () => {});
-    } catch (err: any) {
-      expect(err.statusCode).toBe(403);
+      middleware(req, res, next);
+    } catch (err: unknown) {
+      expect((err as Record<string, unknown>).statusCode).toBe(403);
     }
   });
 });

@@ -61,8 +61,14 @@ const PRIORITY_COLORS: Record<string, string> = {
 };
 
 function SLABadge({ dueAt }: { dueAt: string }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
   const due = new Date(dueAt);
-  const diffMs = due.getTime() - Date.now();
+  const diffMs = due.getTime() - now;
   const diffH = Math.round(diffMs / (1000 * 60 * 60));
   if (diffMs < 0) return <span className="text-xs font-medium text-red-700 bg-red-50 px-2 py-0.5 rounded-full">Overdue {Math.abs(diffH)}h</span>;
   if (diffH <= 2) return <span className="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">Due in {diffH}h</span>;

@@ -1,4 +1,4 @@
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import type { Request, Response } from 'express';
 import { ScanResult } from '@smarthostel/shared';
 
@@ -12,7 +12,12 @@ export const passCodeRateLimiter = rateLimit({
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   skip: (req: Request) => !req.body?.passCode,
-  keyGenerator: (req: Request) => req.user?._id ?? req.ip!,
+  keyGenerator: (req: Request) => {
+    // Guards must be authenticated; prefer user ID over IP
+    if (req.user?._id) return String(req.user._id);
+    // Use library helper for proper IPv6 subnet handling
+    return ipKeyGenerator(req.ip ?? '0.0.0.0');
+  },
   handler: (_req: Request, res: Response) => {
     const retryAfterMs = res.getHeader('Retry-After')
       ? Number(res.getHeader('Retry-After')) * 1000

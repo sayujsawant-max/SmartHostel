@@ -5,7 +5,7 @@
 project_name: SmartHostel
 project_root: c:/Projects/Agent
 sprint_plan_created: true
-last_updated: 2026-03-06
+last_updated: 2026-03-07
 
 ## Epics
 
@@ -83,6 +83,17 @@ epics:
           closed: complete
       - id: 1.7
         name: "Account Management (Warden)"
+        status: complete
+        phases:
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
+      - id: 1.8
+        name: "Public Student Registration"
         status: complete
         phases:
           create_story: complete
@@ -448,6 +459,65 @@ epics:
           closed: complete
       - id: 7.3
         name: "Contextual Next-Action Suggestions"
+        status: complete
+        phases:
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
+      - id: 7.4
+        name: "Conversational Chatbot UI"
+        status: complete
+        phases:
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
+  - id: 8
+    name: "Room Management & Discovery"
+    status: complete
+    stories:
+      - id: 8.1
+        name: "Room Model & API"
+        status: complete
+        phases:
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
+      - id: 8.2
+        name: "Public Room Browsing Page"
+        status: complete
+        phases:
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
+      - id: 8.3
+        name: "Admin Room Management"
+        status: complete
+        phases:
+          create_story: complete
+          dev_story: complete
+          claude_review: complete
+          codex_review: skipped
+          reconcile: complete
+          fix: complete
+          closed: complete
+      - id: 8.4
+        name: "Admin User Management"
         status: complete
         phases:
           create_story: complete

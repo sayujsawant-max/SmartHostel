@@ -209,7 +209,7 @@ describe('POST /api/auth/refresh', () => {
   });
 
   it('returns 401 for old refresh token after rotation', async () => {
-    const user = await createTestUser();
+    await createTestUser();
     const loginResult = await authService.login('test@example.com', TEST_PASSWORD);
 
     // Refresh once to rotate

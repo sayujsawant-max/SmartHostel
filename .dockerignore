@@ -1,0 +1,16 @@
+node_modules
+dist
+.env
+.env.local
+.git
+.gitignore
+.vscode
+.idea
+_bmad
+_bmad-output
+coverage
+*.log
+*.md
+!package.json
+.claude
+scripts

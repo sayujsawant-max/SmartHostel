@@ -34,9 +34,9 @@ const notificationSchema = new Schema<INotification>(
   },
 );
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 notificationSchema.set('toJSON', {
-  transform: (_doc: any, ret: any) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  transform: (_doc: Document, ret: any) => {
     delete ret.__v;
     return ret;
   },
