@@ -25,6 +25,7 @@ const ReportIssuePage = lazy(() => import('@pages/student/ReportIssuePage'));
 const RequestLeavePage = lazy(() => import('@pages/student/RequestLeavePage'));
 const ComplaintDetailPage = lazy(() => import('@pages/student/ComplaintDetailPage'));
 const StudentProfilePage = lazy(() => import('@pages/student/ProfilePage'));
+const StudentMessMenuPage = lazy(() => import('@pages/student/MessMenuPage'));
 
 // Warden pages
 const WardenDashboardPage = lazy(() => import('@pages/warden/DashboardPage'));
@@ -34,6 +35,7 @@ const WardenSettingsPage = lazy(() => import('@pages/warden/SettingsPage'));
 const WardenNoticesPage = lazy(() => import('@pages/warden/NoticesPage'));
 const WardenRoomsManagePage = lazy(() => import('@pages/warden/RoomsManagePage'));
 const WardenUsersManagePage = lazy(() => import('@pages/warden/UsersManagePage'));
+const WardenMessMenuPage = lazy(() => import('@pages/warden/MessMenuPage'));
 
 // Guard pages
 const GuardScanPage = lazy(() => import('@pages/guard/ScanPage'));
@@ -120,6 +122,7 @@ function AppRoutes() {
               <Route path="/student/status/complaint/:complaintId" element={<ComplaintDetailPage />} />
               <Route path="/student/faq" element={<StudentFaqPage />} />
               <Route path="/student/profile" element={<StudentProfilePage />} />
+              <Route path="/student/mess-menu" element={<StudentMessMenuPage />} />
             </Route>
           </Route>
 
@@ -133,6 +136,7 @@ function AppRoutes() {
               <Route path="/warden/rooms" element={<WardenRoomsManagePage />} />
               <Route path="/warden/users" element={<WardenUsersManagePage />} />
               <Route path="/warden/settings" element={<WardenSettingsPage />} />
+              <Route path="/warden/mess-menu" element={<WardenMessMenuPage />} />
             </Route>
           </Route>
 

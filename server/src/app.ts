@@ -25,6 +25,8 @@ import notificationRoutes from '@/routes/notification.routes.js';
 import noticeRoutes from '@/routes/notice.routes.js';
 import assistantRoutes from '@/routes/assistant.routes.js';
 import roomRoutes from '@/routes/room.routes.js';
+import sosRoutes from '@/routes/sos.routes.js';
+import messMenuRoutes from '@/routes/mess-menu.routes.js';
 
 const app = express();
 
@@ -84,6 +86,8 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/notices', noticeRoutes);
 app.use('/api/assistant', assistantRoutes);
 app.use('/api/rooms', roomRoutes);
+app.use('/api/sos', sosRoutes);
+app.use('/api/mess-menu', messMenuRoutes);
 
 // Test-only routes for RBAC integration testing (static import, only registered in test)
 if (env.NODE_ENV === 'test') {

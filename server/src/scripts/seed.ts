@@ -14,6 +14,7 @@ import { Leave } from '../models/leave.model.js';
 import { Notice } from '../models/notice.model.js';
 import { Complaint } from '../models/complaint.model.js';
 import { Notification } from '../models/notification.model.js';
+import { MessMenu } from '../models/mess-menu.model.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -586,6 +587,89 @@ async function seedNotifications(): Promise<{ created: number }> {
 }
 
 // ---------------------------------------------------------------------------
+// Seed Mess Menus
+// ---------------------------------------------------------------------------
+
+const messMenuData = [
+  {
+    dayOfWeek: 0, // Sunday
+    breakfast: 'Chole Bhature, Lassi',
+    lunch: 'Veg Biryani, Raita, Papad, Gulab Jamun',
+    snacks: 'Aloo Tikki, Tea',
+    dinner: 'Matar Paneer, Jeera Rice, Roti, Salad',
+  },
+  {
+    dayOfWeek: 1, // Monday
+    breakfast: 'Poha, Tea, Banana',
+    lunch: 'Dal Tadka, Rice, Roti, Aloo Gobi, Salad',
+    snacks: 'Samosa, Tea',
+    dinner: 'Paneer Butter Masala, Rice, Roti, Raita',
+  },
+  {
+    dayOfWeek: 2, // Tuesday
+    breakfast: 'Idli, Sambhar, Coconut Chutney',
+    lunch: 'Rajma, Rice, Roti, Baingan Bharta, Salad',
+    snacks: 'Bread Pakora, Tea',
+    dinner: 'Chole, Rice, Roti, Onion Salad',
+  },
+  {
+    dayOfWeek: 3, // Wednesday
+    breakfast: 'Aloo Paratha, Curd, Pickle',
+    lunch: 'Dal Fry, Rice, Roti, Paneer Tikka Masala, Salad',
+    snacks: 'Vada Pav, Tea',
+    dinner: 'Mix Veg, Rice, Roti, Dal Makhani',
+  },
+  {
+    dayOfWeek: 4, // Thursday
+    breakfast: 'Upma, Tea, Sprouts',
+    lunch: 'Chana Dal, Rice, Roti, Bhindi Masala, Salad',
+    snacks: 'Pav Bhaji, Tea',
+    dinner: 'Kadai Paneer, Rice, Roti, Raita',
+  },
+  {
+    dayOfWeek: 5, // Friday
+    breakfast: 'Dosa, Sambhar, Chutney',
+    lunch: 'Dal Palak, Rice, Roti, Aloo Matar, Salad',
+    snacks: 'Pasta, Juice',
+    dinner: 'Shahi Paneer, Rice, Roti, Salad',
+  },
+  {
+    dayOfWeek: 6, // Saturday
+    breakfast: 'Puri, Aloo Sabzi, Tea',
+    lunch: 'Kadhi Pakora, Rice, Roti, Sev Tamatar, Salad',
+    snacks: 'Dhokla, Tea',
+    dinner: 'Malai Kofta, Rice, Roti, Raita, Ice Cream',
+  },
+];
+
+async function seedMessMenus(): Promise<{ created: number; updated: number }> {
+  let created = 0;
+  let updated = 0;
+
+  for (const menu of messMenuData) {
+    const result = await MessMenu.findOneAndUpdate(
+      { dayOfWeek: menu.dayOfWeek },
+      {
+        $set: {
+          breakfast: menu.breakfast,
+          lunch: menu.lunch,
+          snacks: menu.snacks,
+          dinner: menu.dinner,
+          isActive: true,
+        },
+      },
+      { upsert: true, returnDocument: 'after' },
+    );
+
+    const isNew = result?.createdAt.getTime() === result?.updatedAt.getTime();
+    if (isNew) created++;
+    else updated++;
+  }
+
+  return { created, updated };
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -596,41 +680,45 @@ async function seed() {
 
   const summary: Record<string, { created: number; updated?: number }> = {};
 
-  console.log('[1/9] Seeding users...');
+  console.log('[1/10] Seeding users...');
   summary.users = await seedUsersData();
   console.log(`  All users have password: ${DEV_PASSWORD}\n`);
 
-  console.log('[2/9] Seeding FAQ entries...');
+  console.log('[2/10] Seeding FAQ entries...');
   summary.faqEntries = await seedFaqEntries();
   console.log(`  FAQ entries: ${summary.faqEntries.created} created, ${summary.faqEntries.updated} updated\n`);
 
-  console.log('[3/9] Seeding category defaults...');
+  console.log('[3/10] Seeding category defaults...');
   summary.categoryDefaults = await seedCategoryDefaults();
   console.log(`  Categories: ${summary.categoryDefaults.created} created, ${summary.categoryDefaults.updated} updated\n`);
 
-  console.log('[4/9] Seeding fee records...');
+  console.log('[4/10] Seeding fee records...');
   summary.feeRecords = await seedFeeRecords();
   console.log(`  Fees: ${summary.feeRecords.created} created, ${summary.feeRecords.updated} updated\n`);
 
-  console.log('[5/9] Seeding rooms...');
+  console.log('[5/10] Seeding rooms...');
   summary.rooms = await seedRooms();
   console.log(`  Rooms: ${summary.rooms.created} created, ${summary.rooms.updated} updated\n`);
 
-  console.log('[6/9] Seeding leaves...');
+  console.log('[6/10] Seeding leaves...');
   summary.leaves = await seedLeaves();
   console.log(`  Leaves: ${summary.leaves.created} created\n`);
 
-  console.log('[7/9] Seeding notices...');
+  console.log('[7/10] Seeding notices...');
   summary.notices = await seedNotices();
   console.log(`  Notices: ${summary.notices.created} created\n`);
 
-  console.log('[8/9] Seeding complaints...');
+  console.log('[8/10] Seeding complaints...');
   summary.complaints = await seedComplaints();
   console.log(`  Complaints: ${summary.complaints.created} created\n`);
 
-  console.log('[9/9] Seeding notifications...');
+  console.log('[9/10] Seeding notifications...');
   summary.notifications = await seedNotifications();
   console.log(`  Notifications: ${summary.notifications.created} created\n`);
+
+  console.log('[10/10] Seeding mess menus...');
+  summary.messMenus = await seedMessMenus();
+  console.log(`  Mess menus: ${summary.messMenus.created} created, ${summary.messMenus.updated} updated\n`);
 
   console.log('=== Seed Summary ===');
   for (const [name, counts] of Object.entries(summary)) {

@@ -2,10 +2,12 @@ import { Outlet, NavLink, Link } from 'react-router-dom';
 import { useAuth } from '@hooks/useAuth';
 import NotificationBell from '@components/NotificationBell';
 import ThemeToggle from '@components/ThemeToggle';
+import SosButton from '@components/SosButton';
 
 const tabs = [
   { label: 'Status', to: '/student/status' },
   { label: 'Actions', to: '/student/actions' },
+  { label: 'Menu', to: '/student/mess-menu' },
   { label: 'FAQ', to: '/student/faq' },
   { label: 'Profile', to: '/student/profile' },
 ] as const;
@@ -35,6 +37,8 @@ export default function StudentShell() {
       <main className="flex-1 overflow-y-auto p-4 pb-20">
         <Outlet />
       </main>
+
+      <SosButton />
 
       {/* Bottom tab bar */}
       <nav className="fixed bottom-0 left-0 right-0 flex bg-[hsl(var(--card))] border-t border-[hsl(var(--border))] shadow-lg">

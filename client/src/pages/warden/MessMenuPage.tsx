@@ -1,0 +1,133 @@
+import { useEffect, useState } from 'react';
+import { apiFetch } from '@services/api';
+
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const MEALS = ['breakfast', 'lunch', 'snacks', 'dinner'] as const;
+const MEAL_LABELS: Record<string, string> = {
+  breakfast: 'Breakfast',
+  lunch: 'Lunch',
+  snacks: 'Snacks',
+  dinner: 'Dinner',
+};
+
+interface MenuDay {
+  dayOfWeek: number;
+  breakfast: string;
+  lunch: string;
+  snacks: string;
+  dinner: string;
+}
+
+type DayForm = Record<typeof MEALS[number], string>;
+
+const emptyForm = (): DayForm => ({ breakfast: '', lunch: '', snacks: '', dinner: '' });
+
+export default function MessMenuPage() {
+  const [forms, setForms] = useState<DayForm[]>(Array.from({ length: 7 }, () => emptyForm()));
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState<number | null>(null);
+  const [feedback, setFeedback] = useState<{ day: number; type: 'success' | 'error'; message: string } | null>(null);
+
+  useEffect(() => {
+    apiFetch<{ menus: MenuDay[] }>('/mess-menu')
+      .then((res) => {
+        const updated = Array.from({ length: 7 }, () => emptyForm());
+        for (const menu of res.data.menus) {
+          updated[menu.dayOfWeek] = {
+            breakfast: menu.breakfast,
+            lunch: menu.lunch,
+            snacks: menu.snacks,
+            dinner: menu.dinner,
+          };
+        }
+        setForms(updated);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleChange = (day: number, meal: typeof MEALS[number], value: string) => {
+    setForms((prev) => {
+      const next = [...prev];
+      next[day] = { ...next[day], [meal]: value };
+      return next;
+    });
+  };
+
+  const handleSave = async (day: number) => {
+    const form = forms[day];
+    if (!form.breakfast || !form.lunch || !form.snacks || !form.dinner) {
+      setFeedback({ day, type: 'error', message: 'All meal fields are required.' });
+      return;
+    }
+
+    setSaving(day);
+    setFeedback(null);
+    try {
+      await apiFetch(`/mess-menu/${day}`, {
+        method: 'PUT',
+        body: JSON.stringify(form),
+      });
+      setFeedback({ day, type: 'success', message: 'Menu saved successfully.' });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to save menu.';
+      setFeedback({ day, type: 'error', message });
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  if (loading) {
+    return <div className="p-4 text-center text-[hsl(var(--muted-foreground))]">Loading menus...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-[hsl(var(--foreground))]">Mess Menu Management</h1>
+        <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">Update the weekly mess menu for all hostels.</p>
+      </div>
+
+      {DAY_NAMES.map((name, dayIndex) => (
+        <div
+          key={dayIndex}
+          className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-3"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">{name}</h2>
+            <button
+              onClick={() => void handleSave(dayIndex)}
+              disabled={saving === dayIndex}
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] hover:opacity-90 disabled:opacity-50"
+            >
+              {saving === dayIndex ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {MEALS.map((meal) => (
+              <div key={meal}>
+                <label className="block text-sm font-medium text-[hsl(var(--foreground))] mb-1">
+                  {MEAL_LABELS[meal]}
+                </label>
+                <input
+                  type="text"
+                  value={forms[dayIndex][meal]}
+                  onChange={(e) => handleChange(dayIndex, meal, e.target.value)}
+                  placeholder={`Enter ${MEAL_LABELS[meal].toLowerCase()} items...`}
+                  className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] text-sm placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent))]"
+                />
+              </div>
+            ))}
+          </div>
+
+          {feedback?.day === dayIndex && (
+            <p className={`text-sm ${feedback.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+              {feedback.message}
+            </p>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}

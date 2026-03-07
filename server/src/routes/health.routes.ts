@@ -10,6 +10,7 @@ import { Room } from '@models/room.model.js';
 import { Complaint } from '@models/complaint.model.js';
 import { Leave } from '@models/leave.model.js';
 import { Fee } from '@models/fee.model.js';
+import { Notice } from '@models/notice.model.js';
 import { getWardenDashboardStats } from '@services/dashboard.service.js';
 
 const router = Router();
@@ -221,6 +222,122 @@ router.get('/admin/analytics', authMiddleware, requireRole(Role.WARDEN_ADMIN), a
   res.json({
     success: true,
     data: { occupancy, complaints, leaves, fees },
+    correlationId: req.correlationId,
+  });
+});
+
+/**
+ * @openapi
+ * /admin/activity-feed:
+ *   get:
+ *     tags: [Health]
+ *     summary: Live activity feed aggregating recent hostel events
+ *     security: [{ cookieAuth: [] }]
+ *     responses:
+ *       200: { description: Activity feed events }
+ *       401: { description: Unauthorized }
+ *       403: { description: Forbidden - WARDEN_ADMIN only }
+ */
+router.get('/admin/activity-feed', authMiddleware, requireRole(Role.WARDEN_ADMIN), async (req: Request, res: Response) => {
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+  interface ActivityEvent {
+    type: 'LEAVE' | 'COMPLAINT' | 'GATE_SCAN' | 'NOTICE';
+    action: string;
+    actor: string;
+    detail: string;
+    timestamp: string;
+  }
+
+  const [recentLeaves, recentComplaints, recentGateScans, recentNotices] = await Promise.all([
+    Leave.find({ updatedAt: { $gte: sevenDaysAgo } })
+      .sort({ updatedAt: -1 })
+      .limit(30)
+      .populate('studentId', 'name')
+      .lean(),
+    Complaint.find({ updatedAt: { $gte: sevenDaysAgo } })
+      .sort({ updatedAt: -1 })
+      .limit(30)
+      .populate('studentId', 'name')
+      .lean(),
+    GateScan.find({ createdAt: { $gte: oneDayAgo } })
+      .sort({ createdAt: -1 })
+      .limit(30)
+      .populate('studentId', 'name')
+      .lean(),
+    Notice.find({ createdAt: { $gte: sevenDaysAgo } })
+      .sort({ createdAt: -1 })
+      .limit(30)
+      .populate('authorId', 'name')
+      .lean(),
+  ]);
+
+  const events: ActivityEvent[] = [];
+
+  for (const leave of recentLeaves) {
+    const studentName = (leave.studentId as unknown as { name: string })?.name ?? 'Unknown';
+    const actionMap: Record<string, string> = {
+      PENDING: 'Leave requested',
+      APPROVED: 'Leave approved',
+      REJECTED: 'Leave rejected',
+      COMPLETED: 'Leave completed',
+    };
+    events.push({
+      type: 'LEAVE',
+      action: actionMap[leave.status] ?? `Leave ${leave.status.toLowerCase()}`,
+      actor: studentName,
+      detail: `${leave.type.replace(/_/g, ' ')} — ${leave.reason.slice(0, 80)}`,
+      timestamp: (leave.updatedAt as Date).toISOString(),
+    });
+  }
+
+  for (const complaint of recentComplaints) {
+    const studentName = (complaint.studentId as unknown as { name: string })?.name ?? 'Unknown';
+    const actionMap: Record<string, string> = {
+      OPEN: 'Complaint filed',
+      IN_PROGRESS: 'Complaint in progress',
+      RESOLVED: 'Complaint resolved',
+    };
+    events.push({
+      type: 'COMPLAINT',
+      action: actionMap[complaint.status] ?? `Complaint ${complaint.status.toLowerCase()}`,
+      actor: studentName,
+      detail: `${complaint.category.replace(/_/g, ' ')} — ${complaint.description.slice(0, 80)}`,
+      timestamp: (complaint.updatedAt as Date).toISOString(),
+    });
+  }
+
+  for (const scan of recentGateScans) {
+    const studentName = (scan.studentId as unknown as { name: string })?.name ?? 'Unknown';
+    const direction = scan.directionUsed ?? scan.directionDetected ?? 'UNKNOWN';
+    events.push({
+      type: 'GATE_SCAN',
+      action: direction === 'EXIT' ? 'Gate exit' : direction === 'ENTRY' ? 'Gate entry' : 'Gate scan',
+      actor: studentName,
+      detail: `${scan.method} scan — ${scan.verdict}`,
+      timestamp: (scan.createdAt as Date).toISOString(),
+    });
+  }
+
+  for (const notice of recentNotices) {
+    const authorName = (notice.authorId as unknown as { name: string })?.name ?? 'Unknown';
+    events.push({
+      type: 'NOTICE',
+      action: 'Notice published',
+      actor: authorName,
+      detail: notice.title,
+      timestamp: (notice.createdAt as Date).toISOString(),
+    });
+  }
+
+  events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  const limited = events.slice(0, 30);
+
+  res.json({
+    success: true,
+    data: limited,
     correlationId: req.correlationId,
   });
 });

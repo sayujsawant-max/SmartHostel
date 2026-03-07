@@ -44,6 +44,40 @@ interface AnalyticsData {
   };
 }
 
+interface ActivityEvent {
+  type: 'LEAVE' | 'COMPLAINT' | 'GATE_SCAN' | 'NOTICE';
+  action: string;
+  actor: string;
+  detail: string;
+  timestamp: string;
+}
+
+function timeAgo(iso: string): string {
+  const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (seconds < 60) return 'just now';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  return `${Math.floor(seconds / 86400)}d ago`;
+}
+
+const activityDotColors: Record<ActivityEvent['type'], string> = {
+  LEAVE: '#16a34a',
+  COMPLAINT: '#3b82f6',
+  GATE_SCAN: '#f97316',
+  NOTICE: '#8b5cf6',
+};
+
+interface SosAlert {
+  _id: string;
+  studentId: { _id: string; name: string; email: string; block?: string; floor?: number; roomNumber?: string };
+  message: string;
+  status: 'ACTIVE' | 'ACKNOWLEDGED' | 'RESOLVED';
+  acknowledgedBy?: { _id: string; name: string };
+  acknowledgedAt?: string;
+  resolvedAt?: string;
+  createdAt: string;
+}
+
 interface OverrideItem {
   _id: string;
   reason: string;
@@ -59,20 +93,26 @@ export default function DashboardPage() {
   const [overrides, setOverrides] = useState<OverrideItem[]>([]);
   const [overrideStats, setOverrideStats] = useState<OverrideStats | null>(null);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [activityFeed, setActivityFeed] = useState<ActivityEvent[]>([]);
+  const [sosAlerts, setSosAlerts] = useState<SosAlert[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
     try {
-      const [statsRes, overridesRes, overrideStatsRes, analyticsRes] = await Promise.all([
+      const [statsRes, overridesRes, overrideStatsRes, analyticsRes, activityRes, sosRes] = await Promise.all([
         apiFetch<DashboardStats>('/admin/dashboard-stats'),
         apiFetch<OverrideItem[]>('/gate/overrides'),
         apiFetch<OverrideStats>('/gate/override-stats'),
         apiFetch<AnalyticsData>('/admin/analytics'),
+        apiFetch<ActivityEvent[]>('/admin/activity-feed'),
+        apiFetch<SosAlert[]>('/sos').catch(() => ({ data: [] as SosAlert[] })),
       ]);
       setDashStats(statsRes.data);
       setOverrides(overridesRes.data);
       setOverrideStats(overrideStatsRes.data);
       setAnalytics(analyticsRes.data);
+      setActivityFeed(activityRes.data);
+      setSosAlerts(sosRes.data);
     } catch (err) {
       console.error('[DashboardPage] Failed to fetch dashboard data', err);
     } finally {
@@ -95,6 +135,26 @@ export default function DashboardPage() {
     }
   };
 
+  const handleAcknowledgeSos = async (id: string) => {
+    try {
+      await apiFetch(`/sos/${id}/acknowledge`, { method: 'PATCH' });
+      setSosAlerts((prev) => prev.map((a) => a._id === id ? { ...a, status: 'ACKNOWLEDGED' as const } : a));
+    } catch (err) {
+      console.error('[DashboardPage] Failed to acknowledge SOS', err);
+    }
+  };
+
+  const handleResolveSos = async (id: string) => {
+    try {
+      await apiFetch(`/sos/${id}/resolve`, { method: 'PATCH' });
+      setSosAlerts((prev) => prev.map((a) => a._id === id ? { ...a, status: 'RESOLVED' as const } : a));
+    } catch (err) {
+      console.error('[DashboardPage] Failed to resolve SOS', err);
+    }
+  };
+
+  const activeSosAlerts = sosAlerts.filter((a) => a.status === 'ACTIVE' || a.status === 'ACKNOWLEDGED');
+
   const allClear = dashStats &&
     dashStats.pendingLeaves === 0 &&
     dashStats.nearBreachComplaints === 0 &&
@@ -113,6 +173,76 @@ export default function DashboardPage() {
         <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading...</p>
       ) : (
         <>
+          {/* SOS Alerts */}
+          {activeSosAlerts.length > 0 && (
+            <div className="rounded-xl border-2 border-red-500 bg-red-50 p-4">
+              <style>{`
+                @keyframes sosBorderPulse {
+                  0%, 100% { border-color: #ef4444; }
+                  50% { border-color: #fca5a5; }
+                }
+                .sos-alert-active {
+                  animation: sosBorderPulse 1.5s ease-in-out infinite;
+                }
+              `}</style>
+              <h3 className="text-lg font-bold text-red-700 mb-3 flex items-center gap-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-red-600">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+                SOS Alerts
+                <span className="text-sm font-normal px-2 py-0.5 rounded-full bg-red-200 text-red-800">
+                  {activeSosAlerts.length}
+                </span>
+              </h3>
+              <div className="space-y-3">
+                {activeSosAlerts.map((alert) => (
+                  <div
+                    key={alert._id}
+                    className={`p-3 rounded-lg bg-white border ${alert.status === 'ACTIVE' ? 'border-red-400 sos-alert-active' : 'border-orange-300'}`}
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-red-900">
+                          {alert.studentId?.name ?? 'Unknown Student'}
+                        </p>
+                        {(alert.studentId?.block || alert.studentId?.roomNumber) && (
+                          <p className="text-xs text-red-700">
+                            {alert.studentId.block && `Block ${alert.studentId.block}`}
+                            {alert.studentId.floor != null && `, Floor ${alert.studentId.floor}`}
+                            {alert.studentId.roomNumber && `, Room ${alert.studentId.roomNumber}`}
+                          </p>
+                        )}
+                        <p className="text-sm text-red-800 mt-1">{alert.message}</p>
+                        <p className="text-xs text-red-500 mt-1">{timeAgo(alert.createdAt)}</p>
+                        {alert.status === 'ACKNOWLEDGED' && (
+                          <p className="text-xs text-orange-600 mt-0.5">Acknowledged</p>
+                        )}
+                      </div>
+                      <div className="flex gap-2 shrink-0">
+                        {alert.status === 'ACTIVE' && (
+                          <button
+                            onClick={() => void handleAcknowledgeSos(alert._id)}
+                            className="px-3 py-1.5 rounded bg-orange-500 text-white text-xs font-medium hover:bg-orange-600"
+                          >
+                            Acknowledge
+                          </button>
+                        )}
+                        <button
+                          onClick={() => void handleResolveSos(alert._id)}
+                          className="px-3 py-1.5 rounded bg-green-600 text-white text-xs font-medium hover:bg-green-700"
+                        >
+                          Resolve
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Needs Attention Widget */}
           {allClear ? (
             <div className="p-4 rounded-xl bg-green-50 border border-green-200 text-center">
@@ -433,6 +563,42 @@ export default function DashboardPage() {
               </div>
             </>
           )}
+
+          {/* ===== Live Activity Feed ===== */}
+          <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] mt-8">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-[hsl(var(--foreground))]">Live Activity Feed</h3>
+              <button
+                onClick={() => void fetchData()}
+                className="px-3 py-1.5 rounded bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] text-xs font-medium hover:opacity-80"
+              >
+                Refresh
+              </button>
+            </div>
+
+            {activityFeed.length === 0 ? (
+              <p className="text-sm text-[hsl(var(--muted-foreground))]">No recent activity</p>
+            ) : (
+              <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+                {activityFeed.map((event, idx) => (
+                  <div key={`${event.type}-${event.timestamp}-${idx}`} className="flex items-start gap-3 p-2 rounded-lg hover:bg-[hsl(var(--muted))]">
+                    <span
+                      className="mt-1.5 shrink-0 w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: activityDotColors[event.type] }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-[hsl(var(--foreground))]">
+                        <span className="font-semibold">{event.action}</span>
+                        <span className="text-[hsl(var(--muted-foreground))]"> — {event.actor}</span>
+                      </p>
+                      <p className="text-xs text-[hsl(var(--muted-foreground))] truncate">{event.detail}</p>
+                    </div>
+                    <span className="text-xs text-[hsl(var(--muted-foreground))] shrink-0 mt-0.5">{timeAgo(event.timestamp)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </>
       )}
     </div>
