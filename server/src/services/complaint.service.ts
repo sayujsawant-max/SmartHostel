@@ -117,7 +117,7 @@ export async function assignComplaint(
   const complaint = await Complaint.findOneAndUpdate(
     { _id: complaintId, status: ComplaintStatus.OPEN },
     { status: ComplaintStatus.ASSIGNED, assigneeId },
-    { new: true },
+    { returnDocument: 'after' },
   );
 
   if (!complaint) {

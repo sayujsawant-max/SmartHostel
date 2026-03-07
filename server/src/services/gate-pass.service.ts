@@ -54,7 +54,7 @@ export async function invalidatePassByLeaveId(leaveId: string, correlationId?: s
   const result = await GatePass.findOneAndUpdate(
     { leaveId, status: GatePassStatus.ACTIVE },
     { $set: { status: GatePassStatus.CANCELLED } },
-    { new: true },
+    { returnDocument: 'after' },
   );
 
   if (result) {

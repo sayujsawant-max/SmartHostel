@@ -108,7 +108,7 @@ The production build serves the React SPA from Express with proper SPA fallback 
 # Unit & integration tests (client + server)
 npm test
 
-# E2E tests (requires MongoDB running + seed data)
+# E2E tests (requires MongoDB running; seed data is auto-applied)
 # First time: install browser
 npx playwright install chromium
 npm run test:e2e
@@ -116,7 +116,7 @@ npm run test:e2e
 
 | Suite | Tests | What's Covered |
 |---|---|---|
-| Server | 138 | Auth, RBAC, routes, middleware, models, controllers |
+| Server | 147 | Auth, RBAC, routes, middleware, models, controllers |
 | Client | 40 | LoginPage, RegisterPage, RoleRoute, ProtectedRoute, Chatbot, API service |
 | E2E | 17 | Login (all roles), logout, registration, complaints, role access control |
 

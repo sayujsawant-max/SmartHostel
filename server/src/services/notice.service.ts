@@ -69,5 +69,5 @@ export async function getStudentNotices(block?: string, floor?: string) {
 }
 
 export async function deactivateNotice(noticeId: string) {
-  return Notice.findByIdAndUpdate(noticeId, { isActive: false }, { new: true });
+  return Notice.findByIdAndUpdate(noticeId, { isActive: false }, { returnDocument: 'after' });
 }

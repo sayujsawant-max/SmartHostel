@@ -24,3 +24,7 @@ shared/dist/
 
 # Coverage
 coverage/
+
+# Playwright
+playwright-report/
+test-results/

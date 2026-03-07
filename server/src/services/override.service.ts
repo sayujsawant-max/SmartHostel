@@ -126,7 +126,7 @@ export async function markReviewed(overrideId: string, wardenId: string, correla
   const override = await Override.findByIdAndUpdate(
     overrideId,
     { $set: { reviewedBy: wardenId, reviewedAt: new Date() } },
-    { new: true },
+    { returnDocument: 'after' },
   );
 
   if (override) {

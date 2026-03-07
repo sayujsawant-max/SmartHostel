@@ -12,8 +12,8 @@ jobs:
 
     env:
       NODE_ENV: test
-      JWT_SECRET: ci-test-secret
-      QR_SECRET: ci-test-qr-secret
+      JWT_SECRET: ci-test-secret-that-is-at-least-32-chars!!
+      QR_SECRET: ci-test-qr-secret-at-least-32-chars!!
       ALLOWED_ORIGINS: http://localhost:5173
 
     steps:
@@ -26,8 +26,11 @@ jobs:
 
       - run: npm ci
 
-      - name: Build server
-        run: npm -w server run build
+      - name: Lint
+        run: npm run lint
+
+      - name: Build all workspaces
+        run: npm run build
 
       - name: Server tests
         run: npm -w server test

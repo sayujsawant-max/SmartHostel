@@ -40,7 +40,7 @@ export async function createRoom(data: CreateRoomInput, correlationId?: string) 
 }
 
 export async function updateRoom(id: string, data: Partial<CreateRoomInput> & { occupiedBeds?: number }, correlationId?: string) {
-  const room = await Room.findByIdAndUpdate(id, { $set: data }, { new: true, runValidators: true });
+  const room = await Room.findByIdAndUpdate(id, { $set: data }, { returnDocument: 'after', runValidators: true });
   if (!room) throw new AppError('NOT_FOUND', 'Room not found', 404);
 
   logger.info(

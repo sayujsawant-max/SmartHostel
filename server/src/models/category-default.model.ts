@@ -41,8 +41,6 @@ const categoryDefaultSchema = new Schema<ICategoryDefault>(
   },
 );
 
-categoryDefaultSchema.index({ category: 1 }, { unique: true });
-
 export const CategoryDefault = mongoose.model<ICategoryDefault>(
   'CategoryDefault',
   categoryDefaultSchema,

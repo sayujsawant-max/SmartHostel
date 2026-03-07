@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import Chatbot from './Chatbot';
 
 // Mock apiFetch
@@ -28,19 +28,33 @@ const SAMPLE_FAQS = [
 
 describe('Chatbot', () => {
   beforeEach(() => {
+    vi.useFakeTimers();
     vi.clearAllMocks();
     mockApiFetch.mockResolvedValue({ data: { faqs: SAMPLE_FAQS } });
     // jsdom doesn't implement scrollIntoView
     Element.prototype.scrollIntoView = vi.fn();
   });
 
-  it('renders toggle button', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  /** Wait for the FAQ useEffect to resolve */
+  async function waitForFaqLoad() {
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
+  }
+
+  it('renders toggle button', async () => {
     render(<Chatbot />);
+    await waitForFaqLoad();
     expect(screen.getByRole('button', { name: 'Toggle chatbot' })).toBeInTheDocument();
   });
 
   it('opens chat window on toggle click', async () => {
     render(<Chatbot />);
+    await waitForFaqLoad();
 
     fireEvent.click(screen.getByRole('button', { name: 'Toggle chatbot' }));
 
@@ -48,8 +62,9 @@ describe('Chatbot', () => {
     expect(screen.getByPlaceholderText('Ask a question...')).toBeInTheDocument();
   });
 
-  it('shows greeting message on open', () => {
+  it('shows greeting message on open', async () => {
     render(<Chatbot />);
+    await waitForFaqLoad();
     fireEvent.click(screen.getByRole('button', { name: 'Toggle chatbot' }));
 
     expect(screen.getByText(/I'm the SmartHostel assistant/)).toBeInTheDocument();
@@ -57,12 +72,8 @@ describe('Chatbot', () => {
 
   it('sends user message and receives FAQ match', async () => {
     render(<Chatbot />);
+    await waitForFaqLoad();
     fireEvent.click(screen.getByRole('button', { name: 'Toggle chatbot' }));
-
-    // Wait for FAQs to load
-    await waitFor(() => {
-      expect(mockApiFetch).toHaveBeenCalledWith('/assistant/faq');
-    });
 
     const input = screen.getByPlaceholderText('Ask a question...');
     fireEvent.change(input, { target: { value: 'How do I apply for leave?' } });
@@ -71,50 +82,51 @@ describe('Chatbot', () => {
     // User message appears
     expect(screen.getByText('How do I apply for leave?')).toBeInTheDocument();
 
-    // Bot response appears after timeout
-    await waitFor(() => {
-      expect(screen.getByText('Go to the Leaves section and tap "Apply for Leave".')).toBeInTheDocument();
+    // Advance past the 300ms setTimeout for bot response
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(350);
     });
+
+    expect(screen.getByText('Go to the Leaves section and tap "Apply for Leave".')).toBeInTheDocument();
   });
 
   it('shows fallback for unrecognized query', async () => {
     render(<Chatbot />);
+    await waitForFaqLoad();
     fireEvent.click(screen.getByRole('button', { name: 'Toggle chatbot' }));
-
-    await waitFor(() => {
-      expect(mockApiFetch).toHaveBeenCalled();
-    });
 
     const input = screen.getByPlaceholderText('Ask a question...');
     fireEvent.change(input, { target: { value: 'xyzzy gibberish nonsense' } });
     fireEvent.keyDown(input, { key: 'Enter' });
 
-    await waitFor(() => {
-      expect(screen.getByText(/I'm not sure about that/)).toBeInTheDocument();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(350);
     });
+
+    expect(screen.getByText(/I'm not sure about that/)).toBeInTheDocument();
   });
 
   it('responds to greeting', async () => {
     render(<Chatbot />);
+    await waitForFaqLoad();
     fireEvent.click(screen.getByRole('button', { name: 'Toggle chatbot' }));
-
-    await waitFor(() => {
-      expect(mockApiFetch).toHaveBeenCalled();
-    });
 
     const input = screen.getByPlaceholderText('Ask a question...');
     fireEvent.change(input, { target: { value: 'hello' } });
     fireEvent.keyDown(input, { key: 'Enter' });
 
-    // The greeting response should appear (there's already one from initial render + new one)
-    await waitFor(() => {
-      const greetings = screen.getAllByText(/I'm the SmartHostel assistant/);
-      expect(greetings.length).toBeGreaterThanOrEqual(2);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(350);
     });
+
+    // The greeting response should appear (there's already one from initial render + new one)
+    const greetings = screen.getAllByText(/I'm the SmartHostel assistant/);
+    expect(greetings.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('does not send empty messages', () => {
+  it('does not send empty messages', async () => {
     render(<Chatbot />);
+    await waitForFaqLoad();
     fireEvent.click(screen.getByRole('button', { name: 'Toggle chatbot' }));
 
     const input = screen.getByPlaceholderText('Ask a question...');

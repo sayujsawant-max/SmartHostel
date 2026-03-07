@@ -16,4 +16,9 @@ coverage
 scripts
 **/*.test.ts
 **/*.test.tsx
+**/*.spec.ts
 **/test/
+e2e/
+playwright.config.ts
+playwright-report/
+test-results/

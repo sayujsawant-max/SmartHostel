@@ -15,6 +15,9 @@ interface VerifyInput {
   guardId: string;
   directionOverride?: 'ENTRY' | 'EXIT';
   correlationId?: string;
+  /** Set by reconcileOfflineScan so logScan can tag the record directly */
+  scanAttemptId?: string;
+  offlineStatus?: 'OFFLINE_OVERRIDE' | null;
 }
 
 interface VerifyResult {
@@ -137,13 +140,13 @@ export async function verifyPass(input: VerifyInput): Promise<VerifyResult> {
     transitionResult = await Leave.findOneAndUpdate(
       { _id: leaveRequestId, status: LeaveStatus.APPROVED },
       { $set: { status: LeaveStatus.SCANNED_OUT, outLoggedAt: new Date() } },
-      { new: true },
+      { returnDocument: 'after' },
     );
   } else {
     transitionResult = await Leave.findOneAndUpdate(
       { _id: leaveRequestId, status: LeaveStatus.SCANNED_OUT },
       { $set: { status: LeaveStatus.SCANNED_IN, inLoggedAt: new Date() } },
-      { new: true },
+      { returnDocument: 'after' },
     );
   }
 
@@ -248,23 +251,9 @@ export async function reconcileOfflineScan(input: ReconcileInput): Promise<Recon
       guardId: input.guardId,
       directionOverride: input.directionOverride,
       correlationId: input.correlationId,
+      scanAttemptId: input.scanAttemptId,
+      offlineStatus: 'OFFLINE_OVERRIDE',
     });
-
-    // Update the GateScan that was just created by verifyPass
-    // Query by guardId + missing scanAttemptId to find the freshly-created record
-    await GateScan.findOneAndUpdate(
-      { guardId: input.guardId, scanAttemptId: { $exists: false } },
-      {
-        $set: {
-          offlineStatus: 'OFFLINE_OVERRIDE',
-          reconcileStatus: result.verdict === 'ALLOW' ? 'SUCCESS' : 'FAIL',
-          reconcileErrorCode: result.verdict === 'DENY' ? result.scanResult : null,
-          reconciledAt: new Date(),
-          scanAttemptId: input.scanAttemptId,
-        },
-      },
-      { sort: { createdAt: -1 } },
-    );
 
     return {
       scanAttemptId: input.scanAttemptId,
@@ -323,10 +312,15 @@ async function logScan(
     lastGateStateBeforeScan: lastGateState ?? 'UNKNOWN',
     latencyMs,
     timeoutTriggered: latencyMs > 3000,
-    offlineStatus: null,
-    reconcileStatus: null,
-    reconcileErrorCode: null,
-    reconciledAt: null,
+    offlineStatus: input.offlineStatus ?? null,
+    reconcileStatus: input.scanAttemptId
+      ? (result.verdict === 'ALLOW' ? 'SUCCESS' : 'FAIL')
+      : null,
+    reconcileErrorCode: input.scanAttemptId && result.verdict === 'DENY'
+      ? result.scanResult
+      : null,
+    reconciledAt: input.scanAttemptId ? new Date() : null,
+    scanAttemptId: input.scanAttemptId ?? null,
   });
 
   logger.info(

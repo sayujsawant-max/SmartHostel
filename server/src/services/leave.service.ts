@@ -75,7 +75,7 @@ export async function approveLeave(leaveId: string, wardenId: string, correlatio
         approvedAt: new Date(),
       },
     },
-    { new: true },
+    { returnDocument: 'after' },
   );
 
   if (!leave) {
@@ -126,7 +126,7 @@ export async function rejectLeave(leaveId: string, wardenId: string, reason?: st
   const leave = await Leave.findOneAndUpdate(
     { _id: leaveId, status: LeaveStatus.PENDING },
     { $set: updateFields },
-    { new: true },
+    { returnDocument: 'after' },
   );
 
   if (!leave) {
@@ -175,7 +175,7 @@ export async function cancelLeave(leaveId: string, studentId: string, correlatio
       status: { $in: [LeaveStatus.PENDING, LeaveStatus.APPROVED] },
     },
     { $set: { status: LeaveStatus.CANCELLED } },
-    { new: true },
+    { returnDocument: 'after' },
   );
 
   if (!leave) {
@@ -223,7 +223,7 @@ export async function correctLeave(leaveId: string, wardenId: string, reason: st
       status: { $in: [LeaveStatus.SCANNED_OUT, LeaveStatus.SCANNED_IN] },
     },
     { $set: { status: LeaveStatus.CORRECTED } },
-    { new: false }, // Return the ORIGINAL document for audit trail
+    { returnDocument: 'before' }, // Return the ORIGINAL document for audit trail
   );
 
   if (!leave) {

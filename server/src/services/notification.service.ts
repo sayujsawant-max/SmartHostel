@@ -15,7 +15,7 @@ export async function markAsRead(notificationId: string, userId: string) {
   return Notification.findOneAndUpdate(
     { _id: notificationId, recipientId: userId },
     { isRead: true },
-    { new: true },
+    { returnDocument: 'after' },
   );
 }
 

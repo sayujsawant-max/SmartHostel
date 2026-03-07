@@ -46,7 +46,7 @@ const gateScanSchema = new Schema<IGateScan>(
     reconcileStatus: { type: String, default: null, enum: ['PENDING', 'SUCCESS', 'FAIL', null] },
     reconcileErrorCode: { type: String, default: null },
     reconciledAt: { type: Date, default: null },
-    scanAttemptId: { type: String, default: null },
+    scanAttemptId: { type: String, default: null, sparse: true, unique: true },
   },
   {
     collection: 'gateScans',

@@ -1,10 +1,16 @@
 import cron from 'node-cron';
 import { connectDB } from '@config/db.js';
+import { env } from '@config/env.js';
 import { logger } from '@utils/logger.js';
 import { runSlaCheck } from '@services/sla-worker.service.js';
 
 async function start() {
   logger.info('SLA worker starting...');
+
+  if (!env.CRON_ENABLED) {
+    logger.info('CRON_ENABLED is false — worker exiting');
+    return;
+  }
 
   await connectDB();
 
