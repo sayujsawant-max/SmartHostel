@@ -9,6 +9,11 @@ import { User } from '../models/user.model.js';
 import { FaqEntry } from '../models/faq-entry.model.js';
 import { Fee } from '../models/fee.model.js';
 import { CategoryDefault } from '../models/category-default.model.js';
+import { Room } from '../models/room.model.js';
+import { Leave } from '../models/leave.model.js';
+import { Notice } from '../models/notice.model.js';
+import { Complaint } from '../models/complaint.model.js';
+import { Notification } from '../models/notification.model.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -234,6 +239,353 @@ async function seedFeeRecords(): Promise<{ created: number; updated: number }> {
 }
 
 // ---------------------------------------------------------------------------
+// Seed Rooms
+// ---------------------------------------------------------------------------
+
+const seedRoomsData = [
+  // Block A — Boys hostel
+  { block: 'A', floor: '1', roomNumber: 'A-101', hostelGender: 'BOYS', roomType: 'NORMAL', acType: 'NON_AC', totalBeds: 4, occupiedBeds: 3, feePerSemester: 25000 },
+  { block: 'A', floor: '1', roomNumber: 'A-102', hostelGender: 'BOYS', roomType: 'NORMAL', acType: 'NON_AC', totalBeds: 4, occupiedBeds: 4, feePerSemester: 25000 },
+  { block: 'A', floor: '1', roomNumber: 'A-103', hostelGender: 'BOYS', roomType: 'DELUXE', acType: 'AC', totalBeds: 2, occupiedBeds: 1, feePerSemester: 45000 },
+  { block: 'A', floor: '2', roomNumber: 'A-201', hostelGender: 'BOYS', roomType: 'NORMAL', acType: 'NON_AC', totalBeds: 4, occupiedBeds: 2, feePerSemester: 25000 },
+  { block: 'A', floor: '2', roomNumber: 'A-202', hostelGender: 'BOYS', roomType: 'NORMAL', acType: 'AC', totalBeds: 3, occupiedBeds: 3, feePerSemester: 35000 },
+  { block: 'A', floor: '2', roomNumber: 'A-203', hostelGender: 'BOYS', roomType: 'DELUXE', acType: 'AC', totalBeds: 2, occupiedBeds: 0, feePerSemester: 45000 },
+  { block: 'A', floor: '3', roomNumber: 'A-301', hostelGender: 'BOYS', roomType: 'NORMAL', acType: 'NON_AC', totalBeds: 4, occupiedBeds: 1, feePerSemester: 25000 },
+  { block: 'A', floor: '3', roomNumber: 'A-302', hostelGender: 'BOYS', roomType: 'DELUXE', acType: 'AC', totalBeds: 2, occupiedBeds: 2, feePerSemester: 45000 },
+  // Block B — Girls hostel
+  { block: 'B', floor: '1', roomNumber: 'B-101', hostelGender: 'GIRLS', roomType: 'NORMAL', acType: 'NON_AC', totalBeds: 4, occupiedBeds: 2, feePerSemester: 25000 },
+  { block: 'B', floor: '1', roomNumber: 'B-102', hostelGender: 'GIRLS', roomType: 'NORMAL', acType: 'AC', totalBeds: 3, occupiedBeds: 1, feePerSemester: 35000 },
+  { block: 'B', floor: '1', roomNumber: 'B-103', hostelGender: 'GIRLS', roomType: 'DELUXE', acType: 'AC', totalBeds: 2, occupiedBeds: 2, feePerSemester: 45000 },
+  { block: 'B', floor: '2', roomNumber: 'B-201', hostelGender: 'GIRLS', roomType: 'NORMAL', acType: 'NON_AC', totalBeds: 4, occupiedBeds: 0, feePerSemester: 25000 },
+  { block: 'B', floor: '2', roomNumber: 'B-202', hostelGender: 'GIRLS', roomType: 'DELUXE', acType: 'AC', totalBeds: 2, occupiedBeds: 1, feePerSemester: 45000 },
+  { block: 'B', floor: '3', roomNumber: 'B-301', hostelGender: 'GIRLS', roomType: 'NORMAL', acType: 'NON_AC', totalBeds: 4, occupiedBeds: 3, feePerSemester: 25000 },
+  { block: 'B', floor: '3', roomNumber: 'B-302', hostelGender: 'GIRLS', roomType: 'NORMAL', acType: 'AC', totalBeds: 3, occupiedBeds: 2, feePerSemester: 35000 },
+  // Block C — Boys hostel (larger block)
+  { block: 'C', floor: '1', roomNumber: 'C-101', hostelGender: 'BOYS', roomType: 'NORMAL', acType: 'NON_AC', totalBeds: 6, occupiedBeds: 5, feePerSemester: 20000 },
+  { block: 'C', floor: '1', roomNumber: 'C-102', hostelGender: 'BOYS', roomType: 'NORMAL', acType: 'NON_AC', totalBeds: 6, occupiedBeds: 4, feePerSemester: 20000 },
+  { block: 'C', floor: '2', roomNumber: 'C-201', hostelGender: 'BOYS', roomType: 'NORMAL', acType: 'AC', totalBeds: 4, occupiedBeds: 2, feePerSemester: 35000 },
+  { block: 'C', floor: '2', roomNumber: 'C-202', hostelGender: 'BOYS', roomType: 'DELUXE', acType: 'AC', totalBeds: 2, occupiedBeds: 0, feePerSemester: 50000 },
+  { block: 'C', floor: '3', roomNumber: 'C-301', hostelGender: 'BOYS', roomType: 'NORMAL', acType: 'NON_AC', totalBeds: 6, occupiedBeds: 6, feePerSemester: 20000 },
+];
+
+async function seedRooms(): Promise<{ created: number; updated: number }> {
+  let created = 0;
+  let updated = 0;
+
+  for (const room of seedRoomsData) {
+    const result = await Room.findOneAndUpdate(
+      { block: room.block, roomNumber: room.roomNumber },
+      { $set: { ...room, isActive: true } },
+      { upsert: true, returnDocument: 'after' },
+    );
+
+    const isNew = result?.createdAt.getTime() === result?.updatedAt.getTime();
+    if (isNew) created++;
+    else updated++;
+  }
+
+  return { created, updated };
+}
+
+// ---------------------------------------------------------------------------
+// Seed Leaves (demo data)
+// ---------------------------------------------------------------------------
+
+async function seedLeaves(): Promise<{ created: number }> {
+  const student = await User.findOne({ email: 'student@smarthostel.dev' });
+  const warden = await User.findOne({ email: 'warden@smarthostel.dev' });
+  if (!student || !warden) return { created: 0 };
+
+  // Clear existing seed leaves
+  await Leave.deleteMany({ studentId: student._id });
+
+  const now = new Date();
+  const leaves = [
+    {
+      studentId: student._id,
+      type: 'OVERNIGHT',
+      startDate: new Date(now.getTime() - 10 * 86_400_000),
+      endDate: new Date(now.getTime() - 8 * 86_400_000),
+      reason: 'Attending a family wedding in Pune',
+      status: 'COMPLETED',
+      approvedBy: warden._id,
+      approvedAt: new Date(now.getTime() - 11 * 86_400_000),
+    },
+    {
+      studentId: student._id,
+      type: 'DAY_OUTING',
+      startDate: new Date(now.getTime() - 5 * 86_400_000),
+      endDate: new Date(now.getTime() - 5 * 86_400_000),
+      reason: 'Doctor appointment at city hospital',
+      status: 'COMPLETED',
+      approvedBy: warden._id,
+      approvedAt: new Date(now.getTime() - 6 * 86_400_000),
+    },
+    {
+      studentId: student._id,
+      type: 'DAY_OUTING',
+      startDate: new Date(now.getTime() - 2 * 86_400_000),
+      endDate: new Date(now.getTime() - 2 * 86_400_000),
+      reason: 'Shopping for project supplies',
+      status: 'REJECTED',
+      rejectionReason: 'Too many recent leaves, please wait a week',
+    },
+    {
+      studentId: student._id,
+      type: 'OVERNIGHT',
+      startDate: new Date(now.getTime() + 3 * 86_400_000),
+      endDate: new Date(now.getTime() + 5 * 86_400_000),
+      reason: 'Going home for the weekend — parents visiting from out of town',
+      status: 'APPROVED',
+      approvedBy: warden._id,
+      approvedAt: new Date(now.getTime() - 86_400_000),
+    },
+    {
+      studentId: student._id,
+      type: 'DAY_OUTING',
+      startDate: new Date(now.getTime() + 7 * 86_400_000),
+      endDate: new Date(now.getTime() + 7 * 86_400_000),
+      reason: 'Internship interview at TCS office',
+      status: 'PENDING',
+    },
+  ];
+
+  await Leave.insertMany(leaves);
+  return { created: leaves.length };
+}
+
+// ---------------------------------------------------------------------------
+// Seed Notices
+// ---------------------------------------------------------------------------
+
+async function seedNotices(): Promise<{ created: number }> {
+  const warden = await User.findOne({ email: 'warden@smarthostel.dev' });
+  if (!warden) return { created: 0 };
+
+  await Notice.deleteMany({ authorId: warden._id });
+
+  const now = new Date();
+  const notices = [
+    {
+      authorId: warden._id,
+      title: 'Water Supply Interruption — Block A',
+      content: 'Due to maintenance work on the overhead tank, water supply in Block A will be interrupted on Saturday from 10:00 AM to 2:00 PM. Please store water in advance.',
+      target: 'BLOCK',
+      targetBlock: 'A',
+      isActive: true,
+      createdAt: new Date(now.getTime() - 2 * 86_400_000),
+    },
+    {
+      authorId: warden._id,
+      title: 'Hostel Day Celebration',
+      content: 'Annual Hostel Day celebrations will be held on 15th March in the common hall. Cultural performances, food stalls, and games are planned. All residents are welcome to participate.',
+      target: 'ALL',
+      isActive: true,
+      createdAt: new Date(now.getTime() - 1 * 86_400_000),
+    },
+    {
+      authorId: warden._id,
+      title: 'Wi-Fi Maintenance Notice',
+      content: 'The hostel Wi-Fi network will undergo upgrades tonight between 11:00 PM and 5:00 AM. Expect intermittent connectivity during this window. Ethernet connections will remain unaffected.',
+      target: 'ALL',
+      isActive: true,
+      createdAt: new Date(now.getTime() - 12 * 3_600_000),
+    },
+    {
+      authorId: warden._id,
+      title: 'Room Inspection — All Blocks',
+      content: 'Routine room inspection will be conducted next Monday and Tuesday. Please ensure rooms are clean and hostel property is in good condition. Any damages will be charged to occupants.',
+      target: 'ALL',
+      isActive: true,
+      createdAt: new Date(now.getTime() - 6 * 3_600_000),
+    },
+    {
+      authorId: warden._id,
+      title: 'Mess Menu Updated',
+      content: 'The mess menu for March has been updated based on the recent feedback survey. New items include paneer tikka on Wednesdays and pasta on Fridays. Check the mess notice board for the full menu.',
+      target: 'ALL',
+      isActive: true,
+      createdAt: new Date(now.getTime() - 3 * 3_600_000),
+    },
+    {
+      authorId: warden._id,
+      title: 'Gate Timings Reminder',
+      content: 'All students must return to the hostel by 9:30 PM on weekdays and 10:30 PM on weekends. Late entry will require warden approval and will be recorded in the system.',
+      target: 'ALL',
+      isActive: true,
+      createdAt: new Date(now.getTime() - 5 * 86_400_000),
+    },
+  ];
+
+  await Notice.insertMany(notices);
+  return { created: notices.length };
+}
+
+// ---------------------------------------------------------------------------
+// Seed Complaints (realistic demo data)
+// ---------------------------------------------------------------------------
+
+async function seedComplaints(): Promise<{ created: number }> {
+  const student = await User.findOne({ email: 'student@smarthostel.dev' });
+  const maintenance = await User.findOne({ email: 'maintenance@smarthostel.dev' });
+  if (!student || !maintenance) return { created: 0 };
+
+  await Complaint.deleteMany({ studentId: student._id });
+
+  const now = new Date();
+  const complaints = [
+    {
+      studentId: student._id,
+      category: 'PLUMBING',
+      description: 'Bathroom tap in room A-201 is leaking continuously, wasting water and making the floor slippery',
+      status: 'RESOLVED',
+      priority: 'HIGH',
+      assigneeId: maintenance._id,
+      resolutionNotes: 'Replaced the washer and tightened the valve. Tested — no more leaks.',
+      dueAt: new Date(now.getTime() - 5 * 86_400_000),
+      createdAt: new Date(now.getTime() - 7 * 86_400_000),
+      updatedAt: new Date(now.getTime() - 5 * 86_400_000),
+    },
+    {
+      studentId: student._id,
+      category: 'ELECTRICAL',
+      description: 'Ceiling fan in room A-201 is making loud grinding noise and wobbling dangerously',
+      status: 'IN_PROGRESS',
+      priority: 'HIGH',
+      assigneeId: maintenance._id,
+      dueAt: new Date(now.getTime() + 1 * 86_400_000),
+      createdAt: new Date(now.getTime() - 2 * 86_400_000),
+      updatedAt: new Date(now.getTime() - 1 * 86_400_000),
+    },
+    {
+      studentId: student._id,
+      category: 'FURNITURE',
+      description: 'Study desk drawer is broken — handle came off and drawer slides are bent. Cannot store books properly.',
+      status: 'OPEN',
+      priority: 'MEDIUM',
+      dueAt: new Date(now.getTime() + 2 * 86_400_000),
+      createdAt: new Date(now.getTime() - 1 * 86_400_000),
+      updatedAt: new Date(now.getTime() - 1 * 86_400_000),
+    },
+    {
+      studentId: student._id,
+      category: 'INTERNET',
+      description: 'Wi-Fi signal is extremely weak on the 3rd floor of Block A. Keeps disconnecting during online classes.',
+      status: 'OPEN',
+      priority: 'MEDIUM',
+      dueAt: new Date(now.getTime() + 3 * 86_400_000),
+      createdAt: new Date(now.getTime() - 12 * 3_600_000),
+      updatedAt: new Date(now.getTime() - 12 * 3_600_000),
+    },
+    {
+      studentId: student._id,
+      category: 'CLEANING',
+      description: 'Common bathroom on 2nd floor Block A has not been cleaned for 2 days. Very unhygienic.',
+      status: 'RESOLVED',
+      priority: 'HIGH',
+      assigneeId: maintenance._id,
+      resolutionNotes: 'Deep cleaned the bathroom. Cleaning schedule has been updated to prevent recurrence.',
+      dueAt: new Date(now.getTime() - 3 * 86_400_000),
+      createdAt: new Date(now.getTime() - 4 * 86_400_000),
+      updatedAt: new Date(now.getTime() - 3 * 86_400_000),
+    },
+    {
+      studentId: student._id,
+      category: 'PEST_CONTROL',
+      description: 'Seeing cockroaches frequently in the room, especially near the washbasin area. Need pest control spray.',
+      status: 'IN_PROGRESS',
+      priority: 'MEDIUM',
+      assigneeId: maintenance._id,
+      dueAt: new Date(now.getTime() + 1 * 86_400_000),
+      createdAt: new Date(now.getTime() - 3 * 86_400_000),
+      updatedAt: new Date(now.getTime() - 2 * 86_400_000),
+    },
+  ];
+
+  await Complaint.insertMany(complaints);
+  return { created: complaints.length };
+}
+
+// ---------------------------------------------------------------------------
+// Seed Notifications
+// ---------------------------------------------------------------------------
+
+async function seedNotifications(): Promise<{ created: number }> {
+  const student = await User.findOne({ email: 'student@smarthostel.dev' });
+  const warden = await User.findOne({ email: 'warden@smarthostel.dev' });
+  if (!student || !warden) return { created: 0 };
+
+  await Notification.deleteMany({ recipientId: student._id });
+
+  const now = new Date();
+  const recentLeave = await Leave.findOne({ studentId: student._id, status: 'APPROVED' });
+  const resolvedComplaint = await Complaint.findOne({ studentId: student._id, status: 'RESOLVED' });
+  const latestNotice = await Notice.findOne({ authorId: warden._id }).sort({ createdAt: -1 });
+
+  const notifications = [];
+
+  if (recentLeave) {
+    notifications.push({
+      recipientId: student._id,
+      type: 'LEAVE_APPROVED',
+      entityType: 'Leave',
+      entityId: recentLeave._id,
+      title: 'Leave Approved',
+      body: 'Your overnight leave request has been approved by the warden. Remember to scan out at the gate.',
+      isRead: false,
+      createdAt: new Date(now.getTime() - 86_400_000),
+    });
+  }
+
+  if (resolvedComplaint) {
+    notifications.push({
+      recipientId: student._id,
+      type: 'COMPLAINT_RESOLVED',
+      entityType: 'Complaint',
+      entityId: resolvedComplaint._id,
+      title: 'Complaint Resolved',
+      body: 'Your plumbing complaint has been resolved. Please check and confirm.',
+      isRead: true,
+      createdAt: new Date(now.getTime() - 5 * 86_400_000),
+    });
+  }
+
+  if (latestNotice) {
+    notifications.push({
+      recipientId: student._id,
+      type: 'NOTICE_PUBLISHED',
+      entityType: 'Notice',
+      entityId: latestNotice._id,
+      title: 'New Notice',
+      body: latestNotice.title,
+      isRead: false,
+      createdAt: new Date(now.getTime() - 3 * 3_600_000),
+    });
+  }
+
+  // Warden notifications
+  await Notification.deleteMany({ recipientId: warden._id });
+  const openComplaints = await Complaint.find({ status: 'OPEN' }).limit(2);
+  for (const c of openComplaints) {
+    notifications.push({
+      recipientId: warden._id,
+      type: 'SLA_REMINDER',
+      entityType: 'Complaint',
+      entityId: c._id,
+      title: 'SLA Deadline Approaching',
+      body: `Complaint "${c.category}" needs attention — SLA deadline is approaching.`,
+      isRead: false,
+      createdAt: new Date(now.getTime() - 2 * 3_600_000),
+    });
+  }
+
+  if (notifications.length > 0) {
+    await Notification.insertMany(notifications);
+  }
+  return { created: notifications.length };
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -242,27 +594,49 @@ async function seed() {
   await mongoose.connect(MONGODB_URI!);
   console.log('Connected.\n');
 
-  const summary: Record<string, { created: number; updated: number }> = {};
+  const summary: Record<string, { created: number; updated?: number }> = {};
 
-  console.log('[1/4] Seeding users...');
+  console.log('[1/9] Seeding users...');
   summary.users = await seedUsersData();
   console.log(`  All users have password: ${DEV_PASSWORD}\n`);
 
-  console.log('[2/4] Seeding FAQ entries...');
+  console.log('[2/9] Seeding FAQ entries...');
   summary.faqEntries = await seedFaqEntries();
   console.log(`  FAQ entries: ${summary.faqEntries.created} created, ${summary.faqEntries.updated} updated\n`);
 
-  console.log('[3/4] Seeding category defaults...');
+  console.log('[3/9] Seeding category defaults...');
   summary.categoryDefaults = await seedCategoryDefaults();
   console.log(`  Categories: ${summary.categoryDefaults.created} created, ${summary.categoryDefaults.updated} updated\n`);
 
-  console.log('[4/4] Seeding fee records...');
+  console.log('[4/9] Seeding fee records...');
   summary.feeRecords = await seedFeeRecords();
   console.log(`  Fees: ${summary.feeRecords.created} created, ${summary.feeRecords.updated} updated\n`);
 
+  console.log('[5/9] Seeding rooms...');
+  summary.rooms = await seedRooms();
+  console.log(`  Rooms: ${summary.rooms.created} created, ${summary.rooms.updated} updated\n`);
+
+  console.log('[6/9] Seeding leaves...');
+  summary.leaves = await seedLeaves();
+  console.log(`  Leaves: ${summary.leaves.created} created\n`);
+
+  console.log('[7/9] Seeding notices...');
+  summary.notices = await seedNotices();
+  console.log(`  Notices: ${summary.notices.created} created\n`);
+
+  console.log('[8/9] Seeding complaints...');
+  summary.complaints = await seedComplaints();
+  console.log(`  Complaints: ${summary.complaints.created} created\n`);
+
+  console.log('[9/9] Seeding notifications...');
+  summary.notifications = await seedNotifications();
+  console.log(`  Notifications: ${summary.notifications.created} created\n`);
+
   console.log('=== Seed Summary ===');
   for (const [name, counts] of Object.entries(summary)) {
-    console.log(`  ${name}: ${counts.created} created, ${counts.updated} updated`);
+    const parts = [`${counts.created} created`];
+    if (counts.updated !== undefined) parts.push(`${counts.updated} updated`);
+    console.log(`  ${name}: ${parts.join(', ')}`);
   }
   console.log('\nSeed complete.');
 

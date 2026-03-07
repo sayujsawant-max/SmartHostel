@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import { useAuth } from '@hooks/useAuth';
 import NotificationBell from '@components/NotificationBell';
+import ThemeToggle from '@components/ThemeToggle';
 
 const navLinks = [
   { label: 'Dashboard', to: '/warden/dashboard' },
@@ -37,7 +38,11 @@ function SidebarContent({ onLogout }: { onLogout: () => void }) {
           </NavLink>
         ))}
       </nav>
-      <div className="p-4 border-t border-[hsl(var(--border))]">
+      <div className="p-4 border-t border-[hsl(var(--border))] space-y-2">
+        <div className="flex items-center gap-2 px-1">
+          <ThemeToggle />
+          <span className="text-xs text-[hsl(var(--muted-foreground))]">Theme</span>
+        </div>
         <button
           onClick={onLogout}
           className="w-full px-3 py-2 rounded-lg text-sm font-medium bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] hover:opacity-90"
@@ -89,6 +94,7 @@ export default function WardenShell() {
             </svg>
           </button>
           <h1 className="ml-3 flex-1 text-lg font-bold text-[hsl(var(--foreground))]">SmartHostel</h1>
+          <ThemeToggle />
           <NotificationBell />
         </header>
 

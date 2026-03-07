@@ -22,7 +22,9 @@ const StudentActionsPage = lazy(() => import('@pages/student/ActionsPage'));
 const StudentFaqPage = lazy(() => import('@pages/student/FaqPage'));
 const ShowQRPage = lazy(() => import('@pages/student/ShowQRPage'));
 const ReportIssuePage = lazy(() => import('@pages/student/ReportIssuePage'));
+const RequestLeavePage = lazy(() => import('@pages/student/RequestLeavePage'));
 const ComplaintDetailPage = lazy(() => import('@pages/student/ComplaintDetailPage'));
+const StudentProfilePage = lazy(() => import('@pages/student/ProfilePage'));
 
 // Warden pages
 const WardenDashboardPage = lazy(() => import('@pages/warden/DashboardPage'));
@@ -114,8 +116,10 @@ function AppRoutes() {
               <Route path="/student/actions" element={<StudentActionsPage />} />
               <Route path="/student/actions/show-qr" element={<ShowQRPage />} />
               <Route path="/student/actions/report-issue" element={<ReportIssuePage />} />
+              <Route path="/student/actions/request-leave" element={<RequestLeavePage />} />
               <Route path="/student/status/complaint/:complaintId" element={<ComplaintDetailPage />} />
               <Route path="/student/faq" element={<StudentFaqPage />} />
+              <Route path="/student/profile" element={<StudentProfilePage />} />
             </Route>
           </Route>
 

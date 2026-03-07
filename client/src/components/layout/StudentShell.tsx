@@ -1,11 +1,13 @@
-import { Outlet, NavLink } from 'react-router-dom';
+import { Outlet, NavLink, Link } from 'react-router-dom';
 import { useAuth } from '@hooks/useAuth';
 import NotificationBell from '@components/NotificationBell';
+import ThemeToggle from '@components/ThemeToggle';
 
 const tabs = [
   { label: 'Status', to: '/student/status' },
   { label: 'Actions', to: '/student/actions' },
   { label: 'FAQ', to: '/student/faq' },
+  { label: 'Profile', to: '/student/profile' },
 ] as const;
 
 export default function StudentShell() {
@@ -18,7 +20,8 @@ export default function StudentShell() {
         <h1 className="text-lg font-bold text-[hsl(var(--foreground))]">SmartHostel</h1>
         <div className="flex items-center gap-3">
           <NotificationBell />
-          <span className="text-sm text-[hsl(var(--muted-foreground))]">{user?.name}</span>
+          <ThemeToggle />
+          <Link to="/student/profile" className="text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">{user?.name}</Link>
           <button
             onClick={() => void logout()}
             className="text-sm px-3 py-1.5 rounded-lg bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] font-medium hover:opacity-90"

@@ -23,6 +23,10 @@ vi.mock('@utils/role-home', () => ({
   getRoleHomePath: (role: string) => `/${role}/home`,
 }));
 
+vi.mock('@context/ThemeContext', () => ({
+  useTheme: () => ({ theme: 'light', setTheme: vi.fn() }),
+}));
+
 function makeUser(overrides: Partial<UserProfile> = {}): UserProfile {
   return {
     id: '1',
@@ -166,10 +170,12 @@ describe('LoginPage', () => {
     fireEvent.change(screen.getByLabelText('Password'), {
       target: { value: 'ValidPass123!' },
     });
-    fireEvent.click(screen.getByRole('button'));
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
 
     await waitFor(() => {
-      expect(screen.getByRole('button')).toBeDisabled();
+      const buttons = screen.getAllByRole('button');
+      const submitBtn = buttons.find((b) => b.getAttribute('type') === 'submit');
+      expect(submitBtn).toBeDisabled();
     });
 
     resolveLogin!(makeUser());

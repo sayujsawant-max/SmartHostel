@@ -6,6 +6,7 @@ import { useAuth } from '@hooks/useAuth';
 import { useNavigate, Link } from 'react-router-dom';
 import { ApiError } from '@services/api';
 import { getRoleHomePath } from '@utils/role-home';
+import ThemeToggle from '@components/ThemeToggle';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -78,11 +79,14 @@ export default function LoginPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4"
+      className="relative min-h-screen flex items-center justify-center px-4"
       style={{
         background: 'linear-gradient(135deg, hsl(222 47% 19%) 0%, hsl(173 78% 24%) 100%)',
       }}
     >
+      <div className="absolute top-4 right-4 text-white/80">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white">SmartHostel</h1>

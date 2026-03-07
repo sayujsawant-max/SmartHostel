@@ -1,6 +1,7 @@
 import { Outlet, NavLink } from 'react-router-dom';
 import { useAuth } from '@hooks/useAuth';
 import NotificationBell from '@components/NotificationBell';
+import ThemeToggle from '@components/ThemeToggle';
 
 const tabs = [
   { label: 'Tasks', to: '/maintenance/tasks' },
@@ -18,6 +19,7 @@ export default function MaintenanceShell() {
         <h1 className="text-lg font-bold text-[hsl(var(--foreground))]">SmartHostel</h1>
         <div className="flex items-center gap-3">
           <NotificationBell />
+          <ThemeToggle />
           <span className="text-sm text-[hsl(var(--muted-foreground))]">{user?.name}</span>
           <button
             onClick={() => void logout()}
