@@ -262,6 +262,177 @@ describe('PATCH /api/complaints/:id/status', () => {
   });
 });
 
+describe('GET /api/complaints/:id (access control)', () => {
+  it('student can view their own complaint', async () => {
+    const cookies = await loginAs('STUDENT', 'student@example.com');
+    const createRes = await createComplaintAsStudent(cookies);
+    const complaintId = createRes.body.data.complaint._id;
+
+    const res = await request(app)
+      .get(`/api/complaints/${complaintId}`)
+      .set('Cookie', [`accessToken=${cookies.accessToken}`]);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+  });
+
+  it('student cannot view another student complaint', async () => {
+    const student1Cookies = await loginAs('STUDENT', 'student1@example.com');
+    const createRes = await createComplaintAsStudent(student1Cookies);
+    const complaintId = createRes.body.data.complaint._id;
+
+    const student2Cookies = await loginAs('STUDENT', 'student2@example.com');
+    const res = await request(app)
+      .get(`/api/complaints/${complaintId}`)
+      .set('Cookie', [`accessToken=${student2Cookies.accessToken}`]);
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('FORBIDDEN');
+  });
+
+  it('warden can view any complaint', async () => {
+    const studentCookies = await loginAs('STUDENT', 'student@example.com');
+    const createRes = await createComplaintAsStudent(studentCookies);
+    const complaintId = createRes.body.data.complaint._id;
+
+    const wardenCookies = await loginAs('WARDEN_ADMIN', 'warden@example.com');
+    const res = await request(app)
+      .get(`/api/complaints/${complaintId}`)
+      .set('Cookie', [`accessToken=${wardenCookies.accessToken}`]);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+  });
+
+  it('maintenance can view assigned complaint', async () => {
+    const studentCookies = await loginAs('STUDENT', 'student@example.com');
+    const createRes = await createComplaintAsStudent(studentCookies);
+    const complaintId = createRes.body.data.complaint._id;
+
+    const maintenanceUser = await User.create({
+      name: 'Maintenance Worker',
+      email: 'maint@example.com',
+      passwordHash,
+      role: 'MAINTENANCE',
+      isActive: true,
+      hasConsented: true,
+    });
+
+    // Assign via warden
+    const wardenCookies = await loginAs('WARDEN_ADMIN', 'warden@example.com');
+    await request(app)
+      .patch(`/api/complaints/${complaintId}/assign`)
+      .set('Origin', VALID_ORIGIN)
+      .set('Cookie', [`accessToken=${wardenCookies.accessToken}`])
+      .send({ assigneeId: maintenanceUser._id.toString() });
+
+    // Login as maintenance and view
+    const maintLoginRes = await request(app)
+      .post('/api/auth/login')
+      .set('Origin', VALID_ORIGIN)
+      .send({ email: 'maint@example.com', password: TEST_PASSWORD });
+    const maintCookies = extractCookies(maintLoginRes);
+
+    const res = await request(app)
+      .get(`/api/complaints/${complaintId}`)
+      .set('Cookie', [`accessToken=${maintCookies.accessToken}`]);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+  });
+
+  it('maintenance cannot view unassigned complaint', async () => {
+    const studentCookies = await loginAs('STUDENT', 'student@example.com');
+    const createRes = await createComplaintAsStudent(studentCookies);
+    const complaintId = createRes.body.data.complaint._id;
+
+    await User.create({
+      name: 'Maintenance Worker',
+      email: 'maint@example.com',
+      passwordHash,
+      role: 'MAINTENANCE',
+      isActive: true,
+      hasConsented: true,
+    });
+    const maintLoginRes = await request(app)
+      .post('/api/auth/login')
+      .set('Origin', VALID_ORIGIN)
+      .send({ email: 'maint@example.com', password: TEST_PASSWORD });
+    const maintCookies = extractCookies(maintLoginRes);
+
+    const res = await request(app)
+      .get(`/api/complaints/${complaintId}`)
+      .set('Cookie', [`accessToken=${maintCookies.accessToken}`]);
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('FORBIDDEN');
+  });
+});
+
+describe('GET /api/complaints/:id/timeline (access control)', () => {
+  it('student can view timeline for their own complaint', async () => {
+    const cookies = await loginAs('STUDENT', 'student@example.com');
+    const createRes = await createComplaintAsStudent(cookies);
+    const complaintId = createRes.body.data.complaint._id;
+
+    const res = await request(app)
+      .get(`/api/complaints/${complaintId}/timeline`)
+      .set('Cookie', [`accessToken=${cookies.accessToken}`]);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(Array.isArray(res.body.data.events)).toBe(true);
+  });
+
+  it('student cannot view timeline for another student complaint', async () => {
+    const student1Cookies = await loginAs('STUDENT', 'student1@example.com');
+    const createRes = await createComplaintAsStudent(student1Cookies);
+    const complaintId = createRes.body.data.complaint._id;
+
+    const student2Cookies = await loginAs('STUDENT', 'student2@example.com');
+    const res = await request(app)
+      .get(`/api/complaints/${complaintId}/timeline`)
+      .set('Cookie', [`accessToken=${student2Cookies.accessToken}`]);
+
+    expect(res.status).toBe(403);
+  });
+});
+
+describe('PATCH /api/complaints/:id/assign (assignee validation)', () => {
+  it('rejects assignment to non-existent user', async () => {
+    const studentCookies = await loginAs('STUDENT', 'student@example.com');
+    const createRes = await createComplaintAsStudent(studentCookies);
+    const complaintId = createRes.body.data.complaint._id;
+
+    const wardenCookies = await loginAs('WARDEN_ADMIN', 'warden@example.com');
+    const res = await request(app)
+      .patch(`/api/complaints/${complaintId}/assign`)
+      .set('Origin', VALID_ORIGIN)
+      .set('Cookie', [`accessToken=${wardenCookies.accessToken}`])
+      .send({ assigneeId: '000000000000000000000000' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('rejects assignment to non-maintenance user', async () => {
+    const studentCookies = await loginAs('STUDENT', 'student@example.com');
+    const createRes = await createComplaintAsStudent(studentCookies);
+    const complaintId = createRes.body.data.complaint._id;
+
+    const student = await User.findOne({ email: 'student@example.com' });
+    const wardenCookies = await loginAs('WARDEN_ADMIN', 'warden@example.com');
+    const res = await request(app)
+      .patch(`/api/complaints/${complaintId}/assign`)
+      .set('Origin', VALID_ORIGIN)
+      .set('Cookie', [`accessToken=${wardenCookies.accessToken}`])
+      .send({ assigneeId: student!._id.toString() });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+});
+
 describe('GET /api/complaints/maintenance-staff', () => {
   it('warden gets list of maintenance staff', async () => {
     await User.create({
