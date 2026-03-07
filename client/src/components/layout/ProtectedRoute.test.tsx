@@ -72,7 +72,7 @@ describe('ProtectedRoute', () => {
 
     expect(screen.getByTestId('navigate')).toBeInTheDocument();
     expect(mockNavigate).toHaveBeenCalledWith(
-      expect.objectContaining({ to: '/login', replace: true }),
+      expect.objectContaining({ to: '/landing', replace: true }),
     );
     expect(screen.queryByTestId('outlet')).not.toBeInTheDocument();
   });

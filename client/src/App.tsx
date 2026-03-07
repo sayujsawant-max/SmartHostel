@@ -15,6 +15,7 @@ import Chatbot from '@components/Chatbot';
 const LoginPage = lazy(() => import('@pages/LoginPage'));
 const RegisterPage = lazy(() => import('@pages/RegisterPage'));
 const RoomsPage = lazy(() => import('@pages/RoomsPage'));
+const LandingPage = lazy(() => import('@pages/LandingPage'));
 
 // Student pages
 const StudentStatusPage = lazy(() => import('@pages/student/StatusPage'));
@@ -29,6 +30,7 @@ const StudentMessMenuPage = lazy(() => import('@pages/student/MessMenuPage'));
 const LaundryBookingPage = lazy(() => import('@pages/student/LaundryBookingPage'));
 const VisitorRegistrationPage = lazy(() => import('@pages/student/VisitorRegistrationPage'));
 const RoomChangePage = lazy(() => import('@pages/student/RoomChangePage'));
+const LostFoundPage = lazy(() => import('@pages/student/LostFoundPage'));
 
 // Warden pages
 const WardenDashboardPage = lazy(() => import('@pages/warden/DashboardPage'));
@@ -56,7 +58,10 @@ const MaintenanceFaqPage = lazy(() => import('@pages/maintenance/FaqPage'));
 function PageSpinner() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))]">
-      <div className="animate-pulse text-[hsl(var(--muted-foreground))]">Loading...</div>
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-10 h-10 border-3 border-[hsl(var(--muted))] border-t-[hsl(var(--accent))] rounded-full animate-spin" />
+        <p className="text-sm text-[hsl(var(--muted-foreground))] animate-pulse">Loading...</p>
+      </div>
     </div>
   );
 }
@@ -110,6 +115,7 @@ function AppRoutes() {
     <Suspense fallback={<PageSpinner />}>
       <Routes>
         {/* Public routes */}
+        <Route path="/landing" element={<LandingPage />} />
         <Route path="/login" element={<LoginRoute />} />
         <Route path="/register" element={<RegisterRoute />} />
         <Route path="/rooms" element={<RoomsPage />} />
@@ -134,6 +140,7 @@ function AppRoutes() {
               <Route path="/student/laundry" element={<LaundryBookingPage />} />
               <Route path="/student/visitors" element={<VisitorRegistrationPage />} />
               <Route path="/student/room-change" element={<RoomChangePage />} />
+              <Route path="/student/lost-found" element={<LostFoundPage />} />
             </Route>
           </Route>
 
@@ -174,7 +181,7 @@ function AppRoutes() {
         </Route>
 
         {/* Catch-all */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={isAuthenticated ? <Navigate to="/" replace /> : <Navigate to="/landing" replace />} />
       </Routes>
 
       {/* Chatbot - visible only when authenticated */}
