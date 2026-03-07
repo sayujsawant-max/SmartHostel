@@ -2,7 +2,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import LoginPage from './LoginPage';
-import type { AuthContextType, UserProfile } from '@context/auth-context-value';
+import type { UserProfile } from '@context/auth-context-value';
 import { ApiError } from '@services/api';
 import { Role } from '@smarthostel/shared';
 
