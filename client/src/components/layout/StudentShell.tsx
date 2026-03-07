@@ -8,8 +8,8 @@ const tabs = [
   { label: 'Status', to: '/student/status' },
   { label: 'Actions', to: '/student/actions' },
   { label: 'Menu', to: '/student/mess-menu' },
+  { label: 'Laundry', to: '/student/laundry' },
   { label: 'FAQ', to: '/student/faq' },
-  { label: 'Profile', to: '/student/profile' },
 ] as const;
 
 export default function StudentShell() {

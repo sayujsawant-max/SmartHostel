@@ -27,6 +27,9 @@ import assistantRoutes from '@/routes/assistant.routes.js';
 import roomRoutes from '@/routes/room.routes.js';
 import sosRoutes from '@/routes/sos.routes.js';
 import messMenuRoutes from '@/routes/mess-menu.routes.js';
+import laundryRoutes from '@/routes/laundry.routes.js';
+import visitorRoutes from '@/routes/visitor.routes.js';
+import roomChangeRoutes from '@/routes/room-change.routes.js';
 
 const app = express();
 
@@ -88,6 +91,9 @@ app.use('/api/assistant', assistantRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/sos', sosRoutes);
 app.use('/api/mess-menu', messMenuRoutes);
+app.use('/api/laundry', laundryRoutes);
+app.use('/api/visitors', visitorRoutes);
+app.use('/api/room-changes', roomChangeRoutes);
 
 // Test-only routes for RBAC integration testing (static import, only registered in test)
 if (env.NODE_ENV === 'test') {

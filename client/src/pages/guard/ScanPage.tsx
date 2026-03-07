@@ -44,14 +44,43 @@ interface ScanResponse {
   reason?: string;
 }
 
+interface VerifyResponse {
+  valid: boolean;
+  student?: {
+    name: string;
+    email: string;
+    block?: string;
+    roomNumber?: string;
+  };
+  leave?: {
+    type: string;
+    startDate: string;
+    endDate: string;
+    status: string;
+    reason: string;
+  };
+  pass?: {
+    status: string;
+    lastGateState: string;
+    expiresAt: string;
+  };
+  allowEntry: boolean;
+  allowExit: boolean;
+  reason?: string;
+}
+
+type InputMode = 'camera' | 'token';
+
 export default function ScanPage() {
   const { user, logout } = useAuth();
   const [verdict, setVerdict] = useState<Verdict>(null);
   const [scanData, setScanData] = useState<ScanResponse | null>(null);
+  const [verifyResult, setVerifyResult] = useState<VerifyResponse | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [verifyingSlow, setVerifyingSlow] = useState(false);
   const [cameraError, setCameraError] = useState('');
   const [passCodeInput, setPassCodeInput] = useState('');
+  const [tokenInput, setTokenInput] = useState('');
   const [showPassCodeHint, setShowPassCodeHint] = useState(false);
   const [directionOverride, setDirectionOverride] = useState<'ENTRY' | 'EXIT' | null>(null);
   const [offlineCount, setOfflineCount] = useState(() => getOfflineQueue().length);
@@ -59,6 +88,8 @@ export default function ScanPage() {
   const [showOverrideSheet, setShowOverrideSheet] = useState(false);
   const [overrideReason, setOverrideReason] = useState('');
   const [overrideNote, setOverrideNote] = useState('');
+  const [inputMode, setInputMode] = useState<InputMode>('camera');
+  const [verifyLoading, setVerifyLoading] = useState(false);
   const lastScanRef = useRef<string>('');
   const lastOfflineTokenRef = useRef<{ qrToken?: string; passCode?: string }>({});
   const verdictTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -70,6 +101,7 @@ export default function ScanPage() {
     if (verifying) return;
     setVerifying(true);
     setVerifyingSlow(false);
+    setVerifyResult(null);
 
     // Show "Still verifying..." after 1.5s
     slowTimeoutRef.current = setTimeout(() => setVerifyingSlow(true), 1500);
@@ -132,8 +164,39 @@ export default function ScanPage() {
     }
   }, [verifying, directionOverride]);
 
+  // Verify token for preview (read-only, does not log scan)
+  const handleTokenVerify = useCallback(async () => {
+    if (!tokenInput.trim()) return;
+    setVerifyLoading(true);
+    setVerifyResult(null);
+    try {
+      const res = await apiFetch<VerifyResponse>(`/gate-passes/verify/${encodeURIComponent(tokenInput.trim())}`);
+      setVerifyResult(res.data);
+    } catch (err) {
+      setVerifyResult({
+        valid: false,
+        allowEntry: false,
+        allowExit: false,
+        reason: err instanceof Error ? err.message : 'Verification failed',
+      });
+    } finally {
+      setVerifyLoading(false);
+    }
+  }, [tokenInput]);
+
+  // Log entry/exit for a verified token
+  const handleLogDirection = useCallback(async (direction: 'ENTRY' | 'EXIT') => {
+    if (!tokenInput.trim()) return;
+    setDirectionOverride(direction);
+    await handleVerify(tokenInput.trim());
+    setTokenInput('');
+    setVerifyResult(null);
+  }, [tokenInput, handleVerify]);
+
   // Start camera
   useEffect(() => {
+    if (inputMode !== 'camera') return;
+
     const scanner = new Html5Qrcode('qr-reader');
 
     scanner.start(
@@ -150,7 +213,7 @@ export default function ScanPage() {
       // Show passCode hint after 5s of no scan
       hintTimeoutRef.current = setTimeout(() => setShowPassCodeHint(true), 5000);
     }).catch(() => {
-      setCameraError('Camera not available — verify by passCode');
+      setCameraError('Camera not available — verify by passCode or token');
     });
 
     return () => {
@@ -161,7 +224,7 @@ export default function ScanPage() {
       scanner.stop().catch(() => {});
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [inputMode]);
 
   const handlePassCodeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -425,6 +488,30 @@ export default function ScanPage() {
         </button>
       </div>
 
+      {/* Input mode tabs */}
+      <div className="flex bg-gray-900 border-b border-gray-700">
+        <button
+          onClick={() => { setInputMode('camera'); setVerifyResult(null); }}
+          className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+            inputMode === 'camera'
+              ? 'text-white border-b-2 border-blue-500'
+              : 'text-white/50'
+          }`}
+        >
+          Camera Scan
+        </button>
+        <button
+          onClick={() => setInputMode('token')}
+          className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+            inputMode === 'token'
+              ? 'text-white border-b-2 border-blue-500'
+              : 'text-white/50'
+          }`}
+        >
+          Token / PassCode
+        </button>
+      </div>
+
       {/* Offline sync indicator */}
       {offlineCount > 0 && (
         <div className="flex items-center justify-between px-3 py-2 bg-amber-700 text-white text-sm">
@@ -442,42 +529,217 @@ export default function ScanPage() {
         </div>
       )}
 
-      {/* Camera or fallback */}
-      <div className="flex-1 relative">
-        {cameraError ? (
-          <div className="flex flex-col items-center justify-center h-full p-6 text-white">
-            <p className="text-center mb-6">{cameraError}</p>
+      {inputMode === 'camera' && (
+        <>
+          {/* Camera or fallback */}
+          <div className="flex-1 relative">
+            {cameraError ? (
+              <div className="flex flex-col items-center justify-center h-full p-6 text-white">
+                <p className="text-center mb-6">{cameraError}</p>
+              </div>
+            ) : (
+              <div id="qr-reader" className="w-full h-full" />
+            )}
           </div>
-        ) : (
-          <div id="qr-reader" className="w-full h-full" />
-        )}
-      </div>
 
-      {/* PassCode input */}
-      {(cameraError || showPassCodeHint) && (
-        <div className="p-4 bg-gray-900">
-          {showPassCodeHint && !cameraError && (
-            <p className="text-white/60 text-sm text-center mb-2">Having trouble? Enter PassCode manually</p>
+          {/* PassCode input */}
+          {(cameraError || showPassCodeHint) && (
+            <div className="p-4 bg-gray-900">
+              {showPassCodeHint && !cameraError && (
+                <p className="text-white/60 text-sm text-center mb-2">Having trouble? Enter PassCode manually</p>
+              )}
+              <form onSubmit={handlePassCodeSubmit} className="flex gap-2">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  value={passCodeInput}
+                  onChange={(e) => setPassCodeInput(e.target.value.replace(/\D/g, ''))}
+                  placeholder="6-digit PassCode"
+                  className="flex-1 px-4 py-3.5 rounded-lg bg-white text-black text-lg text-center font-mono tracking-widest"
+                />
+                <button
+                  type="submit"
+                  disabled={passCodeInput.length !== 6}
+                  className="px-6 py-3.5 rounded-lg bg-blue-600 text-white font-medium disabled:opacity-40"
+                >
+                  Verify
+                </button>
+              </form>
+            </div>
           )}
-          <form onSubmit={handlePassCodeSubmit} className="flex gap-2">
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={6}
-              value={passCodeInput}
-              onChange={(e) => setPassCodeInput(e.target.value.replace(/\D/g, ''))}
-              placeholder="6-digit PassCode"
-              className="flex-1 px-4 py-3.5 rounded-lg bg-white text-black text-lg text-center font-mono tracking-widest"
-            />
-            <button
-              type="submit"
-              disabled={passCodeInput.length !== 6}
-              className="px-6 py-3.5 rounded-lg bg-blue-600 text-white font-medium disabled:opacity-40"
-            >
-              Verify
-            </button>
-          </form>
+        </>
+      )}
+
+      {inputMode === 'token' && (
+        <div className="flex-1 flex flex-col p-4 space-y-4 overflow-y-auto">
+          {/* QR Token input */}
+          <div className="space-y-2">
+            <label className="text-white/70 text-sm font-medium">QR Token</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={tokenInput}
+                onChange={(e) => { setTokenInput(e.target.value); setVerifyResult(null); }}
+                placeholder="Paste or type scanned QR token..."
+                className="flex-1 px-4 py-3 rounded-lg bg-white/10 text-white text-sm font-mono placeholder:text-white/30"
+              />
+              <button
+                onClick={() => void handleTokenVerify()}
+                disabled={!tokenInput.trim() || verifyLoading}
+                className="px-5 py-3 rounded-lg bg-blue-600 text-white text-sm font-medium disabled:opacity-40"
+              >
+                {verifyLoading ? '...' : 'Check'}
+              </button>
+            </div>
+          </div>
+
+          {/* PassCode input */}
+          <div className="space-y-2">
+            <label className="text-white/70 text-sm font-medium">PassCode</label>
+            <form onSubmit={handlePassCodeSubmit} className="flex gap-2">
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                value={passCodeInput}
+                onChange={(e) => setPassCodeInput(e.target.value.replace(/\D/g, ''))}
+                placeholder="6-digit PassCode"
+                className="flex-1 px-4 py-3 rounded-lg bg-white/10 text-white text-lg text-center font-mono tracking-widest placeholder:text-white/30"
+              />
+              <button
+                type="submit"
+                disabled={passCodeInput.length !== 6}
+                className="px-5 py-3 rounded-lg bg-blue-600 text-white text-sm font-medium disabled:opacity-40"
+              >
+                Verify
+              </button>
+            </form>
+          </div>
+
+          {/* Verification result card */}
+          {verifyResult && (
+            <div className={`rounded-xl border-2 overflow-hidden ${
+              verifyResult.valid
+                ? 'border-green-500 bg-green-900/20'
+                : 'border-red-500 bg-red-900/20'
+            }`}>
+              {/* Status bar */}
+              <div className={`px-4 py-2 flex items-center gap-2 ${
+                verifyResult.valid ? 'bg-green-600' : 'bg-red-600'
+              }`}>
+                <span className={`w-3 h-3 rounded-full ${
+                  verifyResult.valid ? 'bg-green-300' : 'bg-red-300'
+                }`} />
+                <span className="text-white font-semibold text-sm">
+                  {verifyResult.valid ? 'VALID PASS' : 'INVALID PASS'}
+                </span>
+              </div>
+
+              <div className="p-4 space-y-3">
+                {/* Student info */}
+                {verifyResult.student && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white text-lg font-bold shrink-0">
+                      {verifyResult.student.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">{verifyResult.student.name}</p>
+                      <p className="text-white/60 text-sm">
+                        {verifyResult.student.block && `Block ${verifyResult.student.block}`}
+                        {verifyResult.student.roomNumber && ` / Room ${verifyResult.student.roomNumber}`}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Leave details */}
+                {verifyResult.leave && (
+                  <div className="bg-white/5 rounded-lg p-3 space-y-1.5">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-white/50">Leave Type</span>
+                      <span className="text-white font-medium">{verifyResult.leave.type.replace(/_/g, ' ')}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-white/50">From</span>
+                      <span className="text-white font-medium">
+                        {new Date(verifyResult.leave.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-white/50">To</span>
+                      <span className="text-white font-medium">
+                        {new Date(verifyResult.leave.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-white/50">Leave Status</span>
+                      <span className="text-white font-medium">{verifyResult.leave.status}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-white/50">Reason</span>
+                      <span className="text-white font-medium text-right max-w-[60%]">{verifyResult.leave.reason}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Pass status */}
+                {verifyResult.pass && (
+                  <div className="bg-white/5 rounded-lg p-3 space-y-1.5">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-white/50">Pass Status</span>
+                      <span className={`font-medium ${
+                        verifyResult.pass.status === 'ACTIVE' ? 'text-green-400' :
+                        verifyResult.pass.status === 'EXPIRED' ? 'text-red-400' :
+                        verifyResult.pass.status === 'USED' ? 'text-blue-400' :
+                        'text-white/60'
+                      }`}>{verifyResult.pass.status}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-white/50">Gate State</span>
+                      <span className="text-white font-medium">{verifyResult.pass.lastGateState}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-white/50">Expires</span>
+                      <span className="text-white font-medium">
+                        {new Date(verifyResult.pass.expiresAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Reason for invalid */}
+                {verifyResult.reason && !verifyResult.valid && (
+                  <p className="text-red-400 text-sm">{verifyResult.reason}</p>
+                )}
+
+                {/* Action buttons */}
+                {verifyResult.valid && (
+                  <div className="flex gap-2 pt-2">
+                    <button
+                      onClick={() => void handleLogDirection('EXIT')}
+                      disabled={!verifyResult.allowExit}
+                      className="flex-1 py-3 rounded-lg bg-orange-600 text-white font-semibold text-sm disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      Log Exit
+                    </button>
+                    <button
+                      onClick={() => void handleLogDirection('ENTRY')}
+                      disabled={!verifyResult.allowEntry}
+                      className="flex-1 py-3 rounded-lg bg-green-600 text-white font-semibold text-sm disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      Log Entry
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Hidden QR reader div needed for Html5Qrcode initialization */}
+          <div id="qr-reader" className="hidden" />
         </div>
       )}
     </div>

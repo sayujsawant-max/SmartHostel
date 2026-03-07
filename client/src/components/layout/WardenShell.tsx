@@ -11,6 +11,10 @@ const navLinks = [
   { label: 'Notices', to: '/warden/notices' },
   { label: 'Rooms', to: '/warden/rooms' },
   { label: 'Mess Menu', to: '/warden/mess-menu' },
+  { label: 'Laundry', to: '/warden/laundry' },
+  { label: 'Visitors', to: '/warden/visitors' },
+  { label: 'Room Changes', to: '/warden/room-changes' },
+  { label: 'Reports', to: '/warden/reports' },
   { label: 'Users', to: '/warden/users' },
   { label: 'Settings', to: '/warden/settings' },
 ] as const;

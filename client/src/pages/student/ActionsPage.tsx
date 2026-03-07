@@ -60,6 +60,26 @@ export default function ActionsPage() {
             Apply for day outing or overnight leave
           </p>
         </Link>
+
+        <Link
+          to="/student/visitors"
+          className="p-4 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] text-center"
+        >
+          <p className="text-lg font-semibold text-[hsl(var(--foreground))]">Register Visitor</p>
+          <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
+            Pre-register an expected visitor
+          </p>
+        </Link>
+
+        <Link
+          to="/student/room-change"
+          className="p-4 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] text-center"
+        >
+          <p className="text-lg font-semibold text-[hsl(var(--foreground))]">Room Change</p>
+          <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
+            Request a room transfer
+          </p>
+        </Link>
       </div>
     </div>
   );

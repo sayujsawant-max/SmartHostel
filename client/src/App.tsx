@@ -26,6 +26,9 @@ const RequestLeavePage = lazy(() => import('@pages/student/RequestLeavePage'));
 const ComplaintDetailPage = lazy(() => import('@pages/student/ComplaintDetailPage'));
 const StudentProfilePage = lazy(() => import('@pages/student/ProfilePage'));
 const StudentMessMenuPage = lazy(() => import('@pages/student/MessMenuPage'));
+const LaundryBookingPage = lazy(() => import('@pages/student/LaundryBookingPage'));
+const VisitorRegistrationPage = lazy(() => import('@pages/student/VisitorRegistrationPage'));
+const RoomChangePage = lazy(() => import('@pages/student/RoomChangePage'));
 
 // Warden pages
 const WardenDashboardPage = lazy(() => import('@pages/warden/DashboardPage'));
@@ -36,8 +39,13 @@ const WardenNoticesPage = lazy(() => import('@pages/warden/NoticesPage'));
 const WardenRoomsManagePage = lazy(() => import('@pages/warden/RoomsManagePage'));
 const WardenUsersManagePage = lazy(() => import('@pages/warden/UsersManagePage'));
 const WardenMessMenuPage = lazy(() => import('@pages/warden/MessMenuPage'));
+const WardenLaundryManagePage = lazy(() => import('@pages/warden/LaundryManagePage'));
+const WardenVisitorManagePage = lazy(() => import('@pages/warden/VisitorManagePage'));
+const WardenRoomChangeManagePage = lazy(() => import('@pages/warden/RoomChangeManagePage'));
+const WardenReportsPage = lazy(() => import('@pages/warden/ReportsPage'));
 
 // Guard pages
+const GuardVisitorCheckPage = lazy(() => import('@pages/guard/VisitorCheckPage'));
 const GuardScanPage = lazy(() => import('@pages/guard/ScanPage'));
 
 // Maintenance pages
@@ -123,6 +131,9 @@ function AppRoutes() {
               <Route path="/student/faq" element={<StudentFaqPage />} />
               <Route path="/student/profile" element={<StudentProfilePage />} />
               <Route path="/student/mess-menu" element={<StudentMessMenuPage />} />
+              <Route path="/student/laundry" element={<LaundryBookingPage />} />
+              <Route path="/student/visitors" element={<VisitorRegistrationPage />} />
+              <Route path="/student/room-change" element={<RoomChangePage />} />
             </Route>
           </Route>
 
@@ -137,6 +148,10 @@ function AppRoutes() {
               <Route path="/warden/users" element={<WardenUsersManagePage />} />
               <Route path="/warden/settings" element={<WardenSettingsPage />} />
               <Route path="/warden/mess-menu" element={<WardenMessMenuPage />} />
+              <Route path="/warden/laundry" element={<WardenLaundryManagePage />} />
+              <Route path="/warden/visitors" element={<WardenVisitorManagePage />} />
+              <Route path="/warden/room-changes" element={<WardenRoomChangeManagePage />} />
+              <Route path="/warden/reports" element={<WardenReportsPage />} />
             </Route>
           </Route>
 
@@ -144,6 +159,7 @@ function AppRoutes() {
           <Route element={<RoleRoute allowedRoles={[Role.GUARD]} />}>
             <Route element={<GuardShell />}>
               <Route path="/guard/scan" element={<GuardScanPage />} />
+              <Route path="/guard/visitors" element={<GuardVisitorCheckPage />} />
             </Route>
           </Route>
 

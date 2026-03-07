@@ -1,14 +1,38 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, NavLink } from 'react-router-dom';
 import ThemeToggle from '@components/ThemeToggle';
+
+const tabs = [
+  { label: 'Scan', to: '/guard/scan' },
+  { label: 'Visitors', to: '/guard/visitors' },
+] as const;
 
 export default function GuardShell() {
   return (
-    <div className="min-h-screen bg-[hsl(var(--background))]">
+    <div className="min-h-screen flex flex-col bg-[hsl(var(--background))]">
       <header className="flex items-center justify-between px-4 py-3 bg-[hsl(var(--card))] border-b border-[hsl(var(--border))] shadow-sm">
         <h1 className="text-lg font-bold text-[hsl(var(--foreground))]">SmartHostel</h1>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          {tabs.map((tab) => (
+            <NavLink
+              key={tab.to}
+              to={tab.to}
+              className={({ isActive }) =>
+                `px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]'
+                    : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
+                }`
+              }
+            >
+              {tab.label}
+            </NavLink>
+          ))}
+          <ThemeToggle />
+        </div>
       </header>
-      <Outlet />
+      <main className="flex-1 overflow-y-auto">
+        <Outlet />
+      </main>
     </div>
   );
 }
