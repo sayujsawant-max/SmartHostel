@@ -7,10 +7,31 @@ import * as assistantController from '@controllers/assistant.controller.js';
 const router = Router();
 router.use(authMiddleware);
 
-// FAQ - accessible to all authenticated users
+/**
+ * @openapi
+ * /assistant/faq:
+ *   get:
+ *     tags: [Assistant]
+ *     summary: Get FAQ entries
+ *     security: [{ cookieAuth: [] }]
+ *     responses:
+ *       200: { description: List of FAQ entries }
+ *       401: { description: Unauthorized }
+ */
 router.get('/faq', assistantController.getFaqEntries);
 
-// Fee status - student only
+/**
+ * @openapi
+ * /assistant/fees:
+ *   get:
+ *     tags: [Assistant]
+ *     summary: Get fee status for the current student
+ *     security: [{ cookieAuth: [] }]
+ *     responses:
+ *       200: { description: Student fee details }
+ *       401: { description: Unauthorized }
+ *       403: { description: Forbidden - STUDENT only }
+ */
 router.get('/fees', requireRole(Role.STUDENT), assistantController.getStudentFees);
 
 export default router;

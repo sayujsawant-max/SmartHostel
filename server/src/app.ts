@@ -9,6 +9,7 @@ import { correlationIdMiddleware } from '@middleware/correlation-id.middleware.j
 import { csrfMiddleware } from '@middleware/csrf.middleware.js';
 import { mongoSanitizeMiddleware } from '@middleware/mongo-sanitize.middleware.js';
 import { errorHandlerMiddleware } from '@middleware/error-handler.middleware.js';
+import { swaggerSpec } from '@config/swagger.js';
 import { AppError } from '@utils/app-error.js';
 import { logger } from '@utils/logger.js';
 import { env } from '@config/env.js';
@@ -62,6 +63,13 @@ app.use(
 
 // CSRF protection — Origin/Referer allowlist on state-changing methods
 app.use(csrfMiddleware);
+
+// API docs (Swagger UI) — available in non-production environments
+if (env.NODE_ENV !== 'production') {
+  const swaggerUi = await import('swagger-ui-express');
+  app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.get('/api/docs.json', (_req, res) => res.json(swaggerSpec));
+}
 
 // Routes
 app.use('/api', healthRoutes);

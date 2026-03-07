@@ -6,13 +6,49 @@ const router = Router();
 
 router.use(authMiddleware);
 
-// Get notifications + unread count
+/**
+ * @openapi
+ * /notifications:
+ *   get:
+ *     tags: [Notifications]
+ *     summary: Get notifications and unread count
+ *     security: [{ cookieAuth: [] }]
+ *     responses:
+ *       200: { description: List of notifications with unread count }
+ *       401: { description: Unauthorized }
+ */
 router.get('/', notificationController.getNotifications);
 
-// Mark all as read (must come before /:id to avoid matching "read-all" as an ID)
+/**
+ * @openapi
+ * /notifications/read-all:
+ *   patch:
+ *     tags: [Notifications]
+ *     summary: Mark all notifications as read
+ *     security: [{ cookieAuth: [] }]
+ *     responses:
+ *       200: { description: All notifications marked as read }
+ *       401: { description: Unauthorized }
+ */
 router.patch('/read-all', notificationController.markAllAsRead);
 
-// Mark single notification as read
+/**
+ * @openapi
+ * /notifications/{id}/read:
+ *   patch:
+ *     tags: [Notifications]
+ *     summary: Mark a single notification as read
+ *     security: [{ cookieAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200: { description: Notification marked as read }
+ *       401: { description: Unauthorized }
+ *       404: { description: Notification not found }
+ */
 router.patch('/:id/read', notificationController.markAsRead);
 
 export default router;

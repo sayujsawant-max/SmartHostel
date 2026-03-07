@@ -116,13 +116,13 @@ npm run test:e2e
 
 | Suite | Tests | What's Covered |
 |---|---|---|
-| Server | 147 | Auth, RBAC, routes, middleware, models, controllers |
+| Server | 153 | Auth, RBAC, routes, middleware, models, controllers, sanitization |
 | Client | 40 | LoginPage, RegisterPage, RoleRoute, ProtectedRoute, Chatbot, API service |
-| E2E | 17 | Login (all roles), logout, registration, complaints, role access control |
+| E2E | 17+ | Auth, complaints, guard access, leaves, notices, rooms, maintenance, warden |
 
 ## API Overview
 
-All endpoints are under `/api/`. Auth routes are at `/api/auth/*`.
+All endpoints are under `/api/`. Auth routes are at `/api/auth/*`. Interactive API docs are available at `/api/docs` in development mode.
 
 | Module | Key Endpoints |
 |---|---|

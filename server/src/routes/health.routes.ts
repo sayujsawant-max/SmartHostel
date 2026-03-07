@@ -10,7 +10,15 @@ import { getWardenDashboardStats } from '@services/dashboard.service.js';
 
 const router = Router();
 
-// Basic health check (public)
+/**
+ * @openapi
+ * /health:
+ *   get:
+ *     tags: [Health]
+ *     summary: Basic health check
+ *     responses:
+ *       200: { description: Service is healthy }
+ */
 router.get('/health', (_req: Request, res: Response) => {
   res.json({
     success: true,
@@ -19,7 +27,18 @@ router.get('/health', (_req: Request, res: Response) => {
   });
 });
 
-// Detailed health (warden only)
+/**
+ * @openapi
+ * /admin/health:
+ *   get:
+ *     tags: [Health]
+ *     summary: Detailed health check with DB and cron status
+ *     security: [{ cookieAuth: [] }]
+ *     responses:
+ *       200: { description: Detailed health information }
+ *       401: { description: Unauthorized }
+ *       403: { description: Forbidden - WARDEN_ADMIN only }
+ */
 router.get('/admin/health', authMiddleware, requireRole(Role.WARDEN_ADMIN), async (req: Request, res: Response) => {
   const dbStart = Date.now();
   const dbState = mongoose.connection.readyState;
@@ -57,7 +76,18 @@ router.get('/admin/health', authMiddleware, requireRole(Role.WARDEN_ADMIN), asyn
   });
 });
 
-// Warden dashboard KPIs
+/**
+ * @openapi
+ * /admin/dashboard-stats:
+ *   get:
+ *     tags: [Health]
+ *     summary: Warden dashboard KPI statistics
+ *     security: [{ cookieAuth: [] }]
+ *     responses:
+ *       200: { description: Dashboard statistics }
+ *       401: { description: Unauthorized }
+ *       403: { description: Forbidden - WARDEN_ADMIN only }
+ */
 router.get('/admin/dashboard-stats', authMiddleware, requireRole(Role.WARDEN_ADMIN), async (req: Request, res: Response) => {
   const stats = await getWardenDashboardStats();
   res.json({
