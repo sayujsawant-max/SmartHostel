@@ -17,13 +17,13 @@ export type { SlaCategoryDefault } from './constants/sla-defaults.js';
 export type { ApiSuccess, ApiError, PaginatedResponse } from './types/api-responses.js';
 
 // Schemas
-export { loginSchema } from './schemas/auth.schema.js';
-export type { LoginInput } from './schemas/auth.schema.js';
+export { loginSchema, registerSchema } from './schemas/auth.schema.js';
+export type { LoginInput, RegisterInput } from './schemas/auth.schema.js';
 export { createUserSchema, resetPasswordSchema } from './schemas/admin.schema.js';
 export type { CreateUserInput, ResetPasswordInput } from './schemas/admin.schema.js';
 export { createLeaveSchema } from './schemas/leave.schema.js';
 export type { CreateLeaveInput } from './schemas/leave.schema.js';
 export { createComplaintSchema } from './schemas/complaint.schema.js';
 export type { CreateComplaintInput } from './schemas/complaint.schema.js';
-export { createRoomSchema, registerSchema } from './schemas/room.schema.js';
-export type { CreateRoomInput, RegisterInput } from './schemas/room.schema.js';
+export { createRoomSchema } from './schemas/room.schema.js';
+export type { CreateRoomInput } from './schemas/room.schema.js';
