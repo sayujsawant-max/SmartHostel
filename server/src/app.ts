@@ -46,10 +46,10 @@ app.use(correlationIdMiddleware);
 
 // Structured logging
 app.use(
-  pinoHttp({
+  (pinoHttp as unknown as typeof pinoHttp.default)({
     logger,
-    customProps: (req) => ({
-      correlationId: (req as express.Request).correlationId,
+    customProps: (req: express.Request) => ({
+      correlationId: req.correlationId,
     }),
   }),
 );

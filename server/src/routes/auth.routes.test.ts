@@ -64,7 +64,7 @@ describe('POST /api/auth/login', () => {
     expect(cookies.refreshToken).toBeDefined();
 
     // Check cookie attributes
-    const setCookieHeaders = res.headers['set-cookie'] as string[];
+    const setCookieHeaders = res.headers['set-cookie'] as unknown as string[];
     const accessCookie = setCookieHeaders.find((c: string) => c.startsWith('accessToken='));
     const refreshCookie = setCookieHeaders.find((c: string) => c.startsWith('refreshToken='));
 
@@ -233,7 +233,7 @@ describe('POST /api/auth/logout', () => {
     expect(user!.refreshTokenJtis.length).toBe(0);
 
     // Verify cookies are cleared (Set-Cookie with expired dates)
-    const setCookieHeaders = res.headers['set-cookie'] as string[];
+    const setCookieHeaders = res.headers['set-cookie'] as unknown as string[];
     const clearedAccess = setCookieHeaders.find((c: string) => c.startsWith('accessToken='));
     const clearedRefresh = setCookieHeaders.find((c: string) => c.startsWith('refreshToken='));
     expect(clearedAccess).toContain('Expires=Thu, 01 Jan 1970');

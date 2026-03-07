@@ -52,8 +52,8 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(5000),
   CRON_ENABLED: booleanString,
-  ACCESS_TOKEN_EXPIRY: durationMs.default('1h'),
-  REFRESH_TOKEN_EXPIRY: durationMs.default('7d'),
+  ACCESS_TOKEN_EXPIRY: durationMs.default(3_600_000),
+  REFRESH_TOKEN_EXPIRY: durationMs.default(604_800_000),
   MAX_LOGIN_ATTEMPTS: z.coerce.number().default(5),
   LOGIN_LOCKOUT_DURATION_MS: z
     .string()

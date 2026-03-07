@@ -16,7 +16,7 @@ export function authMiddleware(req: Request, _res: Response, next: NextFunction)
 
   try {
     const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
-    req.user = { _id: decoded.userId, role: decoded.role };
+    req.user = { _id: decoded.userId, role: decoded.role as import('@smarthostel/shared').Role };
     next();
   } catch {
     throw new AppError('UNAUTHORIZED', 'Invalid or expired access token', 401);
