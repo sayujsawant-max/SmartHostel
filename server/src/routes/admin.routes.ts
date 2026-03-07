@@ -8,6 +8,7 @@ const router = Router();
 
 router.use(authMiddleware, requireRole(Role.WARDEN_ADMIN));
 
+router.get('/', adminController.listUsers);
 router.post('/', adminController.createUser);
 router.patch('/:id/disable', adminController.disableUser);
 router.post('/:id/reset-password', adminController.resetPassword);

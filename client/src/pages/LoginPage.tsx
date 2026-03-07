@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginInput } from '@smarthostel/shared';
 import { useAuth } from '@hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ApiError } from '@services/api';
 import { getRoleHomePath } from '@utils/role-home';
 
@@ -77,21 +77,26 @@ export default function LoginPage() {
   const lockoutSeconds = Math.ceil(lockoutMs / 1000);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))] px-4">
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{
+        background: 'linear-gradient(135deg, hsl(222 47% 19%) 0%, hsl(173 78% 24%) 100%)',
+      }}
+    >
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-[hsl(var(--foreground))]">SmartHostel</h1>
-          <p className="text-[hsl(var(--muted-foreground))] mt-1">Sign in to your account</p>
+          <h1 className="text-3xl font-bold text-white">SmartHostel</h1>
+          <p className="text-white/70 mt-1">Sign in to your account</p>
         </div>
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="bg-[hsl(var(--card))] rounded-xl p-6 shadow-lg border border-[hsl(var(--border))]"
+          className="bg-white/95 backdrop-blur rounded-xl p-6 shadow-2xl"
         >
           <div className="mb-4">
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-[hsl(var(--foreground))] mb-1"
+              className="block text-sm font-medium text-gray-700 mb-1"
             >
               Email
             </label>
@@ -100,17 +105,17 @@ export default function LoginPage() {
               type="email"
               autoComplete="email"
               {...register('email')}
-              className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
+              className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
             {errors.email && (
-              <p className="mt-1 text-sm text-[hsl(var(--destructive))]">{errors.email.message}</p>
+              <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
             )}
           </div>
 
           <div className="mb-6">
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-[hsl(var(--foreground))] mb-1"
+              className="block text-sm font-medium text-gray-700 mb-1"
             >
               Password
             </label>
@@ -119,17 +124,17 @@ export default function LoginPage() {
               type="password"
               autoComplete="current-password"
               {...register('password')}
-              className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
+              className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
             {errors.password && (
-              <p className="mt-1 text-sm text-[hsl(var(--destructive))]">
+              <p className="mt-1 text-sm text-red-600">
                 {errors.password.message}
               </p>
             )}
           </div>
 
           {serverError && (
-            <div className="mb-4 text-sm text-[hsl(var(--destructive))] text-center">
+            <div className="mb-4 text-sm text-red-600 text-center">
               <p>{serverError}</p>
               {isLocked && (
                 <p className="mt-1 font-medium">
@@ -142,7 +147,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting || isLocked}
-            className="w-full min-h-[48px] rounded-lg bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] font-medium hover:opacity-90 disabled:opacity-50 flex items-center justify-center"
+            className="w-full min-h-[48px] rounded-lg bg-teal-600 text-white font-medium hover:bg-teal-700 disabled:opacity-50 flex items-center justify-center"
           >
             {isSubmitting ? (
               <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
@@ -167,6 +172,19 @@ export default function LoginPage() {
               'Sign in'
             )}
           </button>
+
+          <p className="text-sm text-center text-gray-600 mt-4">
+            Don't have an account?{' '}
+            <Link to="/register" className="text-teal-600 hover:underline font-medium">
+              Sign up
+            </Link>
+          </p>
+
+          <div className="text-center mt-3">
+            <Link to="/rooms" className="text-xs text-gray-500 hover:text-teal-600">
+              Browse Rooms & Availability
+            </Link>
+          </div>
         </form>
       </div>
     </div>

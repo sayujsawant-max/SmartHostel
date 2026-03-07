@@ -8,6 +8,8 @@ const navLinks = [
   { label: 'Students', to: '/warden/students' },
   { label: 'Complaints', to: '/warden/complaints' },
   { label: 'Notices', to: '/warden/notices' },
+  { label: 'Rooms', to: '/warden/rooms' },
+  { label: 'Users', to: '/warden/users' },
   { label: 'Settings', to: '/warden/settings' },
 ] as const;
 

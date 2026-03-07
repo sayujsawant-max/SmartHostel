@@ -1,5 +1,6 @@
 // Constants
 export { Role } from './constants/roles.js';
+export { RoomType, RoomAcType, HostelGender } from './constants/room-types.js';
 export { ErrorCode, ERROR_STATUS_MAP } from './constants/error-codes.js';
 export { LeaveStatus } from './constants/leave-status.js';
 export { LeaveType } from './constants/leave-types.js';
@@ -24,3 +25,5 @@ export { createLeaveSchema } from './schemas/leave.schema.js';
 export type { CreateLeaveInput } from './schemas/leave.schema.js';
 export { createComplaintSchema } from './schemas/complaint.schema.js';
 export type { CreateComplaintInput } from './schemas/complaint.schema.js';
+export { createRoomSchema, registerSchema } from './schemas/room.schema.js';
+export type { CreateRoomInput, RegisterInput } from './schemas/room.schema.js';

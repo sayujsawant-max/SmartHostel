@@ -6,6 +6,10 @@ import { logger } from '@utils/logger.js';
 
 const SALT_ROUNDS = 10;
 
+export async function listUsers() {
+  return User.find().sort({ createdAt: -1 }).lean();
+}
+
 export async function createUser(data: CreateUserInput, correlationId?: string) {
   const email = data.email.toLowerCase();
 

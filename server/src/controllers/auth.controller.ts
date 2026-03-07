@@ -1,10 +1,38 @@
 import type { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import { loginSchema } from '@smarthostel/shared';
+import { loginSchema, registerSchema } from '@smarthostel/shared';
 import { env } from '@config/env.js';
 import * as authService from '@services/auth.service.js';
 import { setAuthCookies, clearAuthCookies } from '@utils/auth-cookies.js';
 import { AppError } from '@utils/app-error.js';
+
+export async function register(req: Request, res: Response) {
+  const parsed = registerSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new AppError('VALIDATION_ERROR', 'Invalid registration input', 400, {
+      field: parsed.error.issues[0]?.path[0]?.toString(),
+    });
+  }
+
+  const { name, email, password } = parsed.data;
+  const result = await authService.register(name, email, password, req.correlationId);
+
+  setAuthCookies(res, result.tokens);
+
+  res.status(201).json({
+    success: true,
+    data: {
+      user: {
+        id: result.user._id,
+        name: result.user.name,
+        email: result.user.email,
+        role: result.user.role,
+        hasConsented: result.user.hasConsented,
+      },
+    },
+    correlationId: req.correlationId,
+  });
+}
 
 export async function login(req: Request, res: Response) {
   const parsed = loginSchema.safeParse(req.body);

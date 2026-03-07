@@ -20,6 +20,7 @@
     "seed": "npm -w server run seed",
     "seed:users": "npm -w server run seed:users",
     "lint": "npm -w client run lint && npm -w server run lint",
+    "lint:stories": "node scripts/lint-stories.mjs",
     "test": "npm -w client run test && npm -w server run test"
   },
   "devDependencies": {

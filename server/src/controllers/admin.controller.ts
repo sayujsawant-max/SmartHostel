@@ -3,6 +3,11 @@ import { createUserSchema, resetPasswordSchema } from '@smarthostel/shared';
 import * as adminService from '@services/admin.service.js';
 import { AppError } from '@utils/app-error.js';
 
+export async function listUsers(_req: Request, res: Response) {
+  const users = await adminService.listUsers();
+  res.json({ success: true, data: { users } });
+}
+
 export async function createUser(req: Request, res: Response) {
   const parsed = createUserSchema.safeParse(req.body);
   if (!parsed.success) {

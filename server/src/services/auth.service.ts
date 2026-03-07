@@ -33,6 +33,34 @@ export function generateTokens(userId: string, role: string): TokenPair {
   return { accessToken, refreshToken, jti };
 }
 
+export async function register(name: string, email: string, password: string, correlationId?: string) {
+  const normalizedEmail = email.toLowerCase();
+
+  const existing = await User.findOne({ email: normalizedEmail });
+  if (existing) {
+    throw new AppError('CONFLICT', 'A user with this email already exists', 409);
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  const user = await User.create({
+    name,
+    email: normalizedEmail,
+    passwordHash,
+    role: 'STUDENT',
+  });
+
+  const tokens = generateTokens(user._id.toString(), user.role);
+  const hashedJti = hashJti(tokens.jti);
+  await User.updateOne({ _id: user._id }, { $push: { refreshTokenJtis: hashedJti } });
+
+  logger.info(
+    { eventType: 'AUTH_REGISTER', correlationId, userId: user._id.toString() },
+    'User registered',
+  );
+
+  return { user, tokens };
+}
+
 export async function login(email: string, password: string, correlationId?: string) {
   // Select lockout fields explicitly (they have select: false)
   const user = await User.findOne({ email, isActive: true })
