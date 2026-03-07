@@ -62,4 +62,34 @@ describe('ConsentModal', () => {
 
     expect(screen.getByRole('button')).toBeDisabled();
   });
+
+  it('calls apiFetch with correct payload and setConsented on success', async () => {
+    mockApiFetch.mockResolvedValueOnce({});
+
+    render(<ConsentModal />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'I Accept' }));
+
+    await waitFor(() => {
+      expect(mockApiFetch).toHaveBeenCalledWith('/consents', {
+        method: 'POST',
+        body: JSON.stringify({ version: '1.0' }),
+      });
+      expect(mockSetConsented).toHaveBeenCalled();
+    });
+  });
+
+  it('shows error message when API call fails', async () => {
+    mockApiFetch.mockRejectedValueOnce(new Error('Network error'));
+
+    render(<ConsentModal />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'I Accept' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Failed to record consent. Please try again.')).toBeInTheDocument();
+    });
+
+    expect(mockSetConsented).not.toHaveBeenCalled();
+  });
 });

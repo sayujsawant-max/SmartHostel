@@ -25,8 +25,8 @@ describe('CSRF Middleware', () => {
       .get('/api/health')
       .set('Origin', 'http://evil.com');
 
-    // Should not be 403 — GET is exempt
-    expect(res.status).not.toBe(403);
+    // GET is exempt — expect 200 from health endpoint
+    expect(res.status).toBe(200);
   });
 
   it('allows POST with matching Origin header', async () => {
@@ -37,8 +37,8 @@ describe('CSRF Middleware', () => {
       .set('Origin', VALID_ORIGIN)
       .send({ email: 'test@example.com', password: TEST_PASSWORD });
 
-    // Should not be 403
-    expect(res.status).not.toBe(403);
+    // Login succeeds (not blocked by CSRF)
+    expect(res.status).toBe(200);
   });
 
   it('allows POST with matching Referer header (when Origin is absent)', async () => {
@@ -49,7 +49,7 @@ describe('CSRF Middleware', () => {
       .set('Referer', `${VALID_ORIGIN}/login`)
       .send({ email: 'test@example.com', password: TEST_PASSWORD });
 
-    expect(res.status).not.toBe(403);
+    expect(res.status).toBe(200);
   });
 
   it('rejects POST with non-matching Origin header (403 FORBIDDEN)', async () => {

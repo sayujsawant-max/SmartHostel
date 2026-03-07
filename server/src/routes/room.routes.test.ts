@@ -108,6 +108,36 @@ describe('GET /api/rooms', () => {
   });
 });
 
+describe('GET /api/rooms/availability', () => {
+  it('returns availability summary', async () => {
+    await Room.create({ ...VALID_ROOM_DATA, occupiedBeds: 2 });
+
+    const res = await request(app).get('/api/rooms/availability');
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+  });
+});
+
+describe('GET /api/rooms/:id', () => {
+  it('returns single room by id', async () => {
+    const room = await Room.create({ ...VALID_ROOM_DATA, occupiedBeds: 0 });
+
+    const res = await request(app).get(`/api/rooms/${room._id}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.room.roomNumber).toBe('101');
+  });
+
+  it('returns 404 for non-existent room', async () => {
+    const fakeId = '000000000000000000000000';
+    const res = await request(app).get(`/api/rooms/${fakeId}`);
+
+    expect(res.status).toBe(404);
+  });
+});
+
 describe('POST /api/rooms', () => {
   it('returns 401 without auth', async () => {
     const res = await request(app)
@@ -142,6 +172,19 @@ describe('POST /api/rooms', () => {
       occupiedBeds: 0,
       feePerSemester: 50000,
     });
+  });
+
+  it('returns 403 for STUDENT role', async () => {
+    const cookies = await loginAs('STUDENT', 'student@example.com');
+
+    const res = await request(app)
+      .post('/api/rooms')
+      .set('Origin', VALID_ORIGIN)
+      .set('Cookie', [`accessToken=${cookies.accessToken}`])
+      .send(VALID_ROOM_DATA);
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('FORBIDDEN');
   });
 
   it('returns 409 with duplicate block+roomNumber', async () => {
@@ -185,5 +228,20 @@ describe('PATCH /api/rooms/:id', () => {
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.room.occupiedBeds).toBe(2);
+  });
+
+  it('returns 403 for STUDENT role', async () => {
+    const cookies = await loginAs('STUDENT', 'student@example.com');
+
+    const room = await Room.create({ ...VALID_ROOM_DATA, occupiedBeds: 0 });
+
+    const res = await request(app)
+      .patch(`/api/rooms/${room._id}`)
+      .set('Origin', VALID_ORIGIN)
+      .set('Cookie', [`accessToken=${cookies.accessToken}`])
+      .send({ occupiedBeds: 2 });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('FORBIDDEN');
   });
 });

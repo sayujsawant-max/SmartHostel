@@ -57,6 +57,17 @@ describe('GET /api/admin/users', () => {
     expect(res.body.error.code).toBe('UNAUTHORIZED');
   });
 
+  it('returns 403 for authenticated STUDENT', async () => {
+    const cookies = await loginAs('STUDENT', 'student@example.com');
+
+    const res = await request(app)
+      .get('/api/admin/users')
+      .set('Cookie', [`accessToken=${cookies.accessToken}`]);
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('FORBIDDEN');
+  });
+
   it('returns user list with WARDEN_ADMIN auth', async () => {
     const cookies = await loginAs('WARDEN_ADMIN', 'admin@example.com');
 
@@ -121,5 +132,44 @@ describe('PATCH /api/admin/users/:id/disable', () => {
     // Verify user is disabled in DB
     const updated = await User.findById(student._id);
     expect(updated!.isActive).toBe(false);
+  });
+});
+
+describe('POST /api/admin/users/:id/reset-password', () => {
+  it('resets password with WARDEN_ADMIN auth', async () => {
+    const cookies = await loginAs('WARDEN_ADMIN', 'admin@example.com');
+
+    const student = await createTestUser({
+      email: 'resetme@example.com',
+      name: 'Reset Me',
+    });
+
+    const res = await request(app)
+      .post(`/api/admin/users/${student._id}/reset-password`)
+      .set('Origin', VALID_ORIGIN)
+      .set('Cookie', [`accessToken=${cookies.accessToken}`])
+      .send({ password: 'newSecurePass123' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.message).toBe('Password reset successfully');
+  });
+
+  it('returns 403 for STUDENT role', async () => {
+    const cookies = await loginAs('STUDENT', 'student@example.com');
+
+    const target = await createTestUser({
+      email: 'target@example.com',
+      name: 'Target User',
+    });
+
+    const res = await request(app)
+      .post(`/api/admin/users/${target._id}/reset-password`)
+      .set('Origin', VALID_ORIGIN)
+      .set('Cookie', [`accessToken=${cookies.accessToken}`])
+      .send({ password: 'newSecurePass123' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('FORBIDDEN');
   });
 });

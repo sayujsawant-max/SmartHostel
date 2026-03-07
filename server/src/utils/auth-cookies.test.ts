@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import jwt from 'jsonwebtoken';
+import { env } from '@config/env.js';
 import { setAuthCookies, clearAuthCookies } from './auth-cookies.js';
 import { generateTokens, hashJti } from '@services/auth.service.js';
 import { createHash } from 'node:crypto';
@@ -73,14 +74,14 @@ describe('clearAuthCookies', () => {
 describe('generateTokens', () => {
   it('returns valid JWT access token containing userId and role claims', () => {
     const { accessToken } = generateTokens('user-123', 'STUDENT');
-    const decoded = jwt.decode(accessToken) as Record<string, unknown>;
+    const decoded = jwt.verify(accessToken, env.JWT_SECRET) as Record<string, unknown>;
     expect(decoded.userId).toBe('user-123');
     expect(decoded.role).toBe('STUDENT');
   });
 
   it('returns valid JWT refresh token containing userId and jti claims', () => {
     const { refreshToken, jti } = generateTokens('user-123', 'STUDENT');
-    const decoded = jwt.decode(refreshToken) as Record<string, unknown>;
+    const decoded = jwt.verify(refreshToken, env.JWT_SECRET) as Record<string, unknown>;
     expect(decoded.userId).toBe('user-123');
     expect(decoded.jti).toBe(jti);
   });
