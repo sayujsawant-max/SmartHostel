@@ -37,6 +37,8 @@ services:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://mongo:27017/smarthostel
       - CRON_ENABLED=true
+    healthcheck:
+      test: ["NONE"]
     depends_on:
       api:
         condition: service_started
