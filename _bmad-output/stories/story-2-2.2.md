@@ -27,7 +27,9 @@ So that I can control student movement with an auditable workflow.
 
 **AC-7:** Given I am a WARDEN_ADMIN on the StudentsPage, when I view the leave list, then I can filter by status (PENDING, APPROVED, REJECTED, SCANNED_OUT, COMPLETED) and see student name, block, room number, leave type, dates, reason, and submission time
 
-**AC-8:** Given I am a WARDEN_ADMIN viewing a PENDING leave, when I click Approve, then the leave status updates to APPROVED without a page reload; when I click Reject, then a reason input appears and I can confirm rejection
+**AC-8:** Given I am a WARDEN_ADMIN viewing a PENDING leave, when I click Approve, then the leave status updates to APPROVED without a page reload
+
+**AC-8a:** Given I am a WARDEN_ADMIN viewing a PENDING leave, when I click Reject, then a reason input appears and I can confirm rejection
 
 ## Technical Context
 - **Tech stack:** Express 5 + TypeScript (server), React 19 + TypeScript (client), Mongoose 8

@@ -27,7 +27,7 @@ So that the system produces a deterministic ALLOW/DENY result with a complete au
 
 **AC-9:** Given neither `qrToken` nor `passCode` is provided in the request body, when I POST `/api/gate/validate`, then the server returns 400 with `VALIDATION_ERROR`
 
-**AC-10:** Given a passCode for an active, non-expired gate pass, when I POST `/api/gate/validate` with `{ passCode }`, then the same verification logic runs and returns the correct verdict
+**AC-10:** Given a passCode for an active, non-expired gate pass, when I POST `/api/gate/validate` with `{ passCode }`, then the same verification logic runs and returns the expected verdict
 
 **AC-11:** Given a successful ENTRY scan (SCANNED_OUT to SCANNED_IN), when the state transition completes, then the leave is auto-completed to COMPLETED and the gate pass status is set to USED
 

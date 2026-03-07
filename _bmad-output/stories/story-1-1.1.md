@@ -15,7 +15,7 @@ So that I have a working development environment to build features on.
 
 **AC-3:** Given the client dev server is running, when I make a request to `/api/health`, then the Vite proxy forwards it to Express and returns `{ success: true, data: { status: "healthy" } }`
 
-**AC-4:** Given the project structure, when I inspect the directory layout, then it matches the architecture spec: `client/`, `server/`, `shared/` with correct sub-folders, `.env.example`, `.gitignore`, `.nvmrc`, root `package.json` with workspaces
+**AC-4:** Given the project structure, when I inspect the directory layout, then it matches the architecture spec: `client/`, `server/`, `shared/` with expected sub-folders, `.env.example`, `.gitignore`, `.nvmrc`, root `package.json` with workspaces
 
 **AC-5:** Given the shared workspace, when I run `npm -w shared run build`, then TypeScript compilation succeeds without errors and `shared/constants/roles.ts` exports all four role values: STUDENT, WARDEN_ADMIN, GUARD, MAINTENANCE
 

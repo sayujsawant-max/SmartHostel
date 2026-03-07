@@ -9,7 +9,7 @@ So that I can get instant answers without visiting the warden's office.
 
 ## Acceptance Criteria
 
-**AC-1:** Given a student is on the StatusPage, when the page loads, then an AssistantShortcuts grid displays four quick-action tiles: Active Complaints (count of non-CLOSED/non-RESOLVED), Active Leaves (count of PENDING/APPROVED/SCANNED_OUT), Pending Fees (count of non-PAID), and Ask a Question
+**AC-1:** Given a student is on the StatusPage, when the page loads, then an AssistantShortcuts grid displays four 1-tap action tiles: Active Complaints (count of non-CLOSED/non-RESOLVED), Active Leaves (count of PENDING/APPROVED/SCANNED_OUT), Pending Fees (count of non-PAID), and Ask a Question
 
 **AC-2:** Given a student taps the "Active Complaints" shortcut, when the anchor is clicked, then the page scrolls to the `#complaints` section
 
@@ -21,7 +21,7 @@ So that I can get instant answers without visiting the warden's office.
 
 **AC-4:** Given a student taps the "Ask a Question" tile, when clicked, then the student is navigated to `/student/faq`
 
-**AC-5:** Given any authenticated user makes GET `/api/assistant/faq`, when the request is processed, then the server returns `{ success: true, data: { faqs: [...] } }` with all FAQ entries where `isActive: true`, sorted by category then question
+**AC-5:** Given any authenticated user, when they make GET `/api/assistant/faq`, then the server returns `{ success: true, data: { faqs: [...] } }` with all active FAQ entries sorted by category and question
 
 **AC-5a:** Given no active FAQs exist in the database, when any authenticated user makes GET `/api/assistant/faq`, then the server returns `{ success: true, data: { faqs: [] } }`
 

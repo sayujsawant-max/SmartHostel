@@ -11,7 +11,9 @@
  * - WARDEN_ADMIN consistency (not bare WARDEN)
  * - Bundled ACs (multiple Given/When/Then in one AC)
  *
- * Usage: node scripts/lint-stories.mjs [--fix-suggestions] [file...]
+ * Usage: node scripts/lint-stories.mjs [--strict] [--fix-suggestions] [file...]
+ *
+ * --strict: Exit non-zero on MEDIUM or HIGH findings (for CI)
  */
 
 import { readFileSync, readdirSync } from 'fs';
@@ -42,10 +44,12 @@ const BANNED_WORDS = [
   'adequate',
   'sufficient',
   'meaningful',
+  'nice',
+  'good',
+  'relevant',
+  'correct',
+  'quick',
 ];
-
-// Words that are fine when followed by specific values but flagged when standalone
-const CONTEXT_BANNED = ['correct', 'quick'];
 
 const SEVERITY = { HIGH: 'HIGH', MEDIUM: 'MEDIUM', LOW: 'LOW' };
 
@@ -104,10 +108,11 @@ function lintFile(filePath) {
       });
     }
 
-    // Banned words
+    // Banned words (strip backtick code spans to avoid false positives on route names)
+    const proseText = text.replace(/`[^`]*`/g, '');
     for (const word of BANNED_WORDS) {
       const regex = new RegExp(`\\b${word}\\b`, 'i');
-      if (regex.test(text)) {
+      if (regex.test(proseText)) {
         findings.push({
           severity: SEVERITY.LOW,
           line: ac.lineNum,
@@ -128,14 +133,17 @@ function lintFile(filePath) {
     }
 
     // Bundled ACs (multiple Given...When...Then sequences)
-    const givenCount = (text.match(/\bGiven\b/gi) || []).length;
-    const whenCount = (text.match(/\bWhen\b/gi) || []).length;
-    if (givenCount > 1 || whenCount > 2) {
+    // Strip quoted strings to avoid false positives from UI text like "when resolved"
+    const stripped = text.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''");
+    const givenCount = (stripped.match(/\bGiven\b/gi) || []).length;
+    const whenCount = (stripped.match(/\bwhen\b/gi) || []).length;
+    const thenCount = (stripped.match(/\bthen\b/gi) || []).length;
+    if (givenCount > 1 || whenCount > 1 || thenCount > 1) {
       findings.push({
         severity: SEVERITY.MEDIUM,
         line: ac.lineNum,
         rule: 'bundled-ac',
-        message: `AC bundles multiple scenarios (${givenCount} Given, ${whenCount} When) — split into separate ACs`,
+        message: `AC bundles multiple scenarios (${givenCount} Given, ${whenCount} When, ${thenCount} Then) — split into separate ACs`,
       });
     }
   }
@@ -211,6 +219,7 @@ function lintFile(filePath) {
 // Main
 const args = process.argv.slice(2);
 const showSuggestions = args.includes('--fix-suggestions');
+const strictMode = args.includes('--strict');
 const fileArgs = args.filter((a) => !a.startsWith('--'));
 
 let files;
@@ -258,6 +267,9 @@ if (totalFindings === 0) {
   }
 
   if (severityCounts.HIGH > 0) {
+    process.exit(1);
+  }
+  if (strictMode && severityCounts.MEDIUM > 0) {
     process.exit(1);
   }
   process.exit(0);

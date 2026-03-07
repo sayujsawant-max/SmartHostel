@@ -9,7 +9,7 @@ So that I can access the system with my assigned role.
 
 ## Acceptance Criteria
 
-**AC-1:** Given a valid user exists in the database (seeded), when I POST to `/api/auth/login` with correct email and password, then the server returns `{ success: true, data: { user: { id, name, email, role } } }` with httpOnly `accessToken` and `refreshToken` cookies set (SameSite=Lax, Secure in prod)
+**AC-1:** Given a valid user exists in the database (seeded), when I POST to `/api/auth/login` with matching email and password, then the server returns `{ success: true, data: { user: { id, name, email, role } } }` with httpOnly `accessToken` and `refreshToken` cookies set (SameSite=Lax, Secure in prod)
 
 **AC-2:** Given I am logged in with a valid access token, when I GET `/api/auth/me`, then the server returns my user profile including role, hasConsented, and room info (block/floor/roomNumber)
 

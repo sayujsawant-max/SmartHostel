@@ -17,4 +17,4 @@ jobs:
           node-version: '20'
 
       - name: Lint story documents
-        run: node scripts/lint-stories.mjs
+        run: node scripts/lint-stories.mjs --strict

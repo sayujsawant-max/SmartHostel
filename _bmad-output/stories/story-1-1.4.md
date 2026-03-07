@@ -11,7 +11,7 @@ So that all roles can be tested immediately after setup.
 
 **AC-1:** Given a connected MongoDB instance, when I run `npm run seed`, then the database is populated with sample users (at least 1 per role: STUDENT, WARDEN_ADMIN, GUARD, MAINTENANCE), with the STUDENT user having block, floor, and roomNumber fields set, all users having `isActive: true` and `hasConsented: true`, and all passwords stored as bcrypt hashes
 
-**AC-2:** Given the seed script has run, when I attempt to log in as any seeded user (e.g., `student@smarthostel.dev` / `password123`), then authentication succeeds and returns the correct role
+**AC-2:** Given the seed script has run, when I attempt to log in as any seeded user (e.g., `student@smarthostel.dev` / `password123`), then authentication succeeds and returns the expected role
 
 **AC-3:** Given the seed script has run, when I inspect the database, then FAQ entries (20+) exist across multiple categories, category defaults (8 complaint categories with SLA thresholds) exist, and fee records (3 types for demo student) are seeded
 
@@ -23,7 +23,7 @@ So that all roles can be tested immediately after setup.
 
 **AC-7:** Given the seed data JSON files, when I inspect `faqs.json`, then every entry has `question`, `answer`, `category`, and `keywords` fields suitable for Fuse.js search
 
-**AC-8:** Given the seed data JSON files, when I inspect `category-defaults.json`, then all 8 complaint categories are present with correct SLA hours: PLUMBING (24h), ELECTRICAL (12h), CARPENTRY (48h), CLEANING (24h), GENERAL (48h), PEST_CONTROL (36h), INTERNET (12h), OTHER (48h)
+**AC-8:** Given the seed data JSON files, when I inspect `category-defaults.json`, then all 8 complaint categories are present with specified SLA hours: PLUMBING (24h), ELECTRICAL (12h), CARPENTRY (48h), CLEANING (24h), GENERAL (48h), PEST_CONTROL (36h), INTERNET (12h), OTHER (48h)
 
 ## Technical Context
 - **Tech stack:** Express 5 + TypeScript, Mongoose 9, bcryptjs, dotenv

@@ -13,9 +13,9 @@ So that I can handle edge cases like wrong scans, administrative errors, or stud
 
 **AC-2:** Given a correction is made, when the audit event is created, then the original leave status is captured in `metadata.previousStatus` (either SCANNED_OUT or SCANNED_IN) -- this is append-only, the original state is never overwritten in the leave document
 
-**AC-3:** Given the leave is NOT in SCANNED_OUT or SCANNED_IN state (e.g., PENDING, APPROVED, CANCELLED, COMPLETED), when I attempt to correct, then the server returns 409 CONFLICT with message indicating only SCANNED_OUT or SCANNED_IN can be corrected
+**AC-3:** Given the leave is NOT in SCANNED_OUT or SCANNED_IN state (e.g., PENDING, APPROVED, CANCELLED, COMPLETED), when I attempt to rectify, then the server returns 409 CONFLICT with message indicating only SCANNED_OUT or SCANNED_IN can be rectified
 
-**AC-4:** Given the leave ID does not exist, when I attempt to correct, then the server returns 404 NOT_FOUND
+**AC-4:** Given the leave ID does not exist, when I attempt to rectify, then the server returns 404 NOT_FOUND
 
 **AC-5:** Given I am NOT a WARDEN_ADMIN (e.g., STUDENT, GUARD, MAINTENANCE), when I attempt PATCH `/api/leaves/:id/correct`, then the server returns 403 FORBIDDEN
 

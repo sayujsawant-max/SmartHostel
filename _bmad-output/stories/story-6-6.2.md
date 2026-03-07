@@ -9,7 +9,7 @@ So that I see only what needs my attention in a 5-10 minute daily check without 
 
 ## Acceptance Criteria
 
-**AC-1:** Given a logged-in WARDEN_ADMIN, when the DashboardPage loads, then a NeedsAttention widget shows color-coded tiles for: pending leaves (yellow, links to StudentsPage), near-breach complaints within 6 hours (amber, links to ComplaintsPage), SLA-breached complaints (red, links to ComplaintsPage), overrides pending review (orange), and cron health status (red when unhealthy)
+**AC-1:** Given a logged-in WARDEN_ADMIN, when the DashboardPage loads, then a NeedsAttention widget shows color-coded tiles for: pending leaves (yellow, links to StudentsPage), near-breach complaints within 6 hours (amber, links to ComplaintsPage), SLA-breached complaints (red, links to ComplaintsPage), overrides pending review (orange), and cron health status (red if cron is unhealthy)
 
 **AC-2:** Given all KPI counts are zero and cron is healthy, when the DashboardPage loads, then an "All clear -- no pending items or alerts right now" message is displayed in a green banner instead of the KPI tiles
 

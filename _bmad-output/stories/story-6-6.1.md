@@ -17,7 +17,7 @@ So that I have a single place to see everything relevant to my hostel life and c
 
 **AC-4:** Given a logged-in student, when the StatusPage loads, then active notices targeted to the student (by block/floor match or ALL) are displayed with title, content, date, and author name
 
-**AC-5:** Given a logged-in student, when the StatusPage loads, then quick-action summary tiles show counts for active complaints, active leaves, pending fees, and a link to FAQ
+**AC-5:** Given a logged-in student, when the StatusPage loads, then 1-tap action summary tiles show counts for active complaints, active leaves, pending fees, and a link to FAQ
 
 **AC-6:** Given a logged-in student with an APPROVED or SCANNED_OUT leave, when the StatusPage loads, then a prominent "You have an active pass" banner links to the Show QR page
 
