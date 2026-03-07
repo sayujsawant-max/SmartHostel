@@ -8,7 +8,8 @@
 - FR2: System enforces role-based access control across four roles (Student, Warden/Admin, Guard, Maintenance Staff)
 - FR3: Users are routed to their role-specific dashboard on login; first-time users see a dismissible welcome orientation
 - FR4: Users can view a privacy notice; system records consent acknowledgment with timestamp
-- FR5: Warden/Admin can create and disable user accounts and reset credentials (manual for MVP)
+- FR5: Warden/Admin can create, list, and disable user accounts and reset credentials
+- FR5b: Students can self-register with email, name, and password (auto-assigned STUDENT role)
 
 #### Leave & Gate Pass Management (FR6-11)
 
@@ -49,6 +50,7 @@
 - FR28: Students can check complaint, leave, and fee status via quick-action shortcuts; fee status is read-only from a configured data source (seeded for MVP)
 - FR29: Users can search hostel FAQs with fuzzy text matching
 - FR30: System provides contextual next-action suggestions after status queries
+- FR30b: System provides a conversational chatbot UI (floating widget) powered by FAQ keyword matching for authenticated users
 
 #### Dashboards & Notifications (FR31-36)
 
@@ -65,6 +67,15 @@
 - FR38: System enforces role-based data visibility boundaries per the defined visibility matrix
 - FR39: System records operational health metrics (cron execution, scan failures, offline backlog) and surfaces status indicators
 - FR40: System supports configurable data retention windows and maintains consent records
+
+#### Room Management & Discovery (FR44-49)
+
+- FR44: System maintains a Room model with hostelGender (BOYS/GIRLS), roomType (DELUXE/NORMAL), acType (AC/NON_AC), totalBeds, occupiedBeds, feePerSemester, and photos
+- FR45: Public users (unauthenticated) can browse rooms with filters by hostel gender, room type, and AC type
+- FR46: System displays live bed availability per room (beds left = totalBeds - occupiedBeds) and aggregate availability summary
+- FR47: Each room card displays a photo (uploaded or default by type), fee per semester, and availability bar
+- FR48: Warden/Admin can create rooms, update room details, and adjust occupancy counts
+- FR49: Warden/Admin can list and manage all user accounts via a dedicated admin UI
 
 #### State Machines (FR41-43)
 
@@ -143,7 +154,7 @@
 - Controller → Service → Model layering enforced (controllers never import models)
 - Cloudinary for photo storage (no ephemeral local uploads; PaaS-safe)
 - Fees are read-only in MVP (seeded; no PATCH endpoint, no management page)
-- Rooms denormalized on User in MVP (block/floor/roomNumber on User doc; no Room model)
+- ~~Rooms denormalized on User in MVP~~ **SUPERSEDED**: Room model (`rooms` collection) now exists with hostelGender, roomType, acType, totalBeds, occupiedBeds, feePerSemester, photos. User still carries block/floor/roomNumber for quick reference
 - camelCase everywhere (Mongo fields, API payloads, client state — no snake_case)
 - Test framework: Vitest (both client + server), mongodb-memory-server, Supertest for E2E
 - Co-located tests: `{filename}.test.ts(x)` next to source files
@@ -231,4 +242,12 @@
 | FR41 | Epic 2 | Gate pass lifecycle state machine |
 | FR42 | Epic 5 | Complaint lifecycle state machine |
 | FR43 | Epic 5 | State transition rules + reason codes |
+| FR44 | Epic 8 | Room model with classification |
+| FR45 | Epic 8 | Public room browsing with filters |
+| FR46 | Epic 8 | Live bed availability display |
+| FR47 | Epic 8 | Room photos + fee display |
+| FR48 | Epic 8 | Admin room management (CRUD + occupancy) |
+| FR49 | Epic 8 | Admin user management UI |
+| FR5b | Epic 1 | Public student self-registration |
+| FR30b | Epic 7 | Conversational chatbot UI |
 

@@ -77,6 +77,8 @@ Beyond the three pillars, SmartHostel adds an "anti-chaos" layer that makes acco
 
 **Non-goals (MVP):** payment gateway/receipts; parent notifications/OTP; multi-hostel/multi-campus; real-time websockets; bulk import; RFID/IoT integrations; offline-first full PWA.
 
+**Scope Updates (Post-initial-MVP additions):** Public student registration (self-service signup); Room model with type classification (AC/Non-AC, Deluxe/Normal, Boys/Girls hostel); public room browsing with live bed availability; conversational chatbot UI (FAQ-powered); enhanced admin panel with room and user management UI; modern gradient backgrounds on auth pages.
+
 ## Success Criteria
 
 **Metric Definitions:**
@@ -180,22 +182,28 @@ Each event includes: timestamp, actorRole, actorId, subjectId (leave/complaint),
 
 ### MVP — Minimum Viable Product
 
-~14 must-have features buildable in 3–4 weeks across 4 sprints:
+~20 features across 8 epics:
 
 1. JWT auth + RBAC (Student, Warden/Admin, Guard, Maintenance)
-2. Student dashboard (room, notices, fee status, quick actions)
-3. Complaint creation (category + description + optional photo)
-4. Complaint status timeline (Open → Assigned → In Progress → Resolved)
-5. Complaint assignment to staff with priority + due-time
-6. SLA automation: reminders + two-step escalation (node-cron)
-7. Maintenance staff view: assigned complaints, update status + notes
-8. Leave request with calendar + reason templates
-9. Leave approve/reject + signed QR pass generation
-10. Guard scanner: QR scan → Valid/Expired/Cancelled + student info
-11. Auto entry/exit logging + anti-replay controls (expiry + jti/UUID + scan logging + optional one-time-use mode)
-12. Warden dashboard KPIs + notice broadcast (all/block/floor)
-13. Chat assistant: FAQ fallback + 3 status tool-calls (complaint/leave/fee)
-14. Audit trail fields + system health indicators (cron status, scan failures)
+2. Public student self-registration (email signup, auto-assigned STUDENT role)
+3. Student dashboard (room, notices, fee status, quick actions)
+4. Complaint creation (category + description + optional photo)
+5. Complaint status timeline (Open → Assigned → In Progress → Resolved)
+6. Complaint assignment to staff with priority + due-time
+7. SLA automation: reminders + two-step escalation (node-cron)
+8. Maintenance staff view: assigned complaints, update status + notes
+9. Leave request with calendar + reason templates
+10. Leave approve/reject + signed QR pass generation
+11. Guard scanner: QR scan → Valid/Expired/Cancelled + student info
+12. Auto entry/exit logging + anti-replay controls (expiry + jti/UUID + scan logging + optional one-time-use mode)
+13. Warden dashboard KPIs + notice broadcast (all/block/floor)
+14. Chat assistant: FAQ search + conversational chatbot UI + status shortcuts
+15. Audit trail fields + system health indicators (cron status, scan failures)
+16. Room model with Boys/Girls hostel, AC/Non-AC, Deluxe/Normal classification
+17. Public room browsing page with filters, photos, and live bed availability
+18. Room fee display per semester
+19. Admin room management (CRUD + occupancy tracking)
+20. Admin user management (list, create, disable users)
 
 ### Growth Features (Post-MVP)
 
@@ -205,12 +213,12 @@ Prioritized by effort-to-value ratio:
 |----------|---------|--------|
 | 1 | QR pass visual card with countdown timer | S |
 | 2 | "Hostel Pulse" health widget on admin dashboard | S |
-| 3 | Escalation chain visibility to student | S–M |
+| 3 | Escalation chain visibility to student | S-M |
 | 4 | Photo before/after on complaint resolution | M |
 | 5 | In-app notification center page | M |
 | 6 | Duplicate complaint detection | M |
-| 7 | Smart complaint auto-categorization (LLM one-shot; human-confirmed category before SLA clocks start) | M–L |
-| 8 | Student + room management (bulk import, capacity enforcement) | M–L |
+| 7 | Smart complaint auto-categorization (LLM one-shot; human-confirmed category before SLA clocks start) | M-L |
+| 8 | Bulk CSV import for students + rooms | M-L |
 
 ### Vision (Future)
 

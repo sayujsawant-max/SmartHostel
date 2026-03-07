@@ -40,9 +40,12 @@ These decisions are final. Do not re-litigate, override, or deviate during imple
 | 10 | Controller → Service → Model enforced | Controllers never import models directly |
 | 11 | Cloudinary for photos | No ephemeral local uploads; PaaS-safe |
 | 12 | Fees read-only in MVP | Seeded; no PATCH endpoint, no management page |
-| 13 | Rooms denormalized on User in MVP | block/floor/roomNumber on User doc; no Room model/page |
+| 13 | ~~Rooms denormalized on User in MVP~~ **SUPERSEDED** | Room model now exists with hostelGender, roomType, acType, totalBeds, occupiedBeds, feePerSemester, photos. User still has block/floor/roomNumber for quick reference |
 | 14 | Refresh token revocation via DB-stored `jti` | Password reset / force-logout deletes all stored jtis |
 | 15 | camelCase everywhere | Mongo fields, API payloads, client state — no snake_case anywhere |
+| 16 | Public registration for students | `POST /api/auth/register` creates STUDENT accounts; admin can still create any role |
+| 17 | Room model with classification | hostelGender (BOYS/GIRLS), roomType (DELUXE/NORMAL), acType (AC/NON_AC); public browsing via `GET /api/rooms` |
+| 18 | Chatbot UI | Floating conversational chat widget; FAQ-powered keyword matching; visible to authenticated users |
 
 ## Project Context Analysis
 
@@ -336,8 +339,8 @@ Vite HMR for instant frontend reloads. `tsx --watch` for backend auto-restart. `
 **Mongoose / MongoDB Naming:**
 | Element | Convention | Example |
 |---------|-----------|---------|
-| Collection names | Explicit `collection` option in every schema using camelCase plural | `{ collection: 'users' }`, `{ collection: 'leaves' }`, `{ collection: 'gatePasses' }`, `{ collection: 'gateScans' }`, `{ collection: 'overrides' }`, `{ collection: 'complaints' }`, `{ collection: 'complaintEvents' }`, `{ collection: 'notifications' }`, `{ collection: 'faqEntries' }`, `{ collection: 'cronLogs' }`, `{ collection: 'auditEvents' }` |
-| Model names | PascalCase singular | `User`, `Leave`, `GatePass`, `GateScan`, `Override`, `Complaint`, `ComplaintEvent`, `Notification`, `FaqEntry`, `CronLog`, `AuditEvent` |
+| Collection names | Explicit `collection` option in every schema using camelCase plural | `{ collection: 'users' }`, `{ collection: 'leaves' }`, `{ collection: 'gatePasses' }`, `{ collection: 'gateScans' }`, `{ collection: 'overrides' }`, `{ collection: 'complaints' }`, `{ collection: 'complaintEvents' }`, `{ collection: 'notifications' }`, `{ collection: 'faqEntries' }`, `{ collection: 'cronLogs' }`, `{ collection: 'auditEvents' }`, `{ collection: 'rooms' }`, `{ collection: 'fees' }`, `{ collection: 'consents' }`, `{ collection: 'notices' }` |
+| Model names | PascalCase singular | `User`, `Leave`, `GatePass`, `GateScan`, `Override`, `Complaint`, `ComplaintEvent`, `Notification`, `FaqEntry`, `CronLog`, `AuditEvent`, `Room`, `Fee`, `Consent`, `Notice` |
 | Field names | camelCase | `studentId`, `dueAt`, `qrTokenId`, `outLoggedAt` |
 | Enum values | UPPER_SNAKE_CASE | `PENDING`, `APPROVED`, `SCANNED_OUT`, `HIGH`, `SLA_ALERT` |
 | Index names | let Mongoose auto-generate | Don't manually name indexes |

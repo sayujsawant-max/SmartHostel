@@ -5,6 +5,8 @@ As a **system administrator**,
 I want the system to enforce role-based access control on every protected endpoint,
 So that users can only access data and actions appropriate to their role.
 
+## Status: Complete
+
 ## Acceptance Criteria
 
 **AC-1:** Given routes are protected with `requireRole()` middleware, when a STUDENT attempts to access a warden-only endpoint (e.g., `/api/admin/dashboard`), then the server returns 403 FORBIDDEN
@@ -13,7 +15,7 @@ So that users can only access data and actions appropriate to their role.
 
 **AC-3:** Given a STUDENT queries their own data, when the query executes, then all queries include `{ studentId: req.user._id }` filter -- students never see other students' data
 
-**AC-4:** Given a WARDEN is authenticated, when they query any data endpoint, then no visibility restrictions are applied (full access per visibility matrix)
+**AC-4:** Given a WARDEN_ADMIN is authenticated, when they query any data endpoint, then no visibility restrictions are applied (full access per visibility matrix)
 
 **AC-5:** Given a MAINTENANCE user queries complaints, when the query executes, then only complaints assigned to them are returned
 

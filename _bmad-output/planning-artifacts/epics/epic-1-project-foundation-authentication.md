@@ -194,5 +194,33 @@ So that I can manage hostel users for the system.
 **When** I attempt any account management endpoint
 **Then** the server returns 403 FORBIDDEN
 
+### Story 1.8: Public Student Registration
+
+As a **prospective student**,
+I want to create an account with my name, email, and password,
+So that I can access the hostel system without waiting for an admin to create my account.
+
+**Acceptance Criteria:**
+
+**Given** I am on the login page
+**When** I click "Sign up"
+**Then** I am navigated to `/register`
+
+**Given** I am on the registration page
+**When** I submit a valid name (min 2 chars), email, and password (min 8 chars)
+**Then** the server creates a STUDENT account, sets auth cookies, and redirects me to `/student/status`
+
+**Given** I submit a registration with an email that already exists
+**When** the server processes it
+**Then** the server returns 409 CONFLICT with message "A user with this email already exists"
+
+**Given** I submit a registration with invalid data (short name, bad email, short password)
+**When** the server validates with zod
+**Then** the server returns 400 VALIDATION_ERROR with the failing field
+
+**Given** I am already authenticated
+**When** I navigate to `/register`
+**Then** I am redirected to my role home page
+
 ---
 

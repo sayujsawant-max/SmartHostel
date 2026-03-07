@@ -1,8 +1,8 @@
 # Epic List
 
 ### Epic 1: Project Foundation & Authentication
-Users can log in with credentials, receive role-appropriate access, and navigate to their role-specific dashboard. System enforces RBAC and records consent.
-**FRs covered:** FR1, FR2, FR3, FR4, FR5, FR38
+Users can log in with credentials or self-register, receive role-appropriate access, and navigate to their role-specific dashboard. System enforces RBAC and records consent.
+**FRs covered:** FR1, FR2, FR3, FR4, FR5, FR5b, FR38
 
 ### Epic 2: Leave Management & Gate Pass Generation
 Students can request leaves, wardens can approve/reject them, approved leaves generate QR-code gate passes, and students can view/cancel their leaves.
@@ -25,8 +25,12 @@ All 4 roles see their complete dashboards with KPIs, pending items, and health i
 **FRs covered:** FR31, FR32, FR33, FR34, FR35, FR36
 
 ### Epic 7: Self-Service Assistant & FAQ
-Students can check complaint/leave/fee status via quick-action shortcuts, search FAQs with fuzzy matching, and receive contextual next-action suggestions.
-**FRs covered:** FR28, FR29, FR30
+Students can check complaint/leave/fee status via quick-action shortcuts, search FAQs with fuzzy matching, receive contextual next-action suggestions, and interact with a conversational chatbot.
+**FRs covered:** FR28, FR29, FR30, FR30b
+
+### Epic 8: Room Management & Discovery
+Public users can browse hostel rooms with filters (Boys/Girls, AC/Non-AC, Deluxe/Normal), view room photos, live bed availability, and fees. Wardens can manage rooms and users through an admin panel.
+**FRs covered:** FR44, FR45, FR46, FR47, FR48, FR49
 
 ---
 

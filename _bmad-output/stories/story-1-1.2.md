@@ -5,6 +5,8 @@ As a **user**,
 I want to log in with my credentials and receive a secure session,
 So that I can access the system with my assigned role.
 
+## Status: Complete
+
 ## Acceptance Criteria
 
 **AC-1:** Given a valid user exists in the database (seeded), when I POST to `/api/auth/login` with correct email and password, then the server returns `{ success: true, data: { user: { id, name, email, role } } }` with httpOnly `accessToken` and `refreshToken` cookies set (SameSite=Lax, Secure in prod)
@@ -184,7 +186,7 @@ A seed script is needed to create test users for verifying all acceptance criter
 - [ ] Subtask 8.2: Add script to `server/package.json`: `"seed:users": "tsx src/scripts/seed-users.ts"`
 - [ ] Subtask 8.3: Add to root `package.json` scripts: `"seed:users": "npm -w server run seed:users"`
 
-**Tests:**
+**Tests (AC-1, AC-2):**
 - [ ] Manual verification: running `npm run seed:users` creates 4 users in the database
 - [ ] Manual verification: seeded student user can log in and `/me` returns room info
 - [ ] Manual verification: seeded users persist across script re-runs (upsert, not duplicate)
@@ -196,7 +198,7 @@ Comprehensive integration tests that verify the full lifecycle across all accept
 - [ ] Subtask 9.3: Write an integration test for the lockout path: 5 failed logins -> verify RATE_LIMITED -> wait for lockout to expire (use short lockout in test env) -> login succeeds
 - [ ] Subtask 9.4: Write an integration test for CSRF: POST login with valid Origin -> success. POST login with invalid Origin -> 403.
 
-**Tests (all ACs):**
+**Tests (AC-1, AC-2, AC-3, AC-4, AC-5, AC-6):**
 - [ ] E2E test: full auth lifecycle (login -> me -> refresh -> me -> logout) works end-to-end
 - [ ] E2E test: revoked refresh token returns 401 with cookies cleared
 - [ ] E2E test: account lockout triggers after 5 failures and unlocks after duration

@@ -89,3 +89,35 @@ So that I know my options without memorizing the system.
 **Given** I use an FAQ shortcut
 **When** the FAQ answer is displayed
 **Then** if the FAQ references a specific action (e.g., "how to request leave"), a direct link to that action page is included
+
+### Story 7.4: Conversational Chatbot UI
+
+As a **student**,
+I want a floating chat widget where I can ask questions in natural language,
+So that I get instant answers without navigating to the FAQ page.
+
+**Acceptance Criteria:**
+
+**Given** I am authenticated (any role)
+**When** I see the bottom-right corner of the screen
+**Then** a floating chat button (teal circle with chat icon) is visible
+
+**Given** I tap the chat button
+**When** the chat window opens
+**Then** I see a greeting message: "Hi! I'm the SmartHostel assistant. Ask me about leaves, complaints, fees, rooms, or anything else!"
+
+**Given** the chat window is open
+**When** I type a question (e.g., "how do I request leave?")
+**Then** the chatbot matches it against FAQ entries using keyword scoring and returns the best matching answer
+
+**Given** I ask a question with no matching FAQ
+**When** the chatbot cannot find a match
+**Then** it responds: "I'm not sure about that. Try asking about leaves, complaints, fees, or hostel rules. You can also contact your warden for help."
+
+**Given** I type a greeting ("hi", "hello", "help")
+**When** the chatbot processes it
+**Then** it responds with the greeting message
+
+**Given** the chat window is open
+**When** I press Enter in the input field
+**Then** the message is sent (same as clicking the send button)
