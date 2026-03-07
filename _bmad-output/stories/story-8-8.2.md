@@ -39,8 +39,18 @@ So that I can evaluate accommodation options before registering.
 - [x] Subtask 1.5: Add availability summary cards at top
 - [x] Subtask 1.6: Add navigation links back to login and register
 
+**Tests (AC-1, AC-2, AC-3, AC-4, AC-5):**
+- [ ] Unit test: RoomsPage renders hero section and room cards
+- [ ] Unit test: Selecting "Boys Hostel" filter shows only BOYS rooms
+- [ ] Unit test: Selecting "AC Only" filter shows only AC rooms
+- [ ] Unit test: Room card displays photo, badges, fee, and availability bar
+- [ ] Unit test: Room with 0 beds shows red "Full" availability bar
+
 ### Task 2: Route registration
 - [x] Subtask 2.1: Add `/rooms` as public route in App.tsx
+
+**Tests (AC-1):**
+- [ ] Integration test: Navigating to /rooms renders RoomsPage without authentication
 
 ## Dependencies
 - **Story 8.1** (completed) -- Room API endpoints

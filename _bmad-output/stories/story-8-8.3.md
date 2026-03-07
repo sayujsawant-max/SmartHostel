@@ -38,9 +38,18 @@ So that I can maintain accurate room inventory and availability.
 - [x] Subtask 1.2: Implement "+/- " occupancy controls with PATCH API calls
 - [x] Subtask 1.3: Add form validation and error display
 
+**Tests (AC-1, AC-2, AC-3, AC-4):**
+- [ ] Unit test: RoomsManagePage renders room list with details and occupancy controls
+- [ ] Unit test: Clicking "+ Add Room" and submitting form creates a room
+- [ ] Unit test: Clicking "+" increments occupiedBeds (capped at totalBeds)
+- [ ] Unit test: Clicking "-" decrements occupiedBeds (minimum 0)
+
 ### Task 2: Navigation
 - [x] Subtask 2.1: Add "Rooms" to warden sidebar navLinks
 - [x] Subtask 2.2: Add route in App.tsx
+
+**Tests (AC-5):**
+- [ ] Unit test: WardenShell sidebar includes "Rooms" nav link between "Notices" and "Settings"
 
 ## Dependencies
 - **Story 8.1** (completed) -- Room API endpoints

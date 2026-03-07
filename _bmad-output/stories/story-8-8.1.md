@@ -49,10 +49,18 @@ So that rooms can be stored, queried, and managed programmatically.
 - [x] Subtask 1.2: Create `createRoomSchema` in shared/schemas/room.schema.ts
 - [x] Subtask 1.3: Export from shared/index.ts
 
+**Tests (AC-1):**
+- [ ] Unit test: RoomType, RoomAcType, HostelGender enums export expected values
+- [ ] Unit test: createRoomSchema validates required fields
+
 ### Task 2: Room model
 - [x] Subtask 2.1: Create room.model.ts with IRoom interface and schema
 - [x] Subtask 2.2: Add unique compound index on block + roomNumber
 - [x] Subtask 2.3: Add compound index on hostelGender + roomType + acType for filter queries
+
+**Tests (AC-1, AC-7):**
+- [ ] Unit test: Room model has all required fields from AC-1
+- [ ] Unit test: Duplicate block + roomNumber insert throws unique constraint error
 
 ### Task 3: Room service
 - [x] Subtask 3.1: Implement listRooms with optional filters
@@ -61,10 +69,23 @@ So that rooms can be stored, queried, and managed programmatically.
 - [x] Subtask 3.4: Implement updateRoom
 - [x] Subtask 3.5: Implement getAvailability with aggregation by hostel and type
 
+**Tests (AC-2, AC-3, AC-4, AC-5, AC-6, AC-7):**
+- [ ] Unit test: listRooms returns active rooms sorted by block/floor/roomNumber
+- [ ] Unit test: listRooms applies hostelGender, roomType, acType filters
+- [ ] Unit test: getAvailability returns aggregate summary with breakdowns
+- [ ] Unit test: createRoom returns created room
+- [ ] Unit test: createRoom with duplicate block+roomNumber throws conflict error
+- [ ] Unit test: updateRoom updates occupiedBeds
+
 ### Task 4: Room routes and controller
 - [x] Subtask 4.1: Create room.controller.ts with 5 handlers
 - [x] Subtask 4.2: Create room.routes.ts with public GETs and protected POST/PATCH
 - [x] Subtask 4.3: Register routes in app.ts
+
+**Tests (AC-2, AC-5, AC-6):**
+- [ ] Integration test: GET /api/rooms returns rooms without authentication
+- [ ] Integration test: POST /api/rooms with WARDEN_ADMIN auth returns 201
+- [ ] Integration test: PATCH /api/rooms/:id with WARDEN_ADMIN auth updates room
 
 ## Dependencies
 - **Story 1.1** (completed) -- Project scaffolding

@@ -55,6 +55,10 @@ So that I get instant answers without navigating to the FAQ page.
 ### Task 2: Integration
 - [x] Subtask 2.1: Add `<Chatbot />` to App.tsx, conditionally rendered when `isAuthenticated`
 
+**Tests (AC-1):**
+- [ ] Unit test: Chatbot is rendered when user is authenticated
+- [ ] Unit test: Chatbot is not rendered when user is unauthenticated
+
 ## Dependencies
 - **Story 7.2** (completed) -- FAQ entries and API endpoint
 

@@ -40,10 +40,19 @@ So that I can manage hostel residents and staff.
 - [x] Subtask 1.2: Add listUsers() handler to admin.controller.ts
 - [x] Subtask 1.3: Add GET / route to admin.routes.ts
 
+**Tests (AC-1):**
+- [ ] Integration test: GET /api/admin with WARDEN_ADMIN auth returns list of users with name, email, role, block/room, active status
+
 ### Task 2: User management page
 - [x] Subtask 2.1: Create UsersManagePage with user list and create form
 - [x] Subtask 2.2: Implement disable button with confirmation
 - [x] Subtask 2.3: Add to warden navigation and App.tsx routes
+
+**Tests (AC-1, AC-2, AC-3, AC-4):**
+- [ ] Unit test: UsersManagePage renders user list with name, email, role, and status
+- [ ] Unit test: Clicking "+ Add User" and submitting form creates a user
+- [ ] Unit test: Clicking "Disable" on an active user shows disabled badge
+- [ ] Unit test: WardenShell sidebar includes "Users" nav link between "Rooms" and "Settings"
 
 ## Dependencies
 - **Story 1.7** (completed) -- Admin API endpoints (create, disable, reset-password)
