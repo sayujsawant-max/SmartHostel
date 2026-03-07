@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser';
 import pinoHttp from 'pino-http';
 import { correlationIdMiddleware } from '@middleware/correlation-id.middleware.js';
 import { csrfMiddleware } from '@middleware/csrf.middleware.js';
+import { mongoSanitizeMiddleware } from '@middleware/mongo-sanitize.middleware.js';
 import { errorHandlerMiddleware } from '@middleware/error-handler.middleware.js';
 import { AppError } from '@utils/app-error.js';
 import { logger } from '@utils/logger.js';
@@ -42,6 +43,9 @@ app.use(cors({ origin: origins, credentials: true }));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Strip MongoDB operator injection ($gt, $ne, etc.) from inputs
+app.use(mongoSanitizeMiddleware);
 
 // Correlation ID — must come before pino-http so logs include it
 app.use(correlationIdMiddleware);
