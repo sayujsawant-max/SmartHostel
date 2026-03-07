@@ -1,5 +1,5 @@
 # Stage 1: Install dependencies and build
-FROM node:20-alpine AS build
+FROM node:20.19.0-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY shared/package.json shared/
@@ -10,7 +10,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Production image
-FROM node:20-alpine AS production
+FROM node:20.19.0-alpine AS production
 WORKDIR /app
 ENV NODE_ENV=production
 
