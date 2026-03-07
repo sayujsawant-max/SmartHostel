@@ -1,10 +1,8 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Role } from '@smarthostel/shared';
 import { useAuth } from '@hooks/useAuth';
 import { getRoleHomePath } from '@utils/role-home';
-import LoginPage from '@pages/LoginPage';
-import RegisterPage from '@pages/RegisterPage';
-import RoomsPage from '@pages/RoomsPage';
 import ProtectedRoute from '@components/layout/ProtectedRoute';
 import RoleRoute from '@components/layout/RoleRoute';
 import StudentShell from '@components/layout/StudentShell';
@@ -13,30 +11,43 @@ import GuardShell from '@components/layout/GuardShell';
 import MaintenanceShell from '@components/layout/MaintenanceShell';
 import Chatbot from '@components/Chatbot';
 
+// Lazy-loaded pages (route-level code splitting)
+const LoginPage = lazy(() => import('@pages/LoginPage'));
+const RegisterPage = lazy(() => import('@pages/RegisterPage'));
+const RoomsPage = lazy(() => import('@pages/RoomsPage'));
+
 // Student pages
-import StudentStatusPage from '@pages/student/StatusPage';
-import StudentActionsPage from '@pages/student/ActionsPage';
-import StudentFaqPage from '@pages/student/FaqPage';
-import ShowQRPage from '@pages/student/ShowQRPage';
-import ReportIssuePage from '@pages/student/ReportIssuePage';
-import ComplaintDetailPage from '@pages/student/ComplaintDetailPage';
+const StudentStatusPage = lazy(() => import('@pages/student/StatusPage'));
+const StudentActionsPage = lazy(() => import('@pages/student/ActionsPage'));
+const StudentFaqPage = lazy(() => import('@pages/student/FaqPage'));
+const ShowQRPage = lazy(() => import('@pages/student/ShowQRPage'));
+const ReportIssuePage = lazy(() => import('@pages/student/ReportIssuePage'));
+const ComplaintDetailPage = lazy(() => import('@pages/student/ComplaintDetailPage'));
 
 // Warden pages
-import WardenDashboardPage from '@pages/warden/DashboardPage';
-import WardenStudentsPage from '@pages/warden/StudentsPage';
-import WardenComplaintsPage from '@pages/warden/ComplaintsPage';
-import WardenSettingsPage from '@pages/warden/SettingsPage';
-import WardenNoticesPage from '@pages/warden/NoticesPage';
-import WardenRoomsManagePage from '@pages/warden/RoomsManagePage';
-import WardenUsersManagePage from '@pages/warden/UsersManagePage';
+const WardenDashboardPage = lazy(() => import('@pages/warden/DashboardPage'));
+const WardenStudentsPage = lazy(() => import('@pages/warden/StudentsPage'));
+const WardenComplaintsPage = lazy(() => import('@pages/warden/ComplaintsPage'));
+const WardenSettingsPage = lazy(() => import('@pages/warden/SettingsPage'));
+const WardenNoticesPage = lazy(() => import('@pages/warden/NoticesPage'));
+const WardenRoomsManagePage = lazy(() => import('@pages/warden/RoomsManagePage'));
+const WardenUsersManagePage = lazy(() => import('@pages/warden/UsersManagePage'));
 
 // Guard pages
-import GuardScanPage from '@pages/guard/ScanPage';
+const GuardScanPage = lazy(() => import('@pages/guard/ScanPage'));
 
 // Maintenance pages
-import MaintenanceTasksPage from '@pages/maintenance/TasksPage';
-import MaintenanceHistoryPage from '@pages/maintenance/HistoryPage';
-import MaintenanceFaqPage from '@pages/maintenance/FaqPage';
+const MaintenanceTasksPage = lazy(() => import('@pages/maintenance/TasksPage'));
+const MaintenanceHistoryPage = lazy(() => import('@pages/maintenance/HistoryPage'));
+const MaintenanceFaqPage = lazy(() => import('@pages/maintenance/FaqPage'));
+
+function PageSpinner() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))]">
+      <div className="animate-pulse text-[hsl(var(--muted-foreground))]">Loading...</div>
+    </div>
+  );
+}
 
 function RoleHomeRedirect() {
   const { user } = useAuth();
@@ -84,7 +95,7 @@ function AppRoutes() {
   const { isAuthenticated } = useAuth();
 
   return (
-    <>
+    <Suspense fallback={<PageSpinner />}>
       <Routes>
         {/* Public routes */}
         <Route path="/login" element={<LoginRoute />} />
@@ -144,7 +155,7 @@ function AppRoutes() {
 
       {/* Chatbot - visible only when authenticated */}
       {isAuthenticated && <Chatbot />}
-    </>
+    </Suspense>
   );
 }
 
