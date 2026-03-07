@@ -11,6 +11,10 @@ export async function createLeave(studentId: string, data: CreateLeaveInput, cor
   const startDate = new Date(data.startDate);
   const endDate = new Date(data.endDate);
 
+  if (endDate < startDate) {
+    throw new AppError('VALIDATION_ERROR', 'End date must be on or after start date', 400, { field: 'endDate' });
+  }
+
   const overlapping = await Leave.findOne({
     studentId,
     status: { $in: [LeaveStatus.PENDING, LeaveStatus.APPROVED] },

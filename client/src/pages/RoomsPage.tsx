@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 
+const LOG_PREFIX = '[RoomsPage]';
+
 interface Room {
   _id: string;
   block: string;
@@ -39,6 +41,7 @@ export default function RoomsPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [availability, setAvailability] = useState<Availability | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filterGender, setFilterGender] = useState<string>('');
   const [filterType, setFilterType] = useState<string>('');
   const [filterAc, setFilterAc] = useState<string>('');
@@ -49,6 +52,7 @@ export default function RoomsPage() {
     if (filterType) params.set('roomType', filterType);
     if (filterAc) params.set('acType', filterAc);
 
+    setError(null);
     Promise.all([
       fetch(`/api/rooms?${params}`).then((r) => r.json()),
       fetch('/api/rooms/availability').then((r) => r.json()),
@@ -57,7 +61,10 @@ export default function RoomsPage() {
         setRooms(roomsRes.data?.rooms ?? []);
         setAvailability(availRes.data?.availability ?? null);
       })
-      .catch(() => {})
+      .catch((err) => {
+        console.error(LOG_PREFIX, 'Failed to load rooms', err);
+        setError('Failed to load room data. Please try again.');
+      })
       .finally(() => setLoading(false));
   }, [filterGender, filterType, filterAc]);
 
@@ -133,6 +140,8 @@ export default function RoomsPage() {
       <div className="max-w-4xl mx-auto px-4 pb-12">
         {loading ? (
           <div className="text-center py-12 text-gray-500">Loading rooms...</div>
+        ) : error ? (
+          <div className="text-center py-12 text-red-500">{error}</div>
         ) : rooms.length === 0 ? (
           <div className="text-center py-12 text-gray-500">No rooms match your filters.</div>
         ) : (

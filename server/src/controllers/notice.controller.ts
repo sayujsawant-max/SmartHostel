@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { User } from '@models/user.model.js';
 import * as noticeService from '@services/notice.service.js';
+import { AppError } from '@utils/app-error.js';
 
 export async function createNotice(req: Request, res: Response, next: NextFunction) {
   try {
@@ -53,8 +54,7 @@ export async function deactivateNotice(req: Request, res: Response, next: NextFu
   try {
     const notice = await noticeService.deactivateNotice(req.params.id as string);
     if (!notice) {
-      res.status(404).json({ success: false, error: 'Notice not found' });
-      return;
+      throw new AppError('NOT_FOUND', 'Notice not found', 404);
     }
     res.json({ success: true, data: { notice } });
   } catch (err) {

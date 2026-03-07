@@ -19,14 +19,20 @@ const OFFLINE_STORAGE_KEY = 'offlineGateScans';
 
 function getOfflineQueue(): OfflineScanEntry[] {
   try {
-    return JSON.parse(localStorage.getItem(OFFLINE_STORAGE_KEY) || '[]');
+    const raw = localStorage.getItem(OFFLINE_STORAGE_KEY);
+    if (!raw) return [];
+    // Decode from base64 to prevent casual plaintext exposure of tokens
+    return JSON.parse(atob(raw));
   } catch {
+    // If decoding fails (e.g. old unencoded data), clear and start fresh
+    localStorage.removeItem(OFFLINE_STORAGE_KEY);
     return [];
   }
 }
 
 function saveOfflineQueue(queue: OfflineScanEntry[]) {
-  localStorage.setItem(OFFLINE_STORAGE_KEY, JSON.stringify(queue));
+  // Encode as base64 to prevent casual plaintext exposure of QR tokens/passcodes
+  localStorage.setItem(OFFLINE_STORAGE_KEY, btoa(JSON.stringify(queue)));
 }
 
 interface ScanResponse {
@@ -259,8 +265,8 @@ export default function ScanPage() {
         setScanData(null);
         lastScanRef.current = '';
       }, 1200);
-    } catch {
-      // Keep the sheet open on error
+    } catch (err) {
+      console.error('[ScanPage] Override submission failed', err);
     }
   };
 

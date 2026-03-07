@@ -12,6 +12,8 @@ interface TokenPair {
   jti: string;
 }
 
+const SALT_ROUNDS = 10;
+
 // Dummy hash used when user not found — prevents timing-based user enumeration
 const DUMMY_HASH = '$2a$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012';
 
@@ -41,7 +43,7 @@ export async function register(name: string, email: string, password: string, co
     throw new AppError('CONFLICT', 'A user with this email already exists', 409);
   }
 
-  const passwordHash = await bcrypt.hash(password, 10);
+  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
   const user = await User.create({
     name,
     email: normalizedEmail,

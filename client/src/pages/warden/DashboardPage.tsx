@@ -45,8 +45,8 @@ export default function DashboardPage() {
       setDashStats(statsRes.data);
       setOverrides(overridesRes.data);
       setOverrideStats(overrideStatsRes.data);
-    } catch {
-      // silently fail
+    } catch (err) {
+      console.error('[DashboardPage] Failed to fetch dashboard data', err);
     } finally {
       setLoading(false);
     }
@@ -62,8 +62,8 @@ export default function DashboardPage() {
     try {
       await apiFetch(`/gate/overrides/${id}/review`, { method: 'PATCH' });
       setOverrides((prev) => prev.filter((o) => o._id !== id));
-    } catch {
-      // silently fail
+    } catch (err) {
+      console.error('[DashboardPage] Failed to review override', err);
     }
   };
 

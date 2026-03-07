@@ -251,8 +251,9 @@ export async function reconcileOfflineScan(input: ReconcileInput): Promise<Recon
     });
 
     // Update the GateScan that was just created by verifyPass
+    // Query by guardId + missing scanAttemptId to find the freshly-created record
     await GateScan.findOneAndUpdate(
-      { guardId: input.guardId, scanResult: result.scanResult },
+      { guardId: input.guardId, scanAttemptId: { $exists: false } },
       {
         $set: {
           offlineStatus: 'OFFLINE_OVERRIDE',
@@ -270,7 +271,11 @@ export async function reconcileOfflineScan(input: ReconcileInput): Promise<Recon
       reconcileStatus: result.verdict === 'ALLOW' ? 'SUCCESS' : 'FAIL',
       reconcileErrorCode: result.verdict === 'DENY' ? result.scanResult : undefined,
     };
-  } catch {
+  } catch (err) {
+    logger.error(
+      { err, scanAttemptId: input.scanAttemptId, guardId: input.guardId, correlationId: input.correlationId },
+      'Offline scan reconciliation failed',
+    );
     return {
       scanAttemptId: input.scanAttemptId,
       reconcileStatus: 'FAIL',

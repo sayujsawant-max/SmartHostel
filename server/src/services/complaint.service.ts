@@ -54,7 +54,7 @@ export async function getStudentComplaints(studentId: string) {
   return Complaint.find({ studentId }).sort({ createdAt: -1 }).lean();
 }
 
-export async function getComplaintById(complaintId: string) {
+export async function getComplaintById(complaintId: string, userId: string, userRole: string) {
   const complaint = await Complaint.findById(complaintId)
     .populate('studentId', 'name email block roomNumber')
     .populate('assigneeId', 'name')
@@ -62,10 +62,31 @@ export async function getComplaintById(complaintId: string) {
   if (!complaint) {
     throw new AppError('NOT_FOUND', 'Complaint not found', 404);
   }
+
+  // Enforce visibility: students see only their own, maintenance only assigned
+  // After populate + lean, studentId/assigneeId may be objects with _id or raw ObjectIds
+  const rawStudentId = complaint.studentId as unknown;
+  const studentIdStr = typeof rawStudentId === 'object' && rawStudentId !== null
+    ? String((rawStudentId as Record<string, unknown>)._id)
+    : String(rawStudentId);
+  const rawAssigneeId = complaint.assigneeId as unknown;
+  const assigneeIdStr = rawAssigneeId
+    ? (typeof rawAssigneeId === 'object' ? String((rawAssigneeId as Record<string, unknown>)._id) : String(rawAssigneeId))
+    : null;
+
+  if (userRole === Role.STUDENT && studentIdStr !== userId) {
+    throw new AppError('FORBIDDEN', 'You can only view your own complaints', 403);
+  }
+  if (userRole === Role.MAINTENANCE && assigneeIdStr !== userId) {
+    throw new AppError('FORBIDDEN', 'You can only view complaints assigned to you', 403);
+  }
+
   return complaint;
 }
 
-export async function getComplaintTimeline(complaintId: string) {
+export async function getComplaintTimeline(complaintId: string, userId: string, userRole: string) {
+  // Reuse the same visibility check
+  await getComplaintById(complaintId, userId, userRole);
   return ComplaintEvent.find({ complaintId }).sort({ createdAt: 1 }).populate('actorId', 'name').lean();
 }
 
@@ -87,6 +108,12 @@ export async function assignComplaint(
   actorId: string,
   correlationId: string,
 ) {
+  // Validate assignee exists and is an active maintenance user
+  const assignee = await User.findOne({ _id: assigneeId, role: Role.MAINTENANCE, isActive: true });
+  if (!assignee) {
+    throw new AppError('VALIDATION_ERROR', 'Assignee must be an active maintenance staff member', 400, { field: 'assigneeId' });
+  }
+
   const complaint = await Complaint.findOneAndUpdate(
     { _id: complaintId, status: ComplaintStatus.OPEN },
     { status: ComplaintStatus.ASSIGNED, assigneeId },

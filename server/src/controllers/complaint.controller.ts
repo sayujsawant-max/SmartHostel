@@ -51,7 +51,7 @@ export async function getComplaints(req: Request, res: Response) {
 }
 
 export async function getComplaintById(req: Request<{ id: string }>, res: Response) {
-  const complaint = await complaintService.getComplaintById(req.params.id);
+  const complaint = await complaintService.getComplaintById(req.params.id, req.user!._id, req.user!.role);
 
   res.json({
     success: true,
@@ -61,7 +61,7 @@ export async function getComplaintById(req: Request<{ id: string }>, res: Respon
 }
 
 export async function getComplaintTimeline(req: Request<{ id: string }>, res: Response) {
-  const events = await complaintService.getComplaintTimeline(req.params.id);
+  const events = await complaintService.getComplaintTimeline(req.params.id, req.user!._id, req.user!.role);
 
   res.json({
     success: true,

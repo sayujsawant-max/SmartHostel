@@ -20,8 +20,8 @@ export default function NotificationBell() {
       const res = await apiFetch<{ notifications: NotificationItem[]; unreadCount: number }>('/notifications');
       setNotifications(res.data.notifications);
       setUnreadCount(res.data.unreadCount);
-    } catch {
-      // silently fail
+    } catch (err) {
+      console.error('[NotificationBell]', err);
     }
   }, []);
 
@@ -39,8 +39,8 @@ export default function NotificationBell() {
         prev.map((n) => (n._id === id ? { ...n, isRead: true } : n)),
       );
       setUnreadCount((c) => Math.max(0, c - 1));
-    } catch {
-      // silently fail
+    } catch (err) {
+      console.error('[NotificationBell]', err);
     }
   };
 
@@ -49,8 +49,8 @@ export default function NotificationBell() {
       await apiFetch('/notifications/read-all', { method: 'PATCH' });
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
-    } catch {
-      // silently fail
+    } catch (err) {
+      console.error('[NotificationBell]', err);
     }
   };
 
