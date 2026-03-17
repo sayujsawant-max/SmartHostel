@@ -90,6 +90,16 @@ export default function ActionsPage() {
             Report or find lost items
           </p>
         </Link>
+
+        <Link
+          to="/student/room-request"
+          className="p-4 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] text-center"
+        >
+          <p className="text-lg font-semibold text-[hsl(var(--foreground))]">Request Room</p>
+          <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
+            Browse and request a hostel room
+          </p>
+        </Link>
       </div>
     </div>
   );

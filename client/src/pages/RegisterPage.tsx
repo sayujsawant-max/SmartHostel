@@ -27,7 +27,7 @@ export default function RegisterPage() {
     setServerError(null);
     setIsSubmitting(true);
     try {
-      const user = await registerUser(data.name, data.email, data.password);
+      const user = await registerUser(data.name, data.email, data.password, data.gender, data.academicYear);
       navigate(getRoleHomePath(user.role), { replace: true });
     } catch (err) {
       if (err instanceof ApiError) {
@@ -92,7 +92,7 @@ export default function RegisterPage() {
             )}
           </div>
 
-          <div className="mb-6">
+          <div className="mb-4">
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
@@ -105,6 +105,46 @@ export default function RegisterPage() {
             />
             {errors.password && (
               <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+            )}
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">
+              Gender
+            </label>
+            <select
+              id="gender"
+              {...register('gender')}
+              defaultValue=""
+              className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              <option value="" disabled>Select gender</option>
+              <option value="MALE">Male</option>
+              <option value="FEMALE">Female</option>
+            </select>
+            {errors.gender && (
+              <p className="mt-1 text-sm text-red-600">{errors.gender.message}</p>
+            )}
+          </div>
+
+          <div className="mb-6">
+            <label htmlFor="academicYear" className="block text-sm font-medium text-gray-700 mb-1">
+              Academic Year
+            </label>
+            <select
+              id="academicYear"
+              {...register('academicYear')}
+              defaultValue=""
+              className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              <option value="" disabled>Select year</option>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+            </select>
+            {errors.academicYear && (
+              <p className="mt-1 text-sm text-red-600">{errors.academicYear.message}</p>
             )}
           </div>
 

@@ -155,6 +155,17 @@ export default function StatusPage() {
 
   return (
     <div className="p-4 space-y-4">
+      {/* No Room Assigned Banner */}
+      {user && !user.roomNumber && (
+        <Link
+          to="/student/room-request"
+          className="block p-4 rounded-xl bg-amber-50 border border-amber-300 text-center"
+        >
+          <p className="text-amber-900 font-semibold">You don't have a room assigned yet</p>
+          <p className="text-amber-700 text-sm mt-1">Tap here to browse and request a room</p>
+        </Link>
+      )}
+
       {/* Room Info */}
       {user && (user.block || user.roomNumber) && (
         <div className="p-3 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-sm text-[hsl(var(--muted-foreground))]">

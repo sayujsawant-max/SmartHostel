@@ -16,7 +16,23 @@ interface ChatMessage {
 }
 
 const GREETINGS = ['hi', 'hello', 'hey', 'help'];
-const GREETING_RESPONSE = "Hi! I'm the SmartHostel assistant. Ask me about leaves, complaints, fees, rooms, or anything else!";
+const GREETING_RESPONSE = "Hi! I'm the SmartHostel assistant. Ask me about leaves, complaints, fees, rooms, laundry, mess menu, visitors, or anything else!";
+
+// Hardcoded fallback FAQs so the bot always has relevant answers
+const FALLBACK_FAQS: FaqItem[] = [
+  { _id: 'f1', question: 'How do I apply for leave?', answer: 'Go to Actions > Request Leave. Select the leave type (day outing or overnight), pick your dates, and submit. Your warden will approve or reject it.', category: 'Leaves', keywords: ['leave', 'outing', 'permission', 'apply', 'request', 'absent', 'go home'] },
+  { _id: 'f2', question: 'How do I file a complaint?', answer: 'Go to Actions > Report Issue. Select a category (electrical, plumbing, furniture, etc.), describe the issue, and submit. You can track the status on the Status page.', category: 'Complaints', keywords: ['complaint', 'issue', 'report', 'problem', 'maintenance', 'broken', 'fix', 'repair'] },
+  { _id: 'f3', question: 'How do I check my gate pass?', answer: 'Once your leave is approved, go to Actions > Show QR to view your gate pass QR code. The guard will scan it when you exit and return.', category: 'Gate Pass', keywords: ['gate', 'pass', 'qr', 'scan', 'exit', 'entry', 'guard', 'show'] },
+  { _id: 'f4', question: 'How do I book a laundry slot?', answer: 'Go to the Laundry tab. Select a date, find an available slot on the machine grid, and click "Book". You can have up to 2 active bookings at a time.', category: 'Laundry', keywords: ['laundry', 'wash', 'washing', 'machine', 'clothes', 'book', 'slot', 'booking'] },
+  { _id: 'f5', question: 'Where can I see the mess menu?', answer: 'Go to the Menu tab to see today\'s menu and the full weekly schedule. You can rate each meal with thumbs up/down.', category: 'Mess', keywords: ['mess', 'menu', 'food', 'breakfast', 'lunch', 'dinner', 'snacks', 'meal', 'eat', 'canteen'] },
+  { _id: 'f6', question: 'How do I request a room change?', answer: 'Go to Actions > Room Change. Browse available rooms filtered by your gender, select one, provide a reason, and submit your request. The warden will review it.', category: 'Rooms', keywords: ['room', 'change', 'transfer', 'shift', 'swap', 'roommate', 'move'] },
+  { _id: 'f7', question: 'How do I register a visitor?', answer: 'Go to Actions > Register Visitor. Enter your visitor\'s name, phone number, relationship, and expected visit date. The warden will approve or reject the visit.', category: 'Visitors', keywords: ['visitor', 'visit', 'guest', 'parent', 'friend', 'register', 'coming'] },
+  { _id: 'f8', question: 'What are the hostel timings?', answer: 'General hostel timings: In-time is 9:00 PM on weekdays and 10:00 PM on weekends. Day outings must return by 7:00 PM. Late entry requires warden approval.', category: 'Rules', keywords: ['timing', 'time', 'curfew', 'late', 'rule', 'entry', 'in-time', 'when', 'close'] },
+  { _id: 'f9', question: 'How do I check my fee status?', answer: 'Your room fee details are visible on your profile. Hostel fees are charged per semester and vary by room type (Deluxe/Normal) and AC/Non-AC.', category: 'Fees', keywords: ['fee', 'fees', 'payment', 'pay', 'charge', 'cost', 'price', 'money', 'amount', 'semester'] },
+  { _id: 'f10', question: 'How do I report a lost item?', answer: 'Go to Actions > Lost & Found. Click "New Post", select "Lost", describe your item with category and location, and post it. Other students can see it and help you find it.', category: 'Lost & Found', keywords: ['lost', 'found', 'missing', 'item', 'find', 'search', 'stolen', 'misplace'] },
+  { _id: 'f11', question: 'How do I contact the warden?', answer: 'You can reach your warden through the hostel office during office hours (9 AM - 5 PM). For emergencies, use the SOS feature on the Status page.', category: 'General', keywords: ['warden', 'contact', 'reach', 'call', 'office', 'emergency', 'sos'] },
+  { _id: 'f12', question: 'Can I change my room?', answer: 'Yes! Go to Actions > Room Change to request a transfer. Rooms are allocated based on gender and you\'ll be matched with students of the same academic year.', category: 'Rooms', keywords: ['room', 'allocation', 'allot', 'assign', 'bed', 'hostel', 'accommodation'] },
+];
 
 function findBestMatch(query: string, faqs: FaqItem[]): string | null {
   const lower = query.toLowerCase();
@@ -26,11 +42,14 @@ function findBestMatch(query: string, faqs: FaqItem[]): string | null {
     return GREETING_RESPONSE;
   }
 
+  // Merge DB FAQs with fallback FAQs (DB entries take priority via higher score)
+  const allFaqs = [...faqs, ...FALLBACK_FAQS];
+
   // Score each FAQ by keyword overlap
   let bestScore = 0;
   let bestAnswer = '';
 
-  for (const faq of faqs) {
+  for (const faq of allFaqs) {
     let score = 0;
     const words = lower.split(/\s+/);
     const faqText = `${faq.question} ${faq.keywords.join(' ')}`.toLowerCase();

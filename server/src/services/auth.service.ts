@@ -35,7 +35,14 @@ export function generateTokens(userId: string, role: string): TokenPair {
   return { accessToken, refreshToken, jti };
 }
 
-export async function register(name: string, email: string, password: string, correlationId?: string) {
+export async function register(
+  name: string,
+  email: string,
+  password: string,
+  gender: string,
+  academicYear: string,
+  correlationId?: string,
+) {
   const normalizedEmail = email.toLowerCase();
 
   const existing = await User.findOne({ email: normalizedEmail });
@@ -49,6 +56,8 @@ export async function register(name: string, email: string, password: string, co
     email: normalizedEmail,
     passwordHash,
     role: 'STUDENT',
+    gender,
+    academicYear,
   });
 
   const tokens = generateTokens(user._id.toString(), user.role);

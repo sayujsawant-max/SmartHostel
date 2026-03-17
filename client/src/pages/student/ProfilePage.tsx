@@ -78,9 +78,21 @@ export default function ProfilePage() {
         <div className="text-center">
           <h1 className="text-xl font-bold text-[hsl(var(--foreground))]">{user?.name}</h1>
           <p className="text-sm text-[hsl(var(--muted-foreground))]">{user?.email}</p>
-          <span className="inline-block mt-1 px-3 py-0.5 rounded-full text-xs font-medium bg-[hsl(var(--accent))]/15 text-[hsl(var(--accent))]">
-            {user?.role}
-          </span>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="px-3 py-0.5 rounded-full text-xs font-medium bg-[hsl(var(--accent))]/15 text-[hsl(var(--accent))]">
+              {user?.role}
+            </span>
+            {user?.gender && (
+              <span className="px-3 py-0.5 rounded-full text-xs font-medium bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))]">
+                {user.gender === 'MALE' ? 'Male' : 'Female'}
+              </span>
+            )}
+            {user?.academicYear && (
+              <span className="px-3 py-0.5 rounded-full text-xs font-medium bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))]">
+                Year {user.academicYear}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 

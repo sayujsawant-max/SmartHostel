@@ -1,11 +1,13 @@
 import mongoose, { Schema, type Document } from 'mongoose';
-import { Role } from '@smarthostel/shared';
+import { Role, Gender, AcademicYear } from '@smarthostel/shared';
 
 export interface IUser extends Document {
   name: string;
   email: string;
   passwordHash: string;
   role: Role;
+  gender?: string;
+  academicYear?: string;
   block?: string;
   floor?: string;
   roomNumber?: string;
@@ -28,6 +30,14 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: true,
       enum: [Role.STUDENT, Role.WARDEN_ADMIN, Role.GUARD, Role.MAINTENANCE],
+    },
+    gender: {
+      type: String,
+      enum: [Gender.MALE, Gender.FEMALE],
+    },
+    academicYear: {
+      type: String,
+      enum: [AcademicYear.FIRST, AcademicYear.SECOND, AcademicYear.THIRD, AcademicYear.FOURTH],
     },
     block: { type: String },
     floor: { type: String },

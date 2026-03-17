@@ -6,6 +6,8 @@ export interface UserProfile {
   name: string;
   email: string;
   role: Role;
+  gender?: string;
+  academicYear?: string;
   hasConsented?: boolean;
   block?: string;
   floor?: string;
@@ -17,9 +19,10 @@ export interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<UserProfile>;
-  register: (name: string, email: string, password: string) => Promise<UserProfile>;
+  register: (name: string, email: string, password: string, gender: string, academicYear: string) => Promise<UserProfile>;
   logout: () => Promise<void>;
   setConsented: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null);

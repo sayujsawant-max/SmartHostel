@@ -141,6 +141,24 @@ export default function LaundryBookingPage() {
         </p>
       </div>
 
+      {/* Pricing Info */}
+      <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4">
+        <div className="flex items-baseline justify-between mb-2">
+          <h3 className="text-sm font-semibold text-[hsl(var(--foreground))]">Pricing</h3>
+          <span className="rounded-md bg-[hsl(var(--accent))] px-2 py-0.5 text-xs font-medium text-[hsl(var(--foreground))]">
+            ₹30 per wash cycle
+          </span>
+        </div>
+        <p className="text-xs text-[hsl(var(--muted-foreground))] mb-3">
+          Laundry service is subsidized by the hostel. Each wash cycle costs ₹30, billed monthly to your hostel account.
+        </p>
+        <ul className="space-y-1 text-xs text-[hsl(var(--muted-foreground))]">
+          <li>• Max 2 active bookings</li>
+          <li>• Cancel at least 1 hour before slot</li>
+          <li>• 1-hour wash cycle per slot</li>
+        </ul>
+      </div>
+
       {/* Date Picker */}
       <div className="flex gap-1 overflow-x-auto pb-2">
         {dateOptions.map((d) => (

@@ -31,6 +31,7 @@ const LaundryBookingPage = lazy(() => import('@pages/student/LaundryBookingPage'
 const VisitorRegistrationPage = lazy(() => import('@pages/student/VisitorRegistrationPage'));
 const RoomChangePage = lazy(() => import('@pages/student/RoomChangePage'));
 const LostFoundPage = lazy(() => import('@pages/student/LostFoundPage'));
+const RoomRequestPage = lazy(() => import('@pages/student/RoomRequestPage'));
 
 // Warden pages
 const WardenDashboardPage = lazy(() => import('@pages/warden/DashboardPage'));
@@ -141,6 +142,7 @@ function AppRoutes() {
               <Route path="/student/visitors" element={<VisitorRegistrationPage />} />
               <Route path="/student/room-change" element={<RoomChangePage />} />
               <Route path="/student/lost-found" element={<LostFoundPage />} />
+              <Route path="/student/room-request" element={<RoomRequestPage />} />
             </Route>
           </Route>
 

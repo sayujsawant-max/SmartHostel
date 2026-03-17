@@ -17,7 +17,7 @@ export type { SlaCategoryDefault } from './constants/sla-defaults.js';
 export type { ApiSuccess, ApiError, PaginatedResponse } from './types/api-responses.js';
 
 // Schemas
-export { loginSchema, registerSchema } from './schemas/auth.schema.js';
+export { loginSchema, registerSchema, Gender, AcademicYear } from './schemas/auth.schema.js';
 export type { LoginInput, RegisterInput } from './schemas/auth.schema.js';
 export { createUserSchema, resetPasswordSchema } from './schemas/admin.schema.js';
 export type { CreateUserInput, ResetPasswordInput } from './schemas/admin.schema.js';

@@ -14,8 +14,8 @@ export async function register(req: Request, res: Response) {
     });
   }
 
-  const { name, email, password } = parsed.data;
-  const result = await authService.register(name, email, password, req.correlationId);
+  const { name, email, password, gender, academicYear } = parsed.data;
+  const result = await authService.register(name, email, password, gender, academicYear, req.correlationId);
 
   setAuthCookies(res, result.tokens);
 
@@ -27,6 +27,8 @@ export async function register(req: Request, res: Response) {
         name: result.user.name,
         email: result.user.email,
         role: result.user.role,
+        gender: result.user.gender,
+        academicYear: result.user.academicYear,
         hasConsented: result.user.hasConsented,
       },
     },
@@ -55,7 +57,12 @@ export async function login(req: Request, res: Response) {
         name: result.user.name,
         email: result.user.email,
         role: result.user.role,
+        gender: result.user.gender,
+        academicYear: result.user.academicYear,
         hasConsented: result.user.hasConsented,
+        block: result.user.block,
+        floor: result.user.floor,
+        roomNumber: result.user.roomNumber,
       },
     },
     correlationId: req.correlationId,
@@ -73,6 +80,8 @@ export async function me(req: Request, res: Response) {
         name: user.name,
         email: user.email,
         role: user.role,
+        gender: user.gender,
+        academicYear: user.academicYear,
         hasConsented: user.hasConsented,
         block: user.block,
         floor: user.floor,

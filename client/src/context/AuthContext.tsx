@@ -33,10 +33,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return res.data.user;
   }, []);
 
-  const register = useCallback(async (name: string, email: string, password: string): Promise<UserProfile> => {
+  const register = useCallback(async (name: string, email: string, password: string, gender: string, academicYear: string): Promise<UserProfile> => {
     const res = await apiFetch<{ user: UserProfile }>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, email, password, gender, academicYear }),
     });
     setUser(res.data.user);
     return res.data.user;
@@ -55,6 +55,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser((prev) => (prev ? { ...prev, hasConsented: true } : prev));
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const res = await apiFetch<{ user: UserProfile }>('/auth/me');
+      setUser(res.data.user);
+    } catch {
+      // Silently fail — user state remains unchanged
+    }
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -65,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         setConsented,
+        refreshUser,
       }}
     >
       {children}

@@ -79,6 +79,39 @@ router.post('/', requireRole(Role.STUDENT), async (req: Request, res: Response) 
     return;
   }
 
+  // Validate gender match
+  const genderMap: Record<string, string> = { MALE: 'BOYS', FEMALE: 'GIRLS' };
+  if (genderMap[student.gender ?? ''] !== requestedRoom.hostelGender) {
+    res.status(400).json({
+      success: false,
+      error: { code: 'GENDER_MISMATCH', message: 'Room gender does not match yours', retryable: false },
+    });
+    return;
+  }
+
+  // Validate academic year — occupants in the requested room must share the same year
+  if (student.academicYear) {
+    const occupants = await User.find({
+      block: requestedRoom.block,
+      roomNumber: requestedRoom.roomNumber,
+      isActive: true,
+      _id: { $ne: req.user!._id },
+    }).lean();
+
+    const mismatch = occupants.find((o) => o.academicYear && o.academicYear !== student.academicYear);
+    if (mismatch) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'YEAR_MISMATCH',
+          message: `This room has students from Year ${mismatch.academicYear}. You are Year ${student.academicYear}.`,
+          retryable: false,
+        },
+      });
+      return;
+    }
+  }
+
   const roomChangeRequest = await RoomChange.create({
     studentId: req.user!._id,
     currentRoomId: currentRoom._id,
