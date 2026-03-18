@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
-import { FadeIn, StaggerContainer, StaggerItem } from '@components/ui/motion';
+import { Reveal } from '@/components/motion/Reveal';
+import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
+import PageHeader from '@components/ui/PageHeader';
+import { PageSkeleton } from '@components/Skeleton';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MEALS = ['breakfast', 'lunch', 'snacks', 'dinner'] as const;
@@ -22,6 +25,8 @@ interface MenuDay {
 type DayForm = Record<typeof MEALS[number], string>;
 
 const emptyForm = (): DayForm => ({ breakfast: '', lunch: '', snacks: '', dinner: '' });
+
+const inputCls = 'w-full px-3 py-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] text-sm placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent))]';
 
 export default function MessMenuPage() {
   const [forms, setForms] = useState<DayForm[]>(Array.from({ length: 7 }, () => emptyForm()));
@@ -79,17 +84,19 @@ export default function MessMenuPage() {
   };
 
   if (loading) {
-    return <div className="p-4 text-center text-[hsl(var(--muted-foreground))]">Loading menus...</div>;
+    return (
+      <div className="space-y-6">
+        <Reveal><PageHeader title="Mess Menu Management" description="Update the weekly mess menu for all hostels." /></Reveal>
+        <PageSkeleton />
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
-      <FadeIn>
-        <div>
-          <h1 className="text-2xl font-bold text-[hsl(var(--foreground))]">Mess Menu Management</h1>
-          <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">Update the weekly mess menu for all hostels.</p>
-        </div>
-      </FadeIn>
+      <Reveal>
+        <PageHeader title="Mess Menu Management" description="Update the weekly mess menu for all hostels." />
+      </Reveal>
 
       <StaggerContainer stagger={0.04}>
       {DAY_NAMES.map((name, dayIndex) => (
@@ -119,14 +126,14 @@ export default function MessMenuPage() {
                   value={forms[dayIndex][meal]}
                   onChange={(e) => handleChange(dayIndex, meal, e.target.value)}
                   placeholder={`Enter ${MEAL_LABELS[meal].toLowerCase()} items...`}
-                  className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] text-sm placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent))]"
+                  className={inputCls}
                 />
               </div>
             ))}
           </div>
 
           {feedback?.day === dayIndex && (
-            <p className={`text-sm ${feedback.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+            <p className={`text-sm ${feedback.type === 'success' ? 'text-green-600 dark:text-green-400' : 'text-[hsl(var(--destructive))]'}`}>
               {feedback.message}
             </p>
           )}

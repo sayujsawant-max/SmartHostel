@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
-import { FadeIn, motion } from '@components/ui/motion';
+import { Reveal } from '@/components/motion/Reveal';
+import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
+import PageHeader from '@components/ui/PageHeader';
+import StatusBadge, { type StatusVariant } from '@components/ui/StatusBadge';
+import EmptyState from '@components/EmptyState';
+import { PageSkeleton } from '@components/Skeleton';
 
 interface VisitorItem {
   _id: string;
@@ -19,13 +24,13 @@ interface VisitorItem {
   createdAt: string;
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
-  APPROVED: 'bg-green-100 text-green-800',
-  REJECTED: 'bg-red-100 text-red-800',
-  CHECKED_IN: 'bg-blue-100 text-blue-800',
-  CHECKED_OUT: 'bg-gray-100 text-gray-800',
-  EXPIRED: 'bg-gray-100 text-gray-500',
+const STATUS_VARIANT: Record<string, StatusVariant> = {
+  PENDING: 'warning',
+  APPROVED: 'success',
+  REJECTED: 'error',
+  CHECKED_IN: 'info',
+  CHECKED_OUT: 'neutral',
+  EXPIRED: 'neutral',
 };
 
 type FilterTab = 'ALL' | 'PENDING' | 'TODAY';
@@ -90,12 +95,9 @@ export default function VisitorManagePage() {
 
   return (
     <div className="space-y-4">
-      <FadeIn>
-        <div>
-          <h2 className="text-2xl font-bold text-[hsl(var(--foreground))]">Visitor Management</h2>
-          <p className="text-sm text-[hsl(var(--muted-foreground))]">Review and manage visitor registrations.</p>
-        </div>
-      </FadeIn>
+      <Reveal>
+        <PageHeader title="Visitor Management" description="Review and manage visitor registrations." />
+      </Reveal>
 
       {/* Filter Tabs */}
       <div className="flex gap-2">
@@ -115,13 +117,14 @@ export default function VisitorManagePage() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading...</p>
+        <PageSkeleton />
       ) : visitors.length === 0 ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">No visitors found.</p>
+        <EmptyState variant="compact" title="No visitors found" description="No visitor registrations match the current filter." />
       ) : (
-        <div className="space-y-3">
+        <StaggerContainer stagger={0.05} className="space-y-3">
           {visitors.map((v) => (
-            <motion.div key={v._id} whileHover={{ x: 2 }} transition={{ duration: 0.15 }} className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2">
+            <StaggerItem key={v._id}>
+            <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:shadow-sm transition-shadow">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-medium text-[hsl(var(--foreground))]">{v.visitorName}</p>
@@ -129,9 +132,9 @@ export default function VisitorManagePage() {
                     {v.visitorPhone} &middot; {v.relationship}
                   </p>
                 </div>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[v.status] ?? ''}`}>
+                <StatusBadge variant={STATUS_VARIANT[v.status] ?? 'neutral'}>
                   {v.status.replace(/_/g, ' ')}
-                </span>
+                </StatusBadge>
               </div>
 
               {/* Student info */}
@@ -153,7 +156,7 @@ export default function VisitorManagePage() {
               </div>
 
               {v.status === 'REJECTED' && v.rejectionReason && (
-                <p className="text-xs text-red-600">Rejection reason: {v.rejectionReason}</p>
+                <p className="text-xs text-[hsl(var(--destructive))]">Rejection reason: {v.rejectionReason}</p>
               )}
 
               {/* Actions for PENDING visitors */}
@@ -166,11 +169,11 @@ export default function VisitorManagePage() {
                         value={rejectReason}
                         onChange={(e) => setRejectReason(e.target.value)}
                         placeholder="Rejection reason..."
-                        className="flex-1 rounded border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 py-1 text-sm text-[hsl(var(--foreground))]"
+                        className="flex-1 rounded border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 py-1 text-sm text-[hsl(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent))]"
                       />
                       <button
                         onClick={() => void handleReject(v._id)}
-                        className="px-3 py-1 rounded bg-red-600 text-white text-xs font-medium"
+                        className="px-3 py-1 rounded bg-[hsl(var(--destructive))] text-white text-xs font-medium"
                       >
                         Confirm
                       </button>
@@ -185,13 +188,13 @@ export default function VisitorManagePage() {
                     <>
                       <button
                         onClick={() => void handleApprove(v._id)}
-                        className="px-3 py-1 rounded bg-green-600 text-white text-xs font-medium"
+                        className="px-3 py-1 rounded bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] text-xs font-medium"
                       >
                         Approve
                       </button>
                       <button
                         onClick={() => setRejectingId(v._id)}
-                        className="px-3 py-1 rounded bg-red-600 text-white text-xs font-medium"
+                        className="px-3 py-1 rounded bg-[hsl(var(--destructive))] text-white text-xs font-medium"
                       >
                         Reject
                       </button>
@@ -199,9 +202,10 @@ export default function VisitorManagePage() {
                   )}
                 </div>
               )}
-            </motion.div>
+            </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       )}
     </div>
   );

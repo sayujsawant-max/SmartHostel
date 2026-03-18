@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
-import { FadeIn, motion, AnimatePresence } from '@components/ui/motion';
+import { Reveal } from '@/components/motion/Reveal';
+import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
+import { motion, AnimatePresence } from 'motion/react';
+import PageHeader from '@components/ui/PageHeader';
+import StatusBadge from '@components/ui/StatusBadge';
+import ErrorBanner from '@components/ui/ErrorBanner';
+import EmptyState from '@components/EmptyState';
+import { PageSkeleton } from '@components/Skeleton';
 
 interface UserItem {
   _id: string;
@@ -13,6 +20,8 @@ interface UserItem {
   isActive: boolean;
   createdAt: string;
 }
+
+const inputCls = 'w-full px-3 py-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent))]';
 
 export default function UsersManagePage() {
   const [users, setUsers] = useState<UserItem[]>([]);
@@ -70,12 +79,9 @@ export default function UsersManagePage() {
 
   return (
     <div className="space-y-6">
-      <FadeIn>
+      <Reveal>
         <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold text-[hsl(var(--foreground))]">User Management</h2>
-            <p className="mt-1 text-[hsl(var(--muted-foreground))]">Create and manage hostel users.</p>
-          </div>
+          <PageHeader title="User Management" description="Create and manage hostel users." />
           <button
             onClick={() => setShowForm(!showForm)}
             className="px-4 py-2 rounded-lg bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] text-sm font-medium"
@@ -83,7 +89,7 @@ export default function UsersManagePage() {
             {showForm ? 'Cancel' : '+ Add User'}
           </button>
         </div>
-      </FadeIn>
+      </Reveal>
 
       <AnimatePresence>
         {showForm && (
@@ -97,19 +103,19 @@ export default function UsersManagePage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Name</label>
-                  <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm" />
+                  <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className={inputCls} />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Email</label>
-                  <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm" />
+                  <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required className={inputCls} />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Password</label>
-                  <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={8} className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm" />
+                  <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={8} className={inputCls} />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Role</label>
-                  <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm">
+                  <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className={inputCls}>
                     <option value="STUDENT">Student</option>
                     <option value="WARDEN_ADMIN">Warden / Admin</option>
                     <option value="GUARD">Guard</option>
@@ -118,14 +124,14 @@ export default function UsersManagePage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Block</label>
-                  <input value={form.block} onChange={(e) => setForm({ ...form, block: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm" placeholder="Optional" />
+                  <input value={form.block} onChange={(e) => setForm({ ...form, block: e.target.value })} className={inputCls} placeholder="Optional" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Room Number</label>
-                  <input value={form.roomNumber} onChange={(e) => setForm({ ...form, roomNumber: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm" placeholder="Optional" />
+                  <input value={form.roomNumber} onChange={(e) => setForm({ ...form, roomNumber: e.target.value })} className={inputCls} placeholder="Optional" />
                 </div>
               </div>
-              {error && <p className="text-sm text-red-600">{error}</p>}
+              {error && <ErrorBanner message={error} />}
               <button type="submit" className="w-full py-2 rounded-lg bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] font-medium text-sm">
                 Create User
               </button>
@@ -135,15 +141,14 @@ export default function UsersManagePage() {
       </AnimatePresence>
 
       {loading ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading...</p>
+        <PageSkeleton />
       ) : users.length === 0 ? (
-        <div className="text-center py-12 text-[hsl(var(--muted-foreground))]">
-          <p>No users found.</p>
-        </div>
+        <EmptyState title="No users found" description="Create a new user to get started." />
       ) : (
-        <div className="space-y-2">
+        <StaggerContainer stagger={0.04} className="space-y-2">
           {users.map((u) => (
-            <motion.div key={u._id} whileHover={{ x: 2 }} transition={{ duration: 0.15 }} className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl p-3 flex justify-between items-center">
+            <StaggerItem key={u._id}>
+            <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl p-3 flex justify-between items-center hover:shadow-sm transition-shadow">
               <div>
                 <p className="font-medium text-[hsl(var(--foreground))]">{u.name}</p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))]">
@@ -153,21 +158,22 @@ export default function UsersManagePage() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                <StatusBadge variant={u.isActive ? 'success' : 'error'}>
                   {u.isActive ? 'Active' : 'Disabled'}
-                </span>
+                </StatusBadge>
                 {u.isActive && (
                   <button
                     onClick={() => handleDisable(u._id)}
-                    className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs hover:bg-red-200"
+                    className="px-2 py-1 rounded bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-xs hover:bg-red-200 dark:hover:bg-red-900/50"
                   >
                     Disable
                   </button>
                 )}
               </div>
-            </motion.div>
+            </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       )}
     </div>
   );

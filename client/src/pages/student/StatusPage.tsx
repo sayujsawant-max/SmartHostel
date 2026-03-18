@@ -238,7 +238,7 @@ export default function StatusPage() {
           >
             <h2 className="text-lg font-bold text-[hsl(var(--foreground))]">Fee Status</h2>
             {fees.length === 0 ? (
-              <p className="text-sm text-[hsl(var(--muted-foreground))]">No fee records found.</p>
+              <EmptyState variant="compact" title="No fee records" description="No fee records found." />
             ) : (
               fees.map((f) => (
                 <div
@@ -325,7 +325,7 @@ export default function StatusPage() {
                   </p>
                   <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1 truncate">{leave.reason}</p>
                   {leave.rejectionReason && (
-                    <p className="text-sm text-red-600 mt-1">Reason: {leave.rejectionReason}</p>
+                    <p className="text-sm text-[hsl(var(--destructive))] mt-1">Reason: {leave.rejectionReason}</p>
                   )}
                   <p className="text-xs text-[hsl(var(--muted-foreground))] mt-2">
                     Submitted {formatDate(leave.createdAt)}

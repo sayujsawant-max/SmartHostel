@@ -139,19 +139,19 @@ export default function ProfilePage() {
               <h2 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Fee Summary</h2>
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div>
-                  <p className="text-lg font-bold text-green-600">
+                  <p className="text-lg font-bold text-green-600 dark:text-green-400">
                     <AnimatedCounter to={totalPaid} />
                   </p>
                   <p className="text-xs text-[hsl(var(--muted-foreground))]">Paid</p>
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-yellow-600">
+                  <p className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
                     <AnimatedCounter to={totalPending} />
                   </p>
                   <p className="text-xs text-[hsl(var(--muted-foreground))]">Pending</p>
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-red-600">
+                  <p className="text-lg font-bold text-red-600 dark:text-red-400">
                     <AnimatedCounter to={totalOverdue} />
                   </p>
                   <p className="text-xs text-[hsl(var(--muted-foreground))]">Overdue</p>
@@ -174,13 +174,13 @@ export default function ProfilePage() {
                   <p className="text-xs text-[hsl(var(--muted-foreground))]">Total</p>
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-green-600">
+                  <p className="text-lg font-bold text-green-600 dark:text-green-400">
                     <AnimatedCounter to={approvedPct} suffix="%" />
                   </p>
                   <p className="text-xs text-[hsl(var(--muted-foreground))]">Approved</p>
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-red-600">
+                  <p className="text-lg font-bold text-red-600 dark:text-red-400">
                     <AnimatedCounter to={rejectedCount} />
                   </p>
                   <p className="text-xs text-[hsl(var(--muted-foreground))]">Rejected</p>
@@ -197,19 +197,19 @@ export default function ProfilePage() {
               <h2 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Complaints</h2>
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div>
-                  <p className="text-lg font-bold text-blue-600">
+                  <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
                     <AnimatedCounter to={openCount} />
                   </p>
                   <p className="text-xs text-[hsl(var(--muted-foreground))]">Open</p>
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-amber-600">
+                  <p className="text-lg font-bold text-amber-600 dark:text-amber-400">
                     <AnimatedCounter to={inProgressCount} />
                   </p>
                   <p className="text-xs text-[hsl(var(--muted-foreground))]">In Progress</p>
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-green-600">
+                  <p className="text-lg font-bold text-green-600 dark:text-green-400">
                     <AnimatedCounter to={resolvedCount} />
                   </p>
                   <p className="text-xs text-[hsl(var(--muted-foreground))]">Resolved</p>

@@ -2,7 +2,13 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { apiFetch } from '@services/api';
-import { FadeIn, motion } from '@components/ui/motion';
+import { motion } from 'motion/react';
+import { Reveal } from '@/components/motion/Reveal';
+import PageHeader from '@components/ui/PageHeader';
+import StatusBadge, { type StatusVariant } from '@components/ui/StatusBadge';
+import ErrorBanner from '@components/ui/ErrorBanner';
+import EmptyState from '@components/EmptyState';
+import { PageSkeleton } from '@components/Skeleton';
 
 interface GatePass {
   _id: string;
@@ -13,6 +19,13 @@ interface GatePass {
   lastGateState: 'IN' | 'OUT' | 'UNKNOWN';
   leaveId: string;
 }
+
+const STATUS_VARIANT: Record<string, StatusVariant> = {
+  ACTIVE: 'success',
+  EXPIRED: 'error',
+  USED: 'info',
+  CANCELLED: 'neutral',
+};
 
 export default function ShowQRPage() {
   const [gatePass, setGatePass] = useState<GatePass | null>(null);
@@ -71,20 +84,19 @@ export default function ShowQRPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin w-8 h-8 border-4 border-[hsl(var(--accent))] border-t-transparent rounded-full" />
+      <div className="space-y-6">
+        <Reveal><PageHeader title="Gate Pass" description="Display your active gate pass." /></Reveal>
+        <PageSkeleton />
       </div>
     );
   }
 
   if (error && !gatePass) {
     return (
-      <div className="p-4 text-center py-12">
-        <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-[hsl(var(--destructive)/0.1)] flex items-center justify-center">
-          <span className="text-2xl text-[hsl(var(--destructive))]">!</span>
-        </div>
-        <p className="text-[hsl(var(--destructive))]">{error}</p>
-        <Link to="/student/actions" className="text-[hsl(var(--accent))] mt-4 inline-block text-sm underline">
+      <div className="space-y-6">
+        <Reveal><PageHeader title="Gate Pass" description="Display your active gate pass." /></Reveal>
+        <ErrorBanner message={error} />
+        <Link to="/student/actions" className="text-[hsl(var(--accent))] text-sm underline">
           Back to actions
         </Link>
       </div>
@@ -93,54 +105,43 @@ export default function ShowQRPage() {
 
   if (!gatePass) {
     return (
-      <div className="p-4 text-center py-12 space-y-4">
-        <div className="mx-auto mb-4 w-20 h-20 rounded-full bg-[hsl(var(--muted))] flex items-center justify-center">
-          <svg className="w-10 h-10 text-[hsl(var(--muted-foreground))]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5z" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5z" />
-          </svg>
-        </div>
-        <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">No Active Pass</h2>
-        <p className="text-[hsl(var(--muted-foreground))] text-sm">
-          You need an approved leave to generate a gate pass.
-        </p>
-        <div className="flex flex-col gap-3 items-center pt-4">
-          <button
-            onClick={() => void handleGenerate()}
-            disabled={generating}
-            className="px-6 py-3 rounded-lg bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] font-medium text-sm disabled:opacity-50 transition-opacity"
-          >
-            {generating ? 'Generating...' : 'Generate Pass'}
-          </button>
-          {error && <p className="text-[hsl(var(--destructive))] text-sm">{error}</p>}
-          <Link to="/student/actions" className="text-[hsl(var(--muted-foreground))] text-sm underline">
-            Request a leave
-          </Link>
-        </div>
+      <div className="space-y-6">
+        <Reveal><PageHeader title="Gate Pass" description="Display your active gate pass." /></Reveal>
+        <EmptyState
+          title="No Active Pass"
+          description="You need an approved leave to generate a gate pass."
+          action={
+            <div className="flex flex-col gap-3 items-center">
+              <button
+                onClick={() => void handleGenerate()}
+                disabled={generating}
+                className="px-6 py-3 rounded-lg bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] font-medium text-sm disabled:opacity-50 transition-opacity"
+              >
+                {generating ? 'Generating...' : 'Generate Pass'}
+              </button>
+              {error && <p className="text-[hsl(var(--destructive))] text-sm">{error}</p>}
+              <Link to="/student/actions" className="text-[hsl(var(--muted-foreground))] text-sm underline">
+                Request a leave
+              </Link>
+            </div>
+          }
+        />
       </div>
     );
   }
 
   const expiresAt = new Date(gatePass.expiresAt);
-  const statusColor =
-    passStatus === 'ACTIVE'
-      ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-      : passStatus === 'EXPIRED'
-        ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-        : passStatus === 'USED'
-          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
-          : 'bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))]';
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] p-4 space-y-6">
-      <FadeIn>
-        <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">Your Gate Pass</h2>
-      </FadeIn>
+      <Reveal>
+        <PageHeader title="Your Gate Pass" />
+      </Reveal>
 
       {/* Status badge */}
-      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}>
+      <StatusBadge variant={STATUS_VARIANT[passStatus ?? ''] ?? 'neutral'}>
         {passStatus}
-      </span>
+      </StatusBadge>
 
       {/* QR Code */}
       {passStatus === 'ACTIVE' && (
@@ -167,17 +168,17 @@ export default function ShowQRPage() {
       )}
 
       {/* Fallback passcode */}
-      <FadeIn delay={0.15}>
+      <Reveal delay={0.15}>
         <div className="text-center space-y-2">
           <p className="text-sm text-[hsl(var(--muted-foreground))]">Fallback code:</p>
           <p className="text-3xl font-mono font-bold tracking-widest text-[hsl(var(--foreground))]">
             {gatePass.passCode}
           </p>
         </div>
-      </FadeIn>
+      </Reveal>
 
       {/* Pass details card */}
-      <FadeIn delay={0.2}>
+      <Reveal delay={0.2}>
       <div className="w-full max-w-sm rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 space-y-3">
         <div className="flex justify-between text-sm">
           <span className="text-[hsl(var(--muted-foreground))]">Gate State</span>
@@ -191,10 +192,10 @@ export default function ShowQRPage() {
           </span>
         </div>
       </div>
-      </FadeIn>
+      </Reveal>
 
       {passStatus === 'ACTIVE' && (
-        <p className="text-xs text-orange-600 font-medium">Turn brightness to max for scanning</p>
+        <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">Turn brightness to max for scanning</p>
       )}
 
       <Link

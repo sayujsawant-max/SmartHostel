@@ -120,14 +120,14 @@ export default function ActionsPage() {
                   className={`flex items-center gap-4 p-4 rounded-xl border text-left transition-all ${
                     isQR
                       ? hasActivePass
-                        ? 'bg-green-50 border-green-200 hover:shadow-sm'
+                        ? 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800/40 hover:shadow-sm'
                         : 'bg-[hsl(var(--muted))] border-[hsl(var(--border))] opacity-60 pointer-events-none'
                       : 'border-[hsl(var(--border))] bg-[hsl(var(--card))] hover:border-[hsl(var(--accent))]/40 hover:shadow-sm'
                   }`}
                 >
                   <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
                     isQR && hasActivePass
-                      ? 'bg-green-100 text-green-700'
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                       : 'bg-[hsl(var(--accent))]/10 text-[hsl(var(--accent))]'
                   }`}>
                     {action.icon}

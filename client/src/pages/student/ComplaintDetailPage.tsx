@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { apiFetch } from '@services/api';
-import { FadeIn, StaggerContainer, StaggerItem } from '@components/ui/motion';
+import { Reveal } from '@/components/motion/Reveal';
+import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
+import PageHeader from '@components/ui/PageHeader';
+import ErrorBanner from '@components/ui/ErrorBanner';
+import { PageSkeleton } from '@components/Skeleton';
 
 interface ComplaintDetail {
   _id: string;
@@ -42,13 +46,13 @@ function SLABadge({ dueAt, status }: { dueAt: string; status: string }) {
   }, []);
 
   if (status === 'RESOLVED' || status === 'CLOSED') {
-    return <span className="text-sm text-green-700 font-medium">Resolved</span>;
+    return <span className="text-sm text-green-700 dark:text-green-400 font-medium">Resolved</span>;
   }
   const due = new Date(dueAt);
   const diffMs = due.getTime() - now;
   const diffH = Math.round(diffMs / (1000 * 60 * 60));
-  if (diffMs < 0) return <span className="text-sm font-semibold text-red-700">Overdue {Math.abs(diffH)}h</span>;
-  if (diffH <= 2) return <span className="text-sm font-semibold text-amber-700">Due in {diffH}h</span>;
+  if (diffMs < 0) return <span className="text-sm font-semibold text-red-700 dark:text-red-400">Overdue {Math.abs(diffH)}h</span>;
+  if (diffH <= 2) return <span className="text-sm font-semibold text-amber-700 dark:text-amber-400">Due in {diffH}h</span>;
   return <span className="text-sm text-[hsl(var(--foreground))]">Due in {diffH}h</span>;
 }
 
@@ -73,20 +77,31 @@ export default function ComplaintDetailPage() {
   }, [complaintId]);
 
   if (loading) {
-    return <div className="p-4 text-center text-[hsl(var(--muted-foreground))]">Loading...</div>;
+    return (
+      <div className="space-y-6">
+        <Reveal><PageHeader title="Complaint Detail" description="View complaint progress and timeline." /></Reveal>
+        <PageSkeleton />
+      </div>
+    );
   }
 
   if (!complaint) {
-    return <div className="p-4 text-center text-red-600">Complaint not found.</div>;
+    return (
+      <div className="space-y-6">
+        <Reveal><PageHeader title="Complaint Detail" /></Reveal>
+        <ErrorBanner message="Complaint not found." />
+        <Link to="/student/status" className="text-sm text-[hsl(var(--accent))] hover:underline">&larr; Back to Status</Link>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-4">
-      <FadeIn>
-        <Link to="/student/status" className="text-sm text-blue-600">&larr; Back to Status</Link>
-      </FadeIn>
+      <Reveal>
+        <Link to="/student/status" className="text-sm text-[hsl(var(--accent))] hover:underline">&larr; Back to Status</Link>
+      </Reveal>
 
-      <FadeIn delay={0.1}>
+      <Reveal delay={0.1}>
       <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2">
         <div className="flex justify-between items-start">
           <h2 className="text-lg font-bold text-[hsl(var(--foreground))]">
@@ -105,16 +120,16 @@ export default function ComplaintDetailPage() {
           </p>
         )}
         {complaint.resolutionNotes && (
-          <div className="mt-2 p-3 rounded-lg bg-green-50 border border-green-200">
-            <p className="text-xs font-medium text-green-800">Resolution Notes</p>
-            <p className="text-sm text-green-700 mt-1">{complaint.resolutionNotes}</p>
+          <div className="mt-2 p-3 rounded-lg bg-green-50 border border-green-200 dark:bg-green-950/20 dark:border-green-800/40">
+            <p className="text-xs font-medium text-green-800 dark:text-green-300">Resolution Notes</p>
+            <p className="text-sm text-green-700 dark:text-green-400 mt-1">{complaint.resolutionNotes}</p>
           </div>
         )}
       </div>
-      </FadeIn>
+      </Reveal>
 
       {/* Timeline */}
-      <FadeIn delay={0.2}>
+      <Reveal delay={0.2}>
       <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
         <h3 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Timeline</h3>
         <StaggerContainer stagger={0.06} className="space-y-3">
@@ -142,7 +157,7 @@ export default function ComplaintDetailPage() {
           ))}
         </StaggerContainer>
       </div>
-      </FadeIn>
+      </Reveal>
     </div>
   );
 }

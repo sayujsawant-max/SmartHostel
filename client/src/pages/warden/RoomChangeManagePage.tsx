@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
-import { FadeIn, motion } from '@components/ui/motion';
+import { Reveal } from '@/components/motion/Reveal';
+import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
+import PageHeader from '@components/ui/PageHeader';
+import StatusBadge, { type StatusVariant } from '@components/ui/StatusBadge';
+import EmptyState from '@components/EmptyState';
+import { PageSkeleton } from '@components/Skeleton';
 
 interface PopulatedRoom {
   _id: string;
@@ -42,11 +47,11 @@ interface RoomChangeRequest {
   createdAt: string;
 }
 
-const STATUS_STYLES: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
-  APPROVED: 'bg-green-100 text-green-800',
-  REJECTED: 'bg-red-100 text-red-800',
-  COMPLETED: 'bg-blue-100 text-blue-800',
+const STATUS_VARIANT: Record<string, StatusVariant> = {
+  PENDING: 'warning',
+  APPROVED: 'success',
+  REJECTED: 'error',
+  COMPLETED: 'info',
 };
 
 function formatRoom(r: PopulatedRoom): string {
@@ -105,18 +110,13 @@ export default function RoomChangeManagePage() {
 
   return (
     <div className="space-y-4">
-      <FadeIn>
+      <Reveal>
         <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold text-[hsl(var(--foreground))]">Room Change Requests</h2>
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">
-              Review and manage student room change requests.
-            </p>
-          </div>
+          <PageHeader title="Room Change Requests" description="Review and manage student room change requests." />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-1.5 text-sm"
+            className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-1.5 text-sm text-[hsl(var(--foreground))]"
           >
             <option value="">All Status</option>
             <option value="PENDING">Pending</option>
@@ -124,21 +124,17 @@ export default function RoomChangeManagePage() {
             <option value="REJECTED">Rejected</option>
           </select>
         </div>
-      </FadeIn>
+      </Reveal>
 
       {loading ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading...</p>
+        <PageSkeleton />
       ) : filtered.length === 0 ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">No room change requests found.</p>
+        <EmptyState variant="compact" title="No room change requests" description="No room change requests found." />
       ) : (
-        <div className="space-y-3">
+        <StaggerContainer stagger={0.05} className="space-y-3">
           {filtered.map((r) => (
-            <motion.div
-              key={r._id}
-              whileHover={{ x: 2 }}
-              transition={{ duration: 0.15 }}
-              className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2"
-            >
+            <StaggerItem key={r._id}>
+            <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:shadow-sm transition-shadow">
               {/* Header */}
               <div className="flex justify-between items-start">
                 <div>
@@ -155,11 +151,9 @@ export default function RoomChangeManagePage() {
                     )}
                   </p>
                 </div>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[r.status] ?? ''}`}
-                >
+                <StatusBadge variant={STATUS_VARIANT[r.status] ?? 'neutral'}>
                   {r.status}
-                </span>
+                </StatusBadge>
               </div>
 
               {/* Room Change Details */}
@@ -184,7 +178,7 @@ export default function RoomChangeManagePage() {
 
               {/* Rejection Reason */}
               {r.status === 'REJECTED' && r.rejectionReason && (
-                <p className="text-sm text-red-600">Rejection reason: {r.rejectionReason}</p>
+                <p className="text-sm text-[hsl(var(--destructive))]">Rejection reason: {r.rejectionReason}</p>
               )}
 
               {/* Meta */}
@@ -211,7 +205,7 @@ export default function RoomChangeManagePage() {
                         value={rejectReason}
                         onChange={(e) => setRejectReason(e.target.value)}
                         placeholder="Rejection reason..."
-                        className="flex-1 rounded border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 py-1 text-sm text-[hsl(var(--foreground))]"
+                        className="flex-1 rounded border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 py-1 text-sm text-[hsl(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent))]"
                       />
                       <button
                         onClick={() => void handleReject(r._id)}
@@ -248,9 +242,10 @@ export default function RoomChangeManagePage() {
                   )}
                 </div>
               )}
-            </motion.div>
+            </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       )}
     </div>
   );
