@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { Reveal } from '@/components/motion/Reveal';
+import { motion, AnimatePresence } from 'motion/react';
+import PageHeader from '@components/ui/PageHeader';
+import StatusBadge from '@components/ui/StatusBadge';
+import FilterPanel from '@components/ui/FilterPanel';
+import EmptyState from '@components/EmptyState';
+import { PageSkeleton } from '@components/Skeleton';
 
 interface Leave {
   _id: string;
@@ -12,14 +19,16 @@ interface Leave {
   studentId?: { _id: string; name: string; block?: string; roomNumber?: string };
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
-  APPROVED: 'bg-green-100 text-green-800',
-  REJECTED: 'bg-red-100 text-red-800',
-  CANCELLED: 'bg-gray-100 text-gray-800',
-  SCANNED_OUT: 'bg-blue-100 text-blue-800',
-  SCANNED_IN: 'bg-blue-100 text-blue-800',
-  COMPLETED: 'bg-gray-100 text-gray-600',
+type StatusVariant = 'success' | 'warning' | 'error' | 'info' | 'neutral';
+
+const STATUS_VARIANT: Record<string, StatusVariant> = {
+  PENDING: 'warning',
+  APPROVED: 'success',
+  REJECTED: 'error',
+  CANCELLED: 'neutral',
+  SCANNED_OUT: 'info',
+  SCANNED_IN: 'info',
+  COMPLETED: 'neutral',
 };
 
 export default function StudentsPage() {
@@ -70,33 +79,34 @@ export default function StudentsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-[hsl(var(--foreground))]">Leave Management</h2>
-          <p className="text-sm text-[hsl(var(--muted-foreground))]">Review and approve student leave requests.</p>
-        </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-1.5 text-sm"
-        >
-          <option value="">All</option>
-          <option value="PENDING">Pending</option>
-          <option value="APPROVED">Approved</option>
-          <option value="REJECTED">Rejected</option>
-          <option value="SCANNED_OUT">Scanned Out</option>
-          <option value="COMPLETED">Completed</option>
-        </select>
-      </div>
+      <Reveal>
+        <PageHeader
+          title="Leave Management"
+          description="Review and approve student leave requests."
+          action={
+            <FilterPanel.Select value={statusFilter} onChange={setStatusFilter}>
+              <option value="">All</option>
+              <option value="PENDING">Pending</option>
+              <option value="APPROVED">Approved</option>
+              <option value="REJECTED">Rejected</option>
+              <option value="SCANNED_OUT">Scanned Out</option>
+              <option value="COMPLETED">Completed</option>
+            </FilterPanel.Select>
+          }
+        />
+      </Reveal>
 
       {loading ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading...</p>
+        <PageSkeleton />
       ) : leaves.length === 0 ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">No leaves found.</p>
+        <EmptyState variant="compact" title="No leaves found" description="No leave requests match the current filter." />
       ) : (
         <div className="space-y-3">
           {leaves.map((l) => (
-            <div key={l._id} className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2">
+            <div
+              key={l._id}
+              className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:border-[hsl(var(--accent))]/40 transition-colors"
+            >
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-medium text-[hsl(var(--foreground))]">
@@ -110,9 +120,9 @@ export default function StudentsPage() {
                     {new Date(l.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                   </p>
                 </div>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[l.status] ?? ''}`}>
+                <StatusBadge variant={STATUS_VARIANT[l.status] ?? 'neutral'}>
                   {l.status.replace(/_/g, ' ')}
-                </span>
+                </StatusBadge>
               </div>
 
               <p className="text-sm text-[hsl(var(--foreground))]">{l.reason}</p>
@@ -125,41 +135,48 @@ export default function StudentsPage() {
                 <div className="flex gap-2 pt-1">
                   <button
                     onClick={() => void handleApprove(l._id)}
-                    className="px-4 py-1.5 rounded bg-green-600 text-white text-sm font-medium"
+                    className="px-4 py-1.5 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition-colors"
                   >
                     Approve
                   </button>
 
+                  <AnimatePresence mode="wait">
                   {rejectingId === l._id ? (
-                    <div className="flex gap-2 items-center flex-1">
+                    <motion.div key="reject-form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="flex gap-2 items-center flex-1">
                       <input
                         type="text"
                         value={rejectReason}
                         onChange={(e) => setRejectReason(e.target.value)}
                         placeholder="Reason (optional)"
-                        className="flex-1 rounded border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 py-1 text-sm"
+                        className="flex-1 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 py-1 text-sm"
                       />
                       <button
                         onClick={() => void handleReject(l._id)}
-                        className="px-3 py-1 rounded bg-red-600 text-white text-xs font-medium"
+                        className="px-3 py-1 rounded-lg bg-red-600 text-white text-xs font-medium hover:bg-red-700 transition-colors"
                       >
                         Confirm Reject
                       </button>
                       <button
                         onClick={() => { setRejectingId(null); setRejectReason(''); }}
-                        className="text-xs text-[hsl(var(--muted-foreground))]"
+                        className="text-xs text-[hsl(var(--muted-foreground))] hover:underline"
                       >
                         Cancel
                       </button>
-                    </div>
+                    </motion.div>
                   ) : (
-                    <button
+                    <motion.button
+                      key="reject-btn"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
                       onClick={() => setRejectingId(l._id)}
-                      className="px-4 py-1.5 rounded bg-red-100 text-red-700 text-sm font-medium"
+                      className="px-4 py-1.5 rounded-lg bg-red-100 text-red-700 text-sm font-medium hover:bg-red-200 transition-colors"
                     >
                       Reject
-                    </button>
+                    </motion.button>
                   )}
+                  </AnimatePresence>
                 </div>
               )}
             </div>

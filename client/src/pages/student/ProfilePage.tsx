@@ -2,6 +2,13 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '@services/api';
 import { useAuth } from '@hooks/useAuth';
+import { Reveal } from '@/components/motion/Reveal';
+import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
+import { MotionCard } from '@/components/motion/MotionCard';
+import { AnimatedCounter } from '@/components/motion/AnimatedCounter';
+import StatusBadge from '@components/ui/StatusBadge';
+import { PageSkeleton } from '@components/Skeleton';
+import ErrorBanner from '@components/ui/ErrorBanner';
 
 interface FeeItem {
   _id: string;
@@ -27,7 +34,9 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
+  const fetchData = () => {
+    setLoading(true);
+    setError('');
     Promise.all([
       apiFetch<{ fees: FeeItem[] }>('/assistant/fees').catch(() => ({ data: { fees: [] } })),
       apiFetch<{ leaves: Leave[] }>('/leaves').catch(() => ({ data: { leaves: [] } })),
@@ -40,15 +49,14 @@ export default function ProfilePage() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
-  if (loading) {
-    return <div className="p-4 text-center text-[hsl(var(--muted-foreground))]">Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="p-4 text-center text-red-600">{error}</div>;
-  }
+  if (loading) return <PageSkeleton />;
+  if (error) return <ErrorBanner variant="block" message={error} onRetry={fetchData} />;
 
   const initial = user?.name?.charAt(0).toUpperCase() ?? '?';
 
@@ -69,141 +77,171 @@ export default function ProfilePage() {
   const resolvedCount = complaints.filter((c) => c.status === 'RESOLVED' || c.status === 'CLOSED').length;
 
   return (
-    <div className="p-4 space-y-5">
+    <div className="space-y-5">
       {/* Profile Header */}
-      <div className="flex flex-col items-center gap-3 py-4">
-        <div className="w-20 h-20 rounded-full bg-[hsl(var(--accent))] flex items-center justify-center">
-          <span className="text-3xl font-bold text-[hsl(var(--accent-foreground))]">{initial}</span>
-        </div>
-        <div className="text-center">
-          <h1 className="text-xl font-bold text-[hsl(var(--foreground))]">{user?.name}</h1>
-          <p className="text-sm text-[hsl(var(--muted-foreground))]">{user?.email}</p>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="px-3 py-0.5 rounded-full text-xs font-medium bg-[hsl(var(--accent))]/15 text-[hsl(var(--accent))]">
-              {user?.role}
-            </span>
-            {user?.gender && (
-              <span className="px-3 py-0.5 rounded-full text-xs font-medium bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))]">
-                {user.gender === 'MALE' ? 'Male' : 'Female'}
-              </span>
-            )}
-            {user?.academicYear && (
-              <span className="px-3 py-0.5 rounded-full text-xs font-medium bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))]">
-                Year {user.academicYear}
-              </span>
-            )}
+      <Reveal>
+        <div className="flex flex-col items-center gap-3 py-4">
+          <div className="w-20 h-20 rounded-full bg-[hsl(var(--accent))] flex items-center justify-center">
+            <span className="text-3xl font-bold text-[hsl(var(--accent-foreground))]">{initial}</span>
+          </div>
+          <div className="text-center">
+            <h1 className="text-xl font-bold text-[hsl(var(--foreground))]">{user?.name}</h1>
+            <p className="text-sm text-[hsl(var(--muted-foreground))]">{user?.email}</p>
+            <div className="flex items-center justify-center gap-2 mt-1.5">
+              <StatusBadge variant="accent">{user?.role}</StatusBadge>
+              {user?.gender && (
+                <StatusBadge variant="neutral">
+                  {user.gender === 'MALE' ? 'Male' : 'Female'}
+                </StatusBadge>
+              )}
+              {user?.academicYear && (
+                <StatusBadge variant="neutral">Year {user.academicYear}</StatusBadge>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </Reveal>
 
       {/* Room Info Card */}
       {user && (user.block || user.roomNumber) && (
-        <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
-          <h2 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-2">Room Info</h2>
-          <div className="grid grid-cols-3 gap-3 text-center">
-            {user.block && (
-              <div>
-                <p className="text-lg font-bold text-[hsl(var(--foreground))]">{user.block}</p>
-                <p className="text-xs text-[hsl(var(--muted-foreground))]">Block</p>
-              </div>
-            )}
-            {user.floor && (
-              <div>
-                <p className="text-lg font-bold text-[hsl(var(--foreground))]">{user.floor}</p>
-                <p className="text-xs text-[hsl(var(--muted-foreground))]">Floor</p>
-              </div>
-            )}
-            {user.roomNumber && (
-              <div>
-                <p className="text-lg font-bold text-[hsl(var(--foreground))]">{user.roomNumber}</p>
-                <p className="text-xs text-[hsl(var(--muted-foreground))]">Room</p>
-              </div>
-            )}
+        <Reveal delay={0.1}>
+          <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
+            <h2 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-2">Room Info</h2>
+            <div className="grid grid-cols-3 gap-3 text-center">
+              {user.block && (
+                <div>
+                  <p className="text-lg font-bold text-[hsl(var(--foreground))]">{user.block}</p>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">Block</p>
+                </div>
+              )}
+              {user.floor && (
+                <div>
+                  <p className="text-lg font-bold text-[hsl(var(--foreground))]">{user.floor}</p>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">Floor</p>
+                </div>
+              )}
+              {user.roomNumber && (
+                <div>
+                  <p className="text-lg font-bold text-[hsl(var(--foreground))]">{user.roomNumber}</p>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">Room</p>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </Reveal>
       )}
 
-      {/* Fee Summary */}
-      <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
-        <h2 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Fee Summary</h2>
-        <div className="grid grid-cols-3 gap-3 text-center">
-          <div>
-            <p className="text-lg font-bold text-green-600">{totalPaid.toLocaleString('en-IN')}</p>
-            <p className="text-xs text-[hsl(var(--muted-foreground))]">Paid</p>
-          </div>
-          <div>
-            <p className="text-lg font-bold text-yellow-600">{totalPending.toLocaleString('en-IN')}</p>
-            <p className="text-xs text-[hsl(var(--muted-foreground))]">Pending</p>
-          </div>
-          <div>
-            <p className="text-lg font-bold text-red-600">{totalOverdue.toLocaleString('en-IN')}</p>
-            <p className="text-xs text-[hsl(var(--muted-foreground))]">Overdue</p>
-          </div>
-        </div>
-      </div>
+      <StaggerContainer stagger={0.08} className="space-y-4">
+        {/* Fee Summary */}
+        <StaggerItem>
+          <MotionCard>
+            <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
+              <h2 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Fee Summary</h2>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <p className="text-lg font-bold text-green-600">
+                    <AnimatedCounter to={totalPaid} />
+                  </p>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">Paid</p>
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-yellow-600">
+                    <AnimatedCounter to={totalPending} />
+                  </p>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">Pending</p>
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-red-600">
+                    <AnimatedCounter to={totalOverdue} />
+                  </p>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">Overdue</p>
+                </div>
+              </div>
+            </div>
+          </MotionCard>
+        </StaggerItem>
 
-      {/* Leave Stats */}
-      <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
-        <h2 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Leave Stats</h2>
-        <div className="grid grid-cols-3 gap-3 text-center">
-          <div>
-            <p className="text-lg font-bold text-[hsl(var(--foreground))]">{totalLeaves}</p>
-            <p className="text-xs text-[hsl(var(--muted-foreground))]">Total</p>
-          </div>
-          <div>
-            <p className="text-lg font-bold text-green-600">{approvedPct}%</p>
-            <p className="text-xs text-[hsl(var(--muted-foreground))]">Approved</p>
-          </div>
-          <div>
-            <p className="text-lg font-bold text-red-600">{rejectedCount}</p>
-            <p className="text-xs text-[hsl(var(--muted-foreground))]">Rejected</p>
-          </div>
-        </div>
-      </div>
+        {/* Leave Stats */}
+        <StaggerItem>
+          <MotionCard>
+            <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
+              <h2 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Leave Stats</h2>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <p className="text-lg font-bold text-[hsl(var(--foreground))]">
+                    <AnimatedCounter to={totalLeaves} />
+                  </p>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">Total</p>
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-green-600">
+                    <AnimatedCounter to={approvedPct} suffix="%" />
+                  </p>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">Approved</p>
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-red-600">
+                    <AnimatedCounter to={rejectedCount} />
+                  </p>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">Rejected</p>
+                </div>
+              </div>
+            </div>
+          </MotionCard>
+        </StaggerItem>
 
-      {/* Recent Complaints */}
-      <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
-        <h2 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Recent Complaints</h2>
-        <div className="grid grid-cols-3 gap-3 text-center">
-          <div>
-            <p className="text-lg font-bold text-blue-600">{openCount}</p>
-            <p className="text-xs text-[hsl(var(--muted-foreground))]">Open</p>
-          </div>
-          <div>
-            <p className="text-lg font-bold text-amber-600">{inProgressCount}</p>
-            <p className="text-xs text-[hsl(var(--muted-foreground))]">In Progress</p>
-          </div>
-          <div>
-            <p className="text-lg font-bold text-green-600">{resolvedCount}</p>
-            <p className="text-xs text-[hsl(var(--muted-foreground))]">Resolved</p>
-          </div>
-        </div>
-      </div>
+        {/* Complaint Stats */}
+        <StaggerItem>
+          <MotionCard>
+            <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
+              <h2 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Complaints</h2>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <p className="text-lg font-bold text-blue-600">
+                    <AnimatedCounter to={openCount} />
+                  </p>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">Open</p>
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-amber-600">
+                    <AnimatedCounter to={inProgressCount} />
+                  </p>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">In Progress</p>
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-green-600">
+                    <AnimatedCounter to={resolvedCount} />
+                  </p>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">Resolved</p>
+                </div>
+              </div>
+            </div>
+          </MotionCard>
+        </StaggerItem>
+      </StaggerContainer>
 
       {/* Quick Links */}
-      <div className="space-y-2">
-        <h2 className="text-sm font-semibold text-[hsl(var(--foreground))]">Quick Links</h2>
-        <div className="grid grid-cols-3 gap-2">
-          <Link
-            to="/student/actions/report-issue"
-            className="p-3 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center hover:bg-[hsl(var(--muted))] transition-colors"
-          >
-            <p className="text-sm font-medium text-[hsl(var(--foreground))]">Report Issue</p>
-          </Link>
-          <Link
-            to="/student/actions/request-leave"
-            className="p-3 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center hover:bg-[hsl(var(--muted))] transition-colors"
-          >
-            <p className="text-sm font-medium text-[hsl(var(--foreground))]">Request Leave</p>
-          </Link>
-          <Link
-            to="/student/faq"
-            className="p-3 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center hover:bg-[hsl(var(--muted))] transition-colors"
-          >
-            <p className="text-sm font-medium text-[hsl(var(--foreground))]">FAQ</p>
-          </Link>
+      <Reveal delay={0.3}>
+        <div className="space-y-2">
+          <h2 className="text-sm font-semibold text-[hsl(var(--foreground))]">Quick Links</h2>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { to: '/student/actions/report-issue', label: 'Report Issue' },
+              { to: '/student/actions/request-leave', label: 'Request Leave' },
+              { to: '/student/faq', label: 'FAQ' },
+            ].map((link) => (
+              <MotionCard key={link.to} lift={2}>
+                <Link
+                  to={link.to}
+                  className="block p-3 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center hover:bg-[hsl(var(--muted))] transition-colors"
+                >
+                  <p className="text-sm font-medium text-[hsl(var(--foreground))]">{link.label}</p>
+                </Link>
+              </MotionCard>
+            ))}
+          </div>
         </div>
-      </div>
+      </Reveal>
     </div>
   );
 }

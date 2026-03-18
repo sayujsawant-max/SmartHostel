@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { useAuth } from '@hooks/useAuth';
 import { apiFetch, ApiError } from '@services/api';
+import { Reveal } from '@/components/motion/Reveal';
 
 type Verdict = 'ALLOW' | 'DENY' | 'OFFLINE' | null;
 
@@ -193,35 +194,60 @@ export default function ScanPage() {
     setVerifyResult(null);
   }, [tokenInput, handleVerify]);
 
-  // Start camera
+  // Start camera — deferred to ensure DOM element has layout dimensions
   useEffect(() => {
     if (inputMode !== 'camera') return;
 
-    const scanner = new Html5Qrcode('qr-reader');
+    let scanner: Html5Qrcode | null = null;
+    let cancelled = false;
+    let startTimeout: ReturnType<typeof setTimeout> | null = null;
 
-    scanner.start(
-      { facingMode: 'environment' },
-      { fps: 10, qrbox: { width: 280, height: 280 } },
-      (decodedText) => {
-        if (decodedText === lastScanRef.current) return;
-        lastScanRef.current = decodedText;
-        setShowPassCodeHint(false);
-        void handleVerify(decodedText);
-      },
-      () => { /* ignore scan failures */ },
-    ).then(() => {
-      // Show passCode hint after 5s of no scan
-      hintTimeoutRef.current = setTimeout(() => setShowPassCodeHint(true), 5000);
-    }).catch(() => {
-      setCameraError('Camera not available — verify by passCode or token');
-    });
+    // Defer scanner init to next frame so the #qr-reader div has layout
+    startTimeout = setTimeout(() => {
+      if (cancelled) return;
+
+      const el = document.getElementById('qr-reader');
+      if (!el || el.offsetWidth === 0) {
+        setCameraError('Camera not available — verify by passCode or token');
+        return;
+      }
+
+      try {
+        scanner = new Html5Qrcode('qr-reader');
+      } catch {
+        setCameraError('Camera not available — verify by passCode or token');
+        return;
+      }
+
+      scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText) => {
+          if (cancelled || decodedText === lastScanRef.current) return;
+          lastScanRef.current = decodedText;
+          setShowPassCodeHint(false);
+          void handleVerify(decodedText);
+        },
+        () => { /* ignore scan failures */ },
+      ).then(() => {
+        if (!cancelled) {
+          hintTimeoutRef.current = setTimeout(() => setShowPassCodeHint(true), 5000);
+        }
+      }).catch(() => {
+        if (!cancelled) {
+          setCameraError('Camera not available — verify by passCode or token');
+        }
+      });
+    }, 100);
 
     return () => {
+      cancelled = true;
+      if (startTimeout) clearTimeout(startTimeout);
       if (verdictTimeoutRef.current) clearTimeout(verdictTimeoutRef.current);
       if (hintTimeoutRef.current) clearTimeout(hintTimeoutRef.current);
       if (slowTimeoutRef.current) clearTimeout(slowTimeoutRef.current);
       if (longPressRef.current) clearTimeout(longPressRef.current);
-      scanner.stop().catch(() => {});
+      scanner?.stop().catch(() => {});
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputMode]);
@@ -464,6 +490,7 @@ export default function ScanPage() {
   return (
     <div className="min-h-screen bg-black flex flex-col">
       {/* Header */}
+      <Reveal duration={0.2}>
       <div className="flex items-center justify-between p-3 bg-black/80 text-white z-10">
         <div>
           <p className="text-sm font-medium">{user?.name}</p>
@@ -487,6 +514,7 @@ export default function ScanPage() {
           Logout
         </button>
       </div>
+      </Reveal>
 
       {/* Input mode tabs */}
       <div className="flex bg-gray-900 border-b border-gray-700">
@@ -573,6 +601,7 @@ export default function ScanPage() {
       )}
 
       {inputMode === 'token' && (
+        <Reveal duration={0.2} delay={0.05}>
         <div className="flex-1 flex flex-col p-4 space-y-4 overflow-y-auto">
           {/* QR Token input */}
           <div className="space-y-2">
@@ -741,6 +770,7 @@ export default function ScanPage() {
           {/* Hidden QR reader div needed for Html5Qrcode initialization */}
           <div id="qr-reader" className="hidden" />
         </div>
+        </Reveal>
       )}
     </div>
   );

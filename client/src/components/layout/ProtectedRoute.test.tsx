@@ -46,6 +46,7 @@ function authValue(overrides: Partial<AuthContextType> = {}): AuthContextType {
     register: vi.fn(),
     logout: vi.fn(),
     setConsented: vi.fn(),
+    refreshUser: vi.fn(),
     ...overrides,
   };
 }

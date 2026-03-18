@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { Reveal } from '@/components/motion/Reveal';
+import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
+import PageHeader from '@components/ui/PageHeader';
+import ErrorBanner from '@components/ui/ErrorBanner';
+import StatusBadge from '@components/ui/StatusBadge';
+import EmptyState from '@components/EmptyState';
+import { PageSkeleton } from '@components/Skeleton';
+import { AnimatePresence, motion } from 'motion/react';
 
 interface Room {
   _id: string;
@@ -35,12 +43,15 @@ interface RoomChangeRequest {
   createdAt: string;
 }
 
-const STATUS_STYLES: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
-  APPROVED: 'bg-green-100 text-green-800',
-  REJECTED: 'bg-red-100 text-red-800',
-  COMPLETED: 'bg-blue-100 text-blue-800',
+const STATUS_VARIANT: Record<string, 'warning' | 'success' | 'error' | 'info'> = {
+  PENDING: 'warning',
+  APPROVED: 'success',
+  REJECTED: 'error',
+  COMPLETED: 'info',
 };
+
+const inputCls =
+  'w-full px-3 py-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent))]';
 
 function formatRoom(r: PopulatedRoom): string {
   return `Block ${r.block} / Floor ${r.floor} / Room ${r.roomNumber}`;
@@ -120,14 +131,14 @@ export default function RoomChangePage() {
 
   return (
     <div className="space-y-6">
-      {/* Request Form */}
-      <div>
-        <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">Request Room Change</h2>
-        <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
-          Select an available room and provide a reason for your request.
-        </p>
-      </div>
+      <Reveal>
+        <PageHeader
+          title="Request Room Change"
+          description="Select an available room and provide a reason for your request."
+        />
+      </Reveal>
 
+      <Reveal delay={0.1}>
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         {/* Room Selection */}
         <div>
@@ -135,9 +146,9 @@ export default function RoomChangePage() {
             Select Room
           </label>
           {loadingRooms ? (
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading available rooms...</p>
+            <PageSkeleton />
           ) : rooms.length === 0 ? (
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">No rooms with available beds.</p>
+            <EmptyState variant="compact" title="No rooms available" description="No rooms with available beds at this time." />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto">
               {rooms.map((room) => (
@@ -145,7 +156,7 @@ export default function RoomChangePage() {
                   key={room._id}
                   type="button"
                   onClick={() => setSelectedRoomId(room._id)}
-                  className={`p-3 rounded-lg border text-left text-sm transition-colors ${
+                  className={`p-3 rounded-lg border text-left text-sm transition-colors hover:shadow-sm ${
                     selectedRoomId === room._id
                       ? 'border-[hsl(var(--primary))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]'
                       : 'border-[hsl(var(--border))] bg-[hsl(var(--card))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]'
@@ -188,48 +199,59 @@ export default function RoomChangePage() {
             rows={3}
             maxLength={500}
             placeholder="Why do you want to change your room?"
-            className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 text-sm text-[hsl(var(--foreground))] resize-none"
+            className={`${inputCls} resize-none`}
           />
           <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1">{reason.length}/500</p>
         </div>
 
-        {error && (
-          <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">{error}</div>
-        )}
+        <AnimatePresence>
+          {error && (
+            <motion.div key="error" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+              <ErrorBanner message={error} />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {success && (
-          <div className="p-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm">{success}</div>
-        )}
+        <AnimatePresence>
+          {success && (
+            <motion.div key="success" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+              <div className="p-3 rounded-lg bg-green-50 border border-green-200 text-green-700 dark:bg-green-950/30 dark:border-green-800/40 dark:text-green-300 text-sm">
+                {success}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <button
           type="submit"
           disabled={submitting}
-          className="w-full py-2.5 rounded-lg bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] font-medium text-sm disabled:opacity-50"
+          className="w-full py-2.5 rounded-lg bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] font-medium text-sm disabled:opacity-50 hover:opacity-90 transition-opacity"
         >
           {submitting ? 'Submitting...' : 'Submit Room Change Request'}
         </button>
       </form>
+      </Reveal>
 
       {/* Divider */}
       <hr className="border-[hsl(var(--border))]" />
 
       {/* My Requests */}
-      <div>
-        <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">My Requests</h2>
-        <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
-          Track the status of your room change requests.
-        </p>
-      </div>
+      <Reveal delay={0.15}>
+        <PageHeader
+          title="My Requests"
+          description="Track the status of your room change requests."
+        />
+      </Reveal>
 
       {loadingRequests ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading...</p>
+        <PageSkeleton />
       ) : requests.length === 0 ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">No room change requests yet.</p>
+        <EmptyState variant="compact" title="No requests yet" description="Submit a room change request above." />
       ) : (
-        <div className="space-y-3">
+        <StaggerContainer stagger={0.06} className="space-y-3">
           {requests.map((r) => (
+            <StaggerItem key={r._id}>
             <div
-              key={r._id}
               className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2"
             >
               <div className="flex justify-between items-start">
@@ -238,17 +260,15 @@ export default function RoomChangePage() {
                   <span className="mx-2 text-[hsl(var(--muted-foreground))]">&rarr;</span>
                   <span>{formatRoom(r.requestedRoomId)}</span>
                 </div>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[r.status] ?? ''}`}
-                >
+                <StatusBadge variant={STATUS_VARIANT[r.status] ?? 'neutral'}>
                   {r.status}
-                </span>
+                </StatusBadge>
               </div>
 
               <p className="text-sm text-[hsl(var(--muted-foreground))]">{r.reason}</p>
 
               {r.status === 'REJECTED' && r.rejectionReason && (
-                <p className="text-sm text-red-600">Rejection reason: {r.rejectionReason}</p>
+                <p className="text-sm text-[hsl(var(--destructive))]">Rejection reason: {r.rejectionReason}</p>
               )}
 
               <p className="text-xs text-[hsl(var(--muted-foreground))]">
@@ -261,8 +281,9 @@ export default function RoomChangePage() {
                 })}
               </p>
             </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       )}
     </div>
   );

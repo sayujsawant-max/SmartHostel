@@ -2,6 +2,17 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '@services/api';
 import { useAuth } from '@hooks/useAuth';
+import { Reveal } from '@/components/motion/Reveal';
+import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
+import { MotionCard } from '@/components/motion/MotionCard';
+import PageHeader from '@components/ui/PageHeader';
+import ErrorBanner from '@components/ui/ErrorBanner';
+import StatusBadge from '@components/ui/StatusBadge';
+import Spinner from '@components/ui/Spinner';
+import EmptyState from '@components/EmptyState';
+import { PageSkeleton } from '@components/Skeleton';
+import { motion, AnimatePresence } from 'motion/react';
+import { prefersReducedMotion } from '@/utils/motion';
 
 interface Room {
   _id: string;
@@ -58,66 +69,97 @@ export default function RoomRequestPage() {
 
   if (user?.roomNumber) {
     return (
-      <div className="p-4 text-center">
-        <p className="text-[hsl(var(--foreground))] font-medium">You already have a room assigned.</p>
-        <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
-          Block {user.block} · Floor {user.floor} · Room {user.roomNumber}
-        </p>
-      </div>
+      <MotionCard>
+        <div className="p-6 rounded-xl bg-blue-50 border border-blue-200 dark:bg-blue-950/20 dark:border-blue-800/40 text-center">
+          <p className="font-medium text-blue-800 dark:text-blue-200">You already have a room assigned.</p>
+          <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+            Block {user.block} · Floor {user.floor} · Room {user.roomNumber}
+          </p>
+        </div>
+      </MotionCard>
     );
   }
 
   if (loading) {
-    return <div className="p-4 text-center text-[hsl(var(--muted-foreground))]">Loading available rooms...</div>;
-  }
-
-  if (success) {
     return (
-      <div className="p-4 text-center">
-        <div className="p-4 rounded-xl bg-green-50 border border-green-200">
-          <p className="text-green-800 font-semibold">Room assigned successfully!</p>
-          <p className="text-green-600 text-sm mt-1">Redirecting to your status page...</p>
-        </div>
+      <div className="space-y-4">
+        <Reveal>
+          <PageHeader title="Request a Room" description="Browse available rooms and pick one to request." />
+        </Reveal>
+        <PageSkeleton />
       </div>
     );
   }
 
-  return (
-    <div className="p-4 space-y-4">
-      <div>
-        <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">Request a Room</h2>
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">
-          Browse available rooms and pick one to request.
-        </p>
-      </div>
+  if (success) {
+    const reduced = prefersReducedMotion();
+    const Wrapper = reduced ? 'div' : motion.div;
+    const wrapperProps = reduced
+      ? {}
+      : {
+          initial: { scale: 0.9, opacity: 0 },
+          animate: { scale: 1, opacity: 1 },
+          transition: { type: 'spring' as const },
+        };
 
-      {error && (
-        <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-800">
-          {error}
-        </div>
-      )}
+    return (
+      <Wrapper {...wrapperProps} className="space-y-4">
+        <MotionCard>
+          <div className="p-6 rounded-xl bg-green-50 border border-green-200 dark:bg-green-950/20 dark:border-green-800/40 text-center">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400 mb-3">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="text-lg font-semibold text-green-800 dark:text-green-200">Room assigned successfully!</p>
+            <p className="text-sm text-green-700 dark:text-green-300 mt-1">Redirecting to your status page...</p>
+          </div>
+        </MotionCard>
+      </Wrapper>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <Reveal>
+        <PageHeader title="Request a Room" description="Browse available rooms and pick one to request." />
+      </Reveal>
+
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            key="room-error"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <ErrorBanner message={error} />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {rooms.length === 0 ? (
-        <div className="text-center py-8 text-[hsl(var(--muted-foreground))]">
-          <p>No rooms available at the moment.</p>
-          <p className="text-sm mt-1">Please check back later or contact the warden.</p>
-        </div>
+        <EmptyState
+          variant="compact"
+          title="No rooms available"
+          description="Please check back later or contact the warden."
+        />
       ) : (
-        <div className="grid gap-3">
+        <StaggerContainer stagger={0.06} className="grid gap-3">
           {rooms.map((room) => {
             const availableBeds = room.totalBeds - room.occupiedBeds;
             return (
+              <StaggerItem key={room._id}>
               <div
-                key={room._id}
-                className="p-4 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] space-y-2"
+                className="p-4 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] space-y-2 hover:border-[hsl(var(--accent))]/40 transition-colors"
               >
                 <div className="flex items-center justify-between">
                   <p className="font-semibold text-[hsl(var(--foreground))]">
                     Room {room.roomNumber}
                   </p>
-                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  <StatusBadge variant="success">
                     {availableBeds} bed{availableBeds !== 1 ? 's' : ''} free
-                  </span>
+                  </StatusBadge>
                 </div>
                 <div className="text-sm text-[hsl(var(--muted-foreground))] space-y-0.5">
                   <p>Block {room.block} · Floor {room.floor}</p>
@@ -129,14 +171,16 @@ export default function RoomRequestPage() {
                 <button
                   onClick={() => handleRequest(room._id)}
                   disabled={requesting !== null}
-                  className="w-full mt-1 py-2 px-4 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-full mt-1 py-2 px-4 rounded-lg text-sm font-medium bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                 >
+                  {requesting === room._id && <Spinner size="h-4 w-4" />}
                   {requesting === room._id ? 'Requesting...' : 'Request This Room'}
                 </button>
               </div>
+              </StaggerItem>
             );
           })}
-        </div>
+        </StaggerContainer>
       )}
     </div>
   );

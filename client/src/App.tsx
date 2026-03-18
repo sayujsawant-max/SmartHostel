@@ -10,6 +10,8 @@ import WardenShell from '@components/layout/WardenShell';
 import GuardShell from '@components/layout/GuardShell';
 import MaintenanceShell from '@components/layout/MaintenanceShell';
 import Chatbot from '@components/Chatbot';
+import { motion } from 'motion/react';
+import { useSmoothScroll } from '@hooks/useSmoothScroll';
 
 // Lazy-loaded pages (route-level code splitting)
 const LoginPage = lazy(() => import('@pages/LoginPage'));
@@ -59,10 +61,26 @@ const MaintenanceFaqPage = lazy(() => import('@pages/maintenance/FaqPage'));
 function PageSpinner() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))]">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-10 h-10 border-3 border-[hsl(var(--muted))] border-t-[hsl(var(--accent))] rounded-full animate-spin" />
-        <p className="text-sm text-[hsl(var(--muted-foreground))] animate-pulse">Loading...</p>
-      </div>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+        className="flex flex-col items-center gap-3"
+      >
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          className="w-10 h-10 border-3 border-[hsl(var(--muted))] border-t-[hsl(var(--accent))] rounded-full"
+        />
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0.4, 1, 0.4] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+          className="text-sm text-[hsl(var(--muted-foreground))]"
+        >
+          Loading...
+        </motion.p>
+      </motion.div>
     </div>
   );
 }
@@ -193,6 +211,8 @@ function AppRoutes() {
 }
 
 function App() {
+  useSmoothScroll();
+
   return (
     <BrowserRouter>
       <AppRoutes />

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { FadeIn, CountUp } from '@components/ui/motion';
 
 interface SlotData {
   _id: string;
@@ -65,12 +66,14 @@ export default function LaundryManagePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-[hsl(var(--foreground))]">Laundry Management</h2>
-        <p className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">
-          Today's laundry slot overview and machine utilization.
-        </p>
-      </div>
+      <FadeIn>
+        <div>
+          <h2 className="text-2xl font-bold text-[hsl(var(--foreground))]">Laundry Management</h2>
+          <p className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">
+            Today's laundry slot overview and machine utilization.
+          </p>
+        </div>
+      </FadeIn>
 
       {error && (
         <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-800 text-sm">{error}</div>
@@ -83,28 +86,29 @@ export default function LaundryManagePage() {
           {/* Summary Stats */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center">
-              <p className="text-2xl font-bold text-[hsl(var(--foreground))]">{totalSlots}</p>
+              <p className="text-2xl font-bold text-[hsl(var(--foreground))]"><CountUp to={totalSlots} /></p>
               <p className="text-xs text-[hsl(var(--muted-foreground))]">Total Slots</p>
             </div>
             <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center">
-              <p className="text-2xl font-bold text-[hsl(var(--foreground))]">{availableSlots}</p>
+              <p className="text-2xl font-bold text-[hsl(var(--foreground))]"><CountUp to={availableSlots} /></p>
               <p className="text-xs text-[hsl(var(--muted-foreground))]">Available</p>
             </div>
             <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center">
-              <p className="text-2xl font-bold text-[hsl(var(--foreground))]">{bookedSlots}</p>
+              <p className="text-2xl font-bold text-[hsl(var(--foreground))]"><CountUp to={bookedSlots} /></p>
               <p className="text-xs text-[hsl(var(--muted-foreground))]">Booked</p>
             </div>
             <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center">
-              <p className="text-2xl font-bold text-[hsl(var(--foreground))]">{inUseSlots}</p>
+              <p className="text-2xl font-bold text-[hsl(var(--foreground))]"><CountUp to={inUseSlots} /></p>
               <p className="text-xs text-[hsl(var(--muted-foreground))]">In Use</p>
             </div>
             <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center">
-              <p className="text-2xl font-bold text-[hsl(var(--foreground))]">{completedSlots}</p>
+              <p className="text-2xl font-bold text-[hsl(var(--foreground))]"><CountUp to={completedSlots} /></p>
               <p className="text-xs text-[hsl(var(--muted-foreground))]">Completed</p>
             </div>
           </div>
 
           {/* Machine Utilization */}
+          <FadeIn delay={0.1}>
           <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
             <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">Machine Utilization</h3>
             <div className="space-y-3">
@@ -129,8 +133,10 @@ export default function LaundryManagePage() {
               ))}
             </div>
           </div>
+          </FadeIn>
 
           {/* Active Bookings */}
+          <FadeIn delay={0.15}>
           <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
             <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">
               Active Bookings Today
@@ -172,6 +178,7 @@ export default function LaundryManagePage() {
               </div>
             )}
           </div>
+          </FadeIn>
         </>
       )}
     </div>

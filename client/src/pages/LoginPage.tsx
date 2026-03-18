@@ -6,7 +6,16 @@ import { useAuth } from '@hooks/useAuth';
 import { useNavigate, Link } from 'react-router-dom';
 import { ApiError } from '@services/api';
 import { getRoleHomePath } from '@utils/role-home';
-import ThemeToggle from '@components/ThemeToggle';
+import AuthSplitLayout from '@components/ui/AuthSplitLayout';
+import FormField from '@components/ui/FormField';
+import Spinner from '@components/ui/Spinner';
+import { motion } from 'motion/react';
+
+const LOGIN_ICON = (
+  <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+  </svg>
+);
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -78,119 +87,70 @@ export default function LoginPage() {
   const lockoutSeconds = Math.ceil(lockoutMs / 1000);
 
   return (
-    <div
-      className="relative min-h-screen flex items-center justify-center px-4"
-      style={{
-        background: 'linear-gradient(135deg, hsl(222 47% 19%) 0%, hsl(173 78% 24%) 100%)',
-      }}
+    <AuthSplitLayout
+      icon={LOGIN_ICON}
+      title="SmartHostel"
+      subtitle="Sign in to your account"
     >
-      <div className="absolute top-4 right-4 text-white/80">
-        <ThemeToggle />
-      </div>
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white">SmartHostel</h1>
-          <p className="text-white/70 mt-1">Sign in to your account</p>
-        </div>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <FormField
+          label="Email"
+          id="email"
+          error={errors.email?.message}
+          className="mb-4"
+          inputProps={{ ...register('email'), type: 'email', autoComplete: 'email' }}
+        />
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="bg-white/95 backdrop-blur rounded-xl p-6 shadow-2xl"
-        >
-          <div className="mb-4">
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              {...register('email')}
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
-            />
-            {errors.email && (
-              <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
-            )}
-          </div>
+        <FormField
+          label="Password"
+          id="password"
+          error={errors.password?.message}
+          className="mb-6"
+          inputProps={{ ...register('password'), type: 'password', autoComplete: 'current-password' }}
+        />
 
-          <div className="mb-6">
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              {...register('password')}
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
-            />
-            {errors.password && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.password.message}
+        {serverError && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="mb-4 text-sm text-[hsl(var(--destructive))] text-center"
+          >
+            <p>{serverError}</p>
+            {isLocked && (
+              <p className="mt-1 font-medium">
+                Try again in {lockoutSeconds} second{lockoutSeconds !== 1 ? 's' : ''}
               </p>
             )}
-          </div>
+          </motion.div>
+        )}
 
-          {serverError && (
-            <div className="mb-4 text-sm text-red-600 text-center">
-              <p>{serverError}</p>
-              {isLocked && (
-                <p className="mt-1 font-medium">
-                  Try again in {lockoutSeconds} second{lockoutSeconds !== 1 ? 's' : ''}
-                </p>
-              )}
-            </div>
+        <button
+          type="submit"
+          disabled={isSubmitting || isLocked}
+          className="w-full min-h-[48px] rounded-xl bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] font-medium hover:opacity-90 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center transition-all"
+        >
+          {isSubmitting ? (
+            <Spinner />
+          ) : isLocked ? (
+            `Locked (${lockoutSeconds}s)`
+          ) : (
+            'Sign in'
           )}
+        </button>
 
-          <button
-            type="submit"
-            disabled={isSubmitting || isLocked}
-            className="w-full min-h-[48px] rounded-lg bg-teal-600 text-white font-medium hover:bg-teal-700 disabled:opacity-50 flex items-center justify-center"
-          >
-            {isSubmitting ? (
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                  fill="none"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                />
-              </svg>
-            ) : isLocked ? (
-              `Locked (${lockoutSeconds}s)`
-            ) : (
-              'Sign in'
-            )}
-          </button>
+        <p className="text-sm text-center text-[hsl(var(--muted-foreground))] mt-4">
+          Don&apos;t have an account?{' '}
+          <Link to="/register" className="text-[hsl(var(--accent))] hover:underline font-medium">
+            Sign up
+          </Link>
+        </p>
 
-          <p className="text-sm text-center text-gray-600 mt-4">
-            Don't have an account?{' '}
-            <Link to="/register" className="text-teal-600 hover:underline font-medium">
-              Sign up
-            </Link>
-          </p>
-
-          <div className="text-center mt-3">
-            <Link to="/rooms" className="text-xs text-gray-500 hover:text-teal-600">
-              Browse Rooms & Availability
-            </Link>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="text-center mt-3">
+          <Link to="/rooms" className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--accent))] transition-colors">
+            Browse Rooms &amp; Availability
+          </Link>
+        </div>
+      </form>
+    </AuthSplitLayout>
   );
 }

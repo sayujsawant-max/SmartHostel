@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
 import { useAuth } from '@hooks/useAuth';
+import { Reveal } from '@/components/motion/Reveal';
+import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
+import PageHeader from '@components/ui/PageHeader';
+import ErrorBanner from '@components/ui/ErrorBanner';
+import StatusBadge from '@components/ui/StatusBadge';
+import type { StatusVariant } from '@components/ui/StatusBadge';
+import EmptyState from '@components/EmptyState';
+import { PageSkeleton } from '@components/Skeleton';
+import { motion, AnimatePresence } from 'motion/react';
 
 /* ---------- Types ---------- */
 
@@ -51,12 +60,15 @@ const CATEGORY_LABELS: Record<Category, string> = {
   OTHER: 'Other',
 };
 
-const STATUS_STYLES: Record<Status, string> = {
-  ACTIVE: 'bg-blue-100 text-blue-800',
-  CLAIMED: 'bg-yellow-100 text-yellow-800',
-  RETURNED: 'bg-green-100 text-green-800',
-  EXPIRED: 'bg-gray-100 text-gray-500',
+const STATUS_VARIANT: Record<Status, StatusVariant> = {
+  ACTIVE: 'info',
+  CLAIMED: 'warning',
+  RETURNED: 'success',
+  EXPIRED: 'neutral',
 };
+
+const inputCls =
+  'w-full px-3 py-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent))]';
 
 /* ---------- Component ---------- */
 
@@ -207,32 +219,35 @@ export default function LostFoundPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">Lost &amp; Found Board</h2>
-        <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
-          Report lost items or post items you have found to help fellow residents.
-        </p>
-      </div>
+      <Reveal>
+        <PageHeader
+          title="Lost & Found Board"
+          description="Report lost items or post items you have found to help fellow residents."
+        />
+      </Reveal>
 
       {/* Action buttons */}
+      <Reveal direction="none" delay={0.1}>
       <div className="flex gap-3 flex-wrap">
         <button
           type="button"
           onClick={() => openModal('LOST')}
-          className="px-4 py-2 rounded-lg bg-[hsl(var(--destructive))] text-white text-sm font-medium"
+          className="px-4 py-2 rounded-lg bg-[hsl(var(--destructive))] text-white text-sm font-medium hover:opacity-90 transition-opacity"
         >
           Report Lost Item
         </button>
         <button
           type="button"
           onClick={() => openModal('FOUND')}
-          className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium"
+          className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:opacity-90 transition-opacity"
         >
           Report Found Item
         </button>
       </div>
+      </Reveal>
 
       {/* Filter bar */}
+      <Reveal direction="none" delay={0.15}>
       <div className="flex flex-wrap gap-3 items-center">
         {/* Type tabs */}
         <div className="flex rounded-lg border border-[hsl(var(--border))] overflow-hidden">
@@ -256,7 +271,7 @@ export default function LostFoundPage() {
         <select
           value={filterCategory}
           onChange={(e) => setFilterCategory(e.target.value as '' | Category)}
-          className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] px-3 py-1.5 text-sm"
+          className={inputCls.replace('w-full ', '')}
         >
           <option value="">All Categories</option>
           {CATEGORIES.map((c) => (
@@ -270,7 +285,7 @@ export default function LostFoundPage() {
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value as '' | Status)}
-          className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] px-3 py-1.5 text-sm"
+          className={inputCls.replace('w-full ', '')}
         >
           <option value="">All Statuses</option>
           <option value="ACTIVE">Active</option>
@@ -291,35 +306,28 @@ export default function LostFoundPage() {
           My Posts
         </button>
       </div>
+      </Reveal>
 
       {/* Posts grid */}
       {loading ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading posts...</p>
+        <PageSkeleton />
       ) : posts.length === 0 ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">No posts found.</p>
+        <EmptyState variant="compact" title="No posts found" description="Try adjusting the filters or report a new item." />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <StaggerContainer stagger={0.05} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {posts.map((post) => (
+            <StaggerItem key={post._id}>
             <div
-              key={post._id}
               className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-3"
             >
               {/* Top row: type badge + status badge */}
               <div className="flex justify-between items-start">
-                <span
-                  className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                    post.type === 'LOST'
-                      ? 'bg-red-100 text-red-700'
-                      : 'bg-green-100 text-green-700'
-                  }`}
-                >
+                <StatusBadge variant={post.type === 'LOST' ? 'error' : 'success'}>
                   {post.type}
-                </span>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[post.status]}`}
-                >
+                </StatusBadge>
+                <StatusBadge variant={STATUS_VARIANT[post.status]}>
                   {post.status}
-                </span>
+                </StatusBadge>
               </div>
 
               {/* Item name + category */}
@@ -366,7 +374,7 @@ export default function LostFoundPage() {
                     <button
                       type="button"
                       onClick={() => void handleClaim(post._id)}
-                      className="px-3 py-1 rounded-lg bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] text-xs font-medium"
+                      className="px-3 py-1 rounded-lg bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] text-xs font-medium hover:opacity-90 transition-opacity"
                     >
                       Claim
                     </button>
@@ -377,7 +385,7 @@ export default function LostFoundPage() {
                   <button
                     type="button"
                     onClick={() => void handleReturn(post._id)}
-                    className="px-3 py-1 rounded-lg bg-green-600 text-white text-xs font-medium"
+                    className="px-3 py-1 rounded-lg bg-green-600 text-white text-xs font-medium hover:opacity-90 transition-opacity"
                   >
                     Mark Returned
                   </button>
@@ -388,21 +396,23 @@ export default function LostFoundPage() {
                   <button
                     type="button"
                     onClick={() => void handleDelete(post._id)}
-                    className="px-3 py-1 rounded-lg bg-[hsl(var(--destructive))] text-white text-xs font-medium"
+                    className="px-3 py-1 rounded-lg bg-[hsl(var(--destructive))] text-white text-xs font-medium hover:opacity-90 transition-opacity"
                   >
                     Delete
                   </button>
                 )}
               </div>
             </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       )}
 
       {/* Modal overlay */}
+      <AnimatePresence>
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-lg mx-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+        <motion.div key="modal-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} transition={{ type: 'spring', stiffness: 300, damping: 25 }} className="w-full max-w-lg mx-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-bold text-[hsl(var(--foreground))]">
                 Report {modalType === 'LOST' ? 'Lost' : 'Found'} Item
@@ -428,7 +438,7 @@ export default function LostFoundPage() {
                   onChange={(e) => setFormItemName(e.target.value)}
                   maxLength={100}
                   placeholder="e.g. Blue Backpack, iPhone 15"
-                  className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 text-sm text-[hsl(var(--foreground))]"
+                  className={inputCls}
                 />
               </div>
 
@@ -443,7 +453,7 @@ export default function LostFoundPage() {
                   rows={3}
                   maxLength={500}
                   placeholder="Provide details to help identify the item..."
-                  className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 text-sm text-[hsl(var(--foreground))] resize-none"
+                  className={`${inputCls} resize-none`}
                 />
               </div>
 
@@ -455,7 +465,7 @@ export default function LostFoundPage() {
                 <select
                   value={formCategory}
                   onChange={(e) => setFormCategory(e.target.value as Category)}
-                  className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 text-sm text-[hsl(var(--foreground))]"
+                  className={inputCls}
                 >
                   {CATEGORIES.map((c) => (
                     <option key={c} value={c}>
@@ -476,7 +486,7 @@ export default function LostFoundPage() {
                   onChange={(e) => setFormLocation(e.target.value)}
                   maxLength={200}
                   placeholder="e.g. Common Room Block A, Mess Hall"
-                  className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 text-sm text-[hsl(var(--foreground))]"
+                  className={inputCls}
                 />
               </div>
 
@@ -489,7 +499,7 @@ export default function LostFoundPage() {
                   type="date"
                   value={formDate}
                   onChange={(e) => setFormDate(e.target.value)}
-                  className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 text-sm text-[hsl(var(--foreground))]"
+                  className={inputCls}
                 />
               </div>
 
@@ -504,22 +514,18 @@ export default function LostFoundPage() {
                   onChange={(e) => setFormContact(e.target.value)}
                   maxLength={200}
                   placeholder="Phone number, email, or room number"
-                  className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 text-sm text-[hsl(var(--foreground))]"
+                  className={inputCls}
                 />
               </div>
 
               {/* Error */}
-              {formError && (
-                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
-                  {formError}
-                </div>
-              )}
+              {formError && <ErrorBanner message={formError} />}
 
               {/* Submit */}
               <button
                 type="submit"
                 disabled={submitting}
-                className={`w-full py-2.5 rounded-lg font-medium text-sm text-white disabled:opacity-50 ${
+                className={`w-full py-2.5 rounded-lg font-medium text-sm text-white disabled:opacity-50 hover:opacity-90 transition-opacity ${
                   modalType === 'LOST' ? 'bg-[hsl(var(--destructive))]' : 'bg-green-600'
                 }`}
               >
@@ -528,9 +534,10 @@ export default function LostFoundPage() {
                   : `Report ${modalType === 'LOST' ? 'Lost' : 'Found'} Item`}
               </button>
             </form>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }

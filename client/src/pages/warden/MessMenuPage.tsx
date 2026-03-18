@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { FadeIn, StaggerContainer, StaggerItem } from '@components/ui/motion';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MEALS = ['breakfast', 'lunch', 'snacks', 'dinner'] as const;
@@ -83,14 +84,17 @@ export default function MessMenuPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-[hsl(var(--foreground))]">Mess Menu Management</h1>
-        <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">Update the weekly mess menu for all hostels.</p>
-      </div>
+      <FadeIn>
+        <div>
+          <h1 className="text-2xl font-bold text-[hsl(var(--foreground))]">Mess Menu Management</h1>
+          <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">Update the weekly mess menu for all hostels.</p>
+        </div>
+      </FadeIn>
 
+      <StaggerContainer stagger={0.04}>
       {DAY_NAMES.map((name, dayIndex) => (
+        <StaggerItem key={dayIndex}>
         <div
-          key={dayIndex}
           className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-3"
         >
           <div className="flex items-center justify-between">
@@ -127,7 +131,9 @@ export default function MessMenuPage() {
             </p>
           )}
         </div>
+        </StaggerItem>
       ))}
+      </StaggerContainer>
     </div>
   );
 }

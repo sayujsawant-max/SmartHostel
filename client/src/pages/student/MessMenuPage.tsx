@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { Reveal } from '@/components/motion/Reveal';
+import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
+import PageHeader from '@components/ui/PageHeader';
+import ErrorBanner from '@components/ui/ErrorBanner';
+import EmptyState from '@components/EmptyState';
+import { PageSkeleton } from '@components/Skeleton';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MEALS = ['breakfast', 'lunch', 'snacks', 'dinner'] as const;
@@ -90,11 +96,21 @@ export default function MessMenuPage() {
   };
 
   if (loading) {
-    return <div className="p-4 text-center text-[hsl(var(--muted-foreground))]">Loading menu...</div>;
+    return (
+      <div className="space-y-6">
+        <Reveal><PageHeader title="Mess Menu" description="View today's menu and rate meals." /></Reveal>
+        <PageSkeleton />
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="p-4 text-center text-red-600">{error}</div>;
+    return (
+      <div className="space-y-6">
+        <Reveal><PageHeader title="Mess Menu" description="View today's menu and rate meals." /></Reveal>
+        <ErrorBanner message={error} />
+      </div>
+    );
   }
 
   const todayMenu = menus.find((m) => m.dayOfWeek === today);
@@ -105,57 +121,62 @@ export default function MessMenuPage() {
       {/* Today's Menu */}
       {todayMenu && (
         <section>
-          <h2 className="text-xl font-bold text-[hsl(var(--foreground))] mb-3">
-            Today's Menu — {DAY_NAMES[today]}
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Reveal>
+            <PageHeader
+              title={`Today's Menu — ${DAY_NAMES[today]}`}
+              description="Rate each meal to share your feedback."
+            />
+          </Reveal>
+          <StaggerContainer stagger={0.08} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {MEALS.map((meal) => {
               const r = todayMenu.ratings[meal] || { up: 0, down: 0 };
               const myVote = myRatings[today]?.[meal];
               return (
-                <div
-                  key={meal}
-                  className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2"
-                >
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-[hsl(var(--foreground))]">{MEAL_LABELS[meal]}</h3>
-                    <span className="text-xs text-[hsl(var(--muted-foreground))]">{MEAL_TIMES[meal]}</span>
+                <StaggerItem key={meal}>
+                  <div
+                    className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-[hsl(var(--foreground))]">{MEAL_LABELS[meal]}</h3>
+                      <span className="text-xs text-[hsl(var(--muted-foreground))]">{MEAL_TIMES[meal]}</span>
+                    </div>
+                    <p className="text-sm text-[hsl(var(--muted-foreground))]">{todayMenu[meal]}</p>
+                    <div className="flex items-center gap-3 pt-1">
+                      <button
+                        onClick={() => void handleRate(today, meal, 'up')}
+                        disabled={ratingInFlight === `${today}-${meal}`}
+                        className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                          myVote === 'up'
+                            ? 'bg-green-100 text-green-800 border border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700'
+                            : 'bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))]'
+                        }`}
+                      >
+                        <span>&#128077;</span>
+                        <span>{r.up}</span>
+                      </button>
+                      <button
+                        onClick={() => void handleRate(today, meal, 'down')}
+                        disabled={ratingInFlight === `${today}-${meal}`}
+                        className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                          myVote === 'down'
+                            ? 'bg-red-100 text-red-800 border border-red-300 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700'
+                            : 'bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))]'
+                        }`}
+                      >
+                        <span>&#128078;</span>
+                        <span>{r.down}</span>
+                      </button>
+                    </div>
                   </div>
-                  <p className="text-sm text-[hsl(var(--muted-foreground))]">{todayMenu[meal]}</p>
-                  <div className="flex items-center gap-3 pt-1">
-                    <button
-                      onClick={() => void handleRate(today, meal, 'up')}
-                      disabled={ratingInFlight === `${today}-${meal}`}
-                      className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                        myVote === 'up'
-                          ? 'bg-green-100 text-green-800 border border-green-300'
-                          : 'bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:bg-green-50 hover:text-green-700'
-                      }`}
-                    >
-                      <span>&#128077;</span>
-                      <span>{r.up}</span>
-                    </button>
-                    <button
-                      onClick={() => void handleRate(today, meal, 'down')}
-                      disabled={ratingInFlight === `${today}-${meal}`}
-                      className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                        myVote === 'down'
-                          ? 'bg-red-100 text-red-800 border border-red-300'
-                          : 'bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:bg-red-50 hover:text-red-700'
-                      }`}
-                    >
-                      <span>&#128078;</span>
-                      <span>{r.down}</span>
-                    </button>
-                  </div>
-                </div>
+                </StaggerItem>
               );
             })}
-          </div>
+          </StaggerContainer>
         </section>
       )}
 
       {/* Weekly Menu */}
+      <Reveal delay={0.1}>
       <section>
         <h2 className="text-xl font-bold text-[hsl(var(--foreground))] mb-3">Weekly Menu</h2>
 
@@ -194,17 +215,18 @@ export default function MessMenuPage() {
                     <p className="text-sm text-[hsl(var(--muted-foreground))]">{selectedMenu[meal]}</p>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-[hsl(var(--muted-foreground))] shrink-0 ml-3">
-                    <span className="text-green-600">&#128077; {r.up}</span>
-                    <span className="text-red-600">&#128078; {r.down}</span>
+                    <span className="text-green-600 dark:text-green-400">&#128077; {r.up}</span>
+                    <span className="text-red-600 dark:text-red-400">&#128078; {r.down}</span>
                   </div>
                 </div>
               );
             })}
           </div>
         ) : (
-          <p className="text-sm text-[hsl(var(--muted-foreground))]">No menu set for {DAY_NAMES[selectedDay]}.</p>
+          <EmptyState variant="compact" title="No menu available" description={`No menu set for ${DAY_NAMES[selectedDay]}.`} />
         )}
       </section>
+      </Reveal>
     </div>
   );
 }

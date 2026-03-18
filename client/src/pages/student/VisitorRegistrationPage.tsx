@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { Reveal } from '@/components/motion/Reveal';
+import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
+import PageHeader from '@components/ui/PageHeader';
+import StatusBadge from '@components/ui/StatusBadge';
+import ErrorBanner from '@components/ui/ErrorBanner';
+import Spinner from '@components/ui/Spinner';
+import EmptyState from '@components/EmptyState';
+import { PageSkeleton } from '@components/Skeleton';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface VisitorItem {
   _id: string;
@@ -27,14 +36,18 @@ const TIME_SLOTS = [
   '06:00 PM - 08:00 PM',
 ];
 
-const STATUS_COLORS: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
-  APPROVED: 'bg-green-100 text-green-800',
-  REJECTED: 'bg-red-100 text-red-800',
-  CHECKED_IN: 'bg-blue-100 text-blue-800',
-  CHECKED_OUT: 'bg-gray-100 text-gray-800',
-  EXPIRED: 'bg-gray-100 text-gray-500',
+type BadgeVariant = 'success' | 'warning' | 'error' | 'info' | 'neutral' | 'accent';
+
+const STATUS_VARIANT: Record<string, BadgeVariant> = {
+  PENDING: 'warning',
+  APPROVED: 'accent',
+  REJECTED: 'error',
+  CHECKED_IN: 'info',
+  CHECKED_OUT: 'neutral',
+  EXPIRED: 'neutral',
 };
+
+const inputCls = 'w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 text-sm text-[hsl(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent))]';
 
 export default function VisitorRegistrationPage() {
   const [visitors, setVisitors] = useState<VisitorItem[]>([]);
@@ -107,14 +120,12 @@ export default function VisitorRegistrationPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">Visitor Pre-Registration</h2>
-        <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
-          Register a visitor in advance for approval
-        </p>
-      </div>
+      <Reveal>
+        <PageHeader title="Visitor Pre-Registration" description="Register a visitor in advance for approval." />
+      </Reveal>
 
       {/* Registration Form */}
+      <Reveal direction="none" delay={0.1}>
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4 p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
@@ -124,7 +135,7 @@ export default function VisitorRegistrationPage() {
               value={visitorName}
               onChange={(e) => setVisitorName(e.target.value)}
               placeholder="Full name"
-              className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 text-sm text-[hsl(var(--foreground))]"
+              className={inputCls}
             />
           </div>
           <div>
@@ -134,7 +145,7 @@ export default function VisitorRegistrationPage() {
               value={visitorPhone}
               onChange={(e) => setVisitorPhone(e.target.value)}
               placeholder="e.g. 9876543210"
-              className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 text-sm text-[hsl(var(--foreground))]"
+              className={inputCls}
             />
           </div>
         </div>
@@ -145,7 +156,7 @@ export default function VisitorRegistrationPage() {
             <select
               value={relationship}
               onChange={(e) => setRelationship(e.target.value)}
-              className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 text-sm text-[hsl(var(--foreground))]"
+              className={inputCls}
             >
               <option value="">Select...</option>
               {RELATIONSHIPS.map((r) => (
@@ -158,7 +169,7 @@ export default function VisitorRegistrationPage() {
             <select
               value={expectedTime}
               onChange={(e) => setExpectedTime(e.target.value)}
-              className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 text-sm text-[hsl(var(--foreground))]"
+              className={inputCls}
             >
               <option value="">Select time slot...</option>
               {TIME_SLOTS.map((t) => (
@@ -175,7 +186,7 @@ export default function VisitorRegistrationPage() {
             value={expectedDate}
             min={today}
             onChange={(e) => setExpectedDate(e.target.value)}
-            className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 text-sm text-[hsl(var(--foreground))]"
+            className={inputCls}
           />
         </div>
 
@@ -187,38 +198,53 @@ export default function VisitorRegistrationPage() {
             rows={2}
             maxLength={300}
             placeholder="Why is the visitor coming?"
-            className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 text-sm text-[hsl(var(--foreground))] resize-none"
+            className={`${inputCls} resize-none`}
           />
           <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1">{purpose.length}/300</p>
         </div>
 
-        {error && (
-          <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">{error}</div>
-        )}
-        {successMsg && (
-          <div className="p-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm">{successMsg}</div>
-        )}
+        <AnimatePresence>
+          {error && (
+            <motion.div key="visitor-error" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+              <ErrorBanner message={error} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {successMsg && (
+            <motion.div key="visitor-success" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+              <div className="p-3 rounded-lg bg-green-50 border border-green-200 dark:bg-green-950/20 dark:border-green-800/40 text-green-700 dark:text-green-300 text-sm">
+                {successMsg}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <button
           type="submit"
           disabled={submitting}
-          className="w-full py-2.5 rounded-lg bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] font-medium text-sm disabled:opacity-50"
+          className="w-full py-2.5 rounded-lg bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] font-medium text-sm disabled:opacity-50 hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
         >
+          {submitting && <Spinner size="h-4 w-4" />}
           {submitting ? 'Registering...' : 'Register Visitor'}
         </button>
       </form>
+      </Reveal>
 
       {/* Visitor List */}
       <div>
-        <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">My Visitors</h3>
+        <Reveal delay={0.15}>
+          <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">My Visitors</h3>
+        </Reveal>
         {loading ? (
-          <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading...</p>
+          <PageSkeleton />
         ) : visitors.length === 0 ? (
-          <p className="text-sm text-[hsl(var(--muted-foreground))]">No visitors registered yet.</p>
+          <EmptyState variant="compact" title="No visitors registered yet" description="Your registered visitors will appear here." />
         ) : (
-          <div className="space-y-3">
+          <StaggerContainer stagger={0.06} className="space-y-3">
             {visitors.map((v) => (
-              <div key={v._id} className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2">
+              <StaggerItem key={v._id}>
+              <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:border-[hsl(var(--accent))]/40 transition-colors">
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="font-medium text-[hsl(var(--foreground))]">{v.visitorName}</p>
@@ -226,9 +252,9 @@ export default function VisitorRegistrationPage() {
                       {v.visitorPhone} &middot; {v.relationship}
                     </p>
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[v.status] ?? ''}`}>
+                  <StatusBadge variant={STATUS_VARIANT[v.status] ?? 'neutral'}>
                     {v.status.replace(/_/g, ' ')}
-                  </span>
+                  </StatusBadge>
                 </div>
                 <p className="text-sm text-[hsl(var(--foreground))]">{v.purpose}</p>
                 <div className="text-xs text-[hsl(var(--muted-foreground))] flex flex-wrap gap-3">
@@ -238,11 +264,12 @@ export default function VisitorRegistrationPage() {
                   {v.checkedOutAt && <span>Out: {new Date(v.checkedOutAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>}
                 </div>
                 {v.status === 'REJECTED' && v.rejectionReason && (
-                  <p className="text-xs text-red-600">Reason: {v.rejectionReason}</p>
+                  <p className="text-xs text-red-600 dark:text-red-400">Reason: {v.rejectionReason}</p>
                 )}
               </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         )}
       </div>
     </div>

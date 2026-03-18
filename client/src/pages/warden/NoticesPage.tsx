@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { Reveal } from '@/components/motion/Reveal';
+import { motion, AnimatePresence } from 'motion/react';
+import PageHeader from '@components/ui/PageHeader';
+import StatusBadge from '@components/ui/StatusBadge';
+import Spinner from '@components/ui/Spinner';
+import EmptyState from '@components/EmptyState';
+import { PageSkeleton } from '@components/Skeleton';
 
 interface Notice {
   _id: string;
@@ -65,49 +72,40 @@ export default function NoticesPage() {
     }
   };
 
+  const inputCls = 'w-full px-3 py-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent))]';
+
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">Notices</h2>
-          <p className="text-sm text-[hsl(var(--muted-foreground))]">Broadcast notices to students.</p>
-        </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 rounded-lg text-sm font-medium bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
-        >
-          {showForm ? 'Cancel' : 'New Notice'}
-        </button>
-      </div>
+      <Reveal>
+        <PageHeader
+          title="Notices"
+          description="Broadcast notices to students."
+          action={
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:opacity-90 transition-opacity"
+            >
+              {showForm ? 'Cancel' : 'New Notice'}
+            </button>
+          }
+        />
+      </Reveal>
 
+      <AnimatePresence>
       {showForm && (
+        <motion.div key="notice-form" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }} style={{ overflow: 'hidden' }}>
         <form onSubmit={(e) => void handleSubmit(e)} className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-3">
           <div>
             <label className="block text-sm font-medium text-[hsl(var(--foreground))] mb-1">Title</label>
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] text-sm"
-            />
+            <input value={title} onChange={(e) => setTitle(e.target.value)} required className={inputCls} />
           </div>
           <div>
             <label className="block text-sm font-medium text-[hsl(var(--foreground))] mb-1">Content</label>
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              required
-              rows={3}
-              className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] text-sm"
-            />
+            <textarea value={content} onChange={(e) => setContent(e.target.value)} required rows={3} className={`${inputCls} resize-none`} />
           </div>
           <div>
             <label className="block text-sm font-medium text-[hsl(var(--foreground))] mb-1">Target</label>
-            <select
-              value={target}
-              onChange={(e) => setTarget(e.target.value as 'ALL' | 'BLOCK' | 'FLOOR')}
-              className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] text-sm"
-            >
+            <select value={target} onChange={(e) => setTarget(e.target.value as 'ALL' | 'BLOCK' | 'FLOOR')} className={inputCls}>
               <option value="ALL">All Students</option>
               <option value="BLOCK">Specific Block</option>
               <option value="FLOOR">Specific Block & Floor</option>
@@ -116,47 +114,39 @@ export default function NoticesPage() {
           {target !== 'ALL' && (
             <div>
               <label className="block text-sm font-medium text-[hsl(var(--foreground))] mb-1">Block</label>
-              <input
-                value={targetBlock}
-                onChange={(e) => setTargetBlock(e.target.value)}
-                required
-                placeholder="e.g., A"
-                className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] text-sm"
-              />
+              <input value={targetBlock} onChange={(e) => setTargetBlock(e.target.value)} required placeholder="e.g., A" className={inputCls} />
             </div>
           )}
           {target === 'FLOOR' && (
             <div>
               <label className="block text-sm font-medium text-[hsl(var(--foreground))] mb-1">Floor</label>
-              <input
-                value={targetFloor}
-                onChange={(e) => setTargetFloor(e.target.value)}
-                required
-                placeholder="e.g., 2"
-                className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] text-sm"
-              />
+              <input value={targetFloor} onChange={(e) => setTargetFloor(e.target.value)} required placeholder="e.g., 2" className={inputCls} />
             </div>
           )}
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-2 rounded-lg text-sm font-medium bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] disabled:opacity-50"
+            className="w-full py-2 rounded-lg text-sm font-medium bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] disabled:opacity-50 hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
           >
+            {submitting && <Spinner size="h-4 w-4" />}
             {submitting ? 'Publishing...' : 'Publish Notice'}
           </button>
         </form>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {loading ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading...</p>
+        <PageSkeleton />
       ) : notices.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-[hsl(var(--muted-foreground))]">No notices published yet.</p>
-        </div>
+        <EmptyState title="No notices published yet" description="Create your first notice to broadcast to students." />
       ) : (
         <div className="space-y-3">
           {notices.map((n) => (
-            <div key={n._id} className={`p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 ${!n.isActive ? 'opacity-50' : ''}`}>
+            <div
+              key={n._id}
+              className={`p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:border-[hsl(var(--accent))]/40 transition-colors ${!n.isActive ? 'opacity-50' : ''}`}
+            >
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-medium text-[hsl(var(--foreground))]">{n.title}</p>
@@ -167,9 +157,9 @@ export default function NoticesPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${n.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                  <StatusBadge variant={n.isActive ? 'success' : 'neutral'}>
                     {n.isActive ? 'Active' : 'Inactive'}
-                  </span>
+                  </StatusBadge>
                   {n.isActive && (
                     <button
                       onClick={() => void handleDeactivate(n._id)}

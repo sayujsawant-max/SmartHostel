@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import Fuse from 'fuse.js';
 import { apiFetch } from '@services/api';
+import { Reveal } from '@/components/motion/Reveal';
+import PageHeader from '@components/ui/PageHeader';
+import Accordion, { type AccordionItem } from '@components/ui/Accordion';
+import EmptyState from '@components/EmptyState';
+import { PageSkeleton } from '@components/Skeleton';
 
 interface FaqItem {
   _id: string;
@@ -37,6 +42,7 @@ export default function FaqPage() {
     ? fuse.search(query).map((r) => r.item)
     : faqs;
 
+  // Group by category
   const grouped = useMemo(() => {
     const map = new Map<string, FaqItem[]>();
     for (const faq of results) {
@@ -48,60 +54,54 @@ export default function FaqPage() {
   }, [results]);
 
   if (loading) {
-    return <div className="p-4 text-center text-[hsl(var(--muted-foreground))]">Loading...</div>;
+    return <PageSkeleton />;
   }
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">FAQ</h2>
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Common questions for maintenance staff.</p>
-      </div>
+      <Reveal>
+        <PageHeader title="FAQ" description="Common questions for maintenance staff." />
+      </Reveal>
 
-      <input
-        type="text"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search FAQs..."
-        className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] text-sm"
-      />
+      <Reveal direction="none" delay={0.1}>
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search FAQs..."
+          className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent))]"
+        />
+      </Reveal>
 
       {results.length === 0 ? (
-        <div className="text-center py-8">
-          <p className="text-[hsl(var(--muted-foreground))]">No matching answer found. Try rephrasing or contact your warden.</p>
-        </div>
+        <EmptyState
+          variant="compact"
+          title="No matching answer found"
+          description="Try rephrasing or contact your warden."
+        />
       ) : (
-        Array.from(grouped.entries()).map(([category, items]) => (
-          <div key={category} className="space-y-1">
-            <h3 className="text-sm font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider">{category}</h3>
-            <div className="space-y-1">
-              {items.map((faq) => {
-                const isOpen = openId === faq._id;
-                return (
-                  <div key={faq._id} className="rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
-                    <button
-                      onClick={() => setOpenId(isOpen ? null : faq._id)}
-                      className="w-full text-left p-3 flex justify-between items-center"
-                    >
-                      <span className="text-sm font-medium text-[hsl(var(--foreground))] pr-2">{faq.question}</span>
-                      <svg
-                        className={`w-4 h-4 flex-shrink-0 text-[hsl(var(--muted-foreground))] transition-transform ${isOpen ? 'rotate-180' : ''}`}
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    {isOpen && (
-                      <div className="px-3 pb-3">
-                        <p className="text-sm text-[hsl(var(--muted-foreground))]">{faq.answer}</p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+        Array.from(grouped.entries()).map(([category, items]) => {
+          const accordionItems: AccordionItem[] = items.map((faq) => ({
+            id: faq._id,
+            title: faq.question,
+            content: (
+              <p className="text-sm text-[hsl(var(--muted-foreground))]">{faq.answer}</p>
+            ),
+          }));
+
+          return (
+            <div key={category} className="space-y-2">
+              <h3 className="text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider">
+                {category}
+              </h3>
+              <Accordion
+                items={accordionItems}
+                openId={openId}
+                onToggle={setOpenId}
+              />
             </div>
-          </div>
-        ))
+          );
+        })
       )}
     </div>
   );

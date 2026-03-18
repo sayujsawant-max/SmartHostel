@@ -1,4 +1,5 @@
 import { useTheme } from '@context/ThemeContext';
+import { motion, AnimatePresence } from 'motion/react';
 
 const icons = {
   light: (
@@ -27,14 +28,28 @@ export default function ThemeToggle() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <button
+    <motion.button
       type="button"
       onClick={() => setTheme(cycle[theme])}
+      whileHover={{ scale: 1.15 }}
+      whileTap={{ scale: 0.85, rotate: 180 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 15 }}
       className="p-2 rounded-lg text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] transition-colors"
       aria-label={`Theme: ${labels[theme]}. Click to switch.`}
       title={`Theme: ${labels[theme]}`}
     >
-      {icons[theme]}
-    </button>
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={theme}
+          initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
+          animate={{ rotate: 0, opacity: 1, scale: 1 }}
+          exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
+          transition={{ duration: 0.2 }}
+          className="block"
+        >
+          {icons[theme]}
+        </motion.span>
+      </AnimatePresence>
+    </motion.button>
   );
 }

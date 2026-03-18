@@ -3,6 +3,7 @@ import { useAuth } from '@hooks/useAuth';
 import NotificationBell from '@components/NotificationBell';
 import ThemeToggle from '@components/ThemeToggle';
 import SosButton from '@components/SosButton';
+import { motion, PageTransition } from '@components/ui/motion';
 
 const tabs = [
   { label: 'Status', to: '/student/status' },
@@ -18,7 +19,12 @@ export default function StudentShell() {
   return (
     <div className="min-h-screen flex flex-col bg-[hsl(var(--background))]">
       {/* Top bar */}
-      <header className="flex items-center justify-between px-4 py-3 bg-[hsl(var(--card))] border-b border-[hsl(var(--border))] shadow-sm">
+      <motion.header
+        initial={{ y: -40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.35 }}
+        className="flex items-center justify-between px-4 py-3 bg-[hsl(var(--card))] border-b border-[hsl(var(--border))] shadow-sm"
+      >
         <h1 className="text-lg font-bold text-[hsl(var(--foreground))]">SmartHostel</h1>
         <div className="flex items-center gap-3">
           <NotificationBell />
@@ -31,17 +37,24 @@ export default function StudentShell() {
             Logout
           </button>
         </div>
-      </header>
+      </motion.header>
 
-      {/* Main content */}
+      {/* Main content with page transition */}
       <main className="flex-1 overflow-y-auto p-4 pb-20">
-        <Outlet />
+        <PageTransition>
+          <Outlet />
+        </PageTransition>
       </main>
 
       <SosButton />
 
       {/* Bottom tab bar */}
-      <nav className="fixed bottom-0 left-0 right-0 flex bg-[hsl(var(--card))] border-t border-[hsl(var(--border))] shadow-lg">
+      <motion.nav
+        initial={{ y: 60, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.35, delay: 0.1 }}
+        className="fixed bottom-0 left-0 right-0 flex bg-[hsl(var(--card))] border-t border-[hsl(var(--border))] shadow-lg"
+      >
         {tabs.map((tab) => (
           <NavLink
             key={tab.to}
@@ -57,7 +70,7 @@ export default function StudentShell() {
             {tab.label}
           </NavLink>
         ))}
-      </nav>
+      </motion.nav>
     </div>
   );
 }

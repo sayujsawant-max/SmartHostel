@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { Reveal } from '@/components/motion/Reveal';
+import { motion, AnimatePresence } from 'motion/react';
+import PageHeader from '@components/ui/PageHeader';
+import ErrorBanner from '@components/ui/ErrorBanner';
+import EmptyState from '@components/EmptyState';
+import { PageSkeleton } from '@components/Skeleton';
 
 interface Room {
   _id: string;
@@ -76,87 +82,96 @@ export default function RoomsManagePage() {
     }
   };
 
+  const inputCls = 'w-full px-3 py-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-sm text-[hsl(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent))]';
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-[hsl(var(--foreground))]">Room Management</h2>
-          <p className="mt-1 text-[hsl(var(--muted-foreground))]">Add rooms, manage occupancy and availability.</p>
-        </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 rounded-lg bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] text-sm font-medium"
-        >
-          {showForm ? 'Cancel' : '+ Add Room'}
-        </button>
-      </div>
+      <Reveal>
+        <PageHeader
+          title="Room Management"
+          description="Add rooms, manage occupancy and availability."
+          action={
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="px-4 py-2 rounded-lg bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] text-sm font-medium hover:opacity-90 transition-opacity"
+            >
+              {showForm ? 'Cancel' : '+ Add Room'}
+            </button>
+          }
+        />
+      </Reveal>
 
       {/* Add Room Form */}
+      <AnimatePresence>
       {showForm && (
+        <motion.div key="room-form" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }} style={{ overflow: 'hidden' }}>
         <form onSubmit={handleSubmit} className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl p-4 space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Block</label>
-              <input value={form.block} onChange={(e) => setForm({ ...form, block: e.target.value })} required className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm" />
+              <input value={form.block} onChange={(e) => setForm({ ...form, block: e.target.value })} required className={inputCls} />
             </div>
             <div>
               <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Floor</label>
-              <input value={form.floor} onChange={(e) => setForm({ ...form, floor: e.target.value })} required className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm" />
+              <input value={form.floor} onChange={(e) => setForm({ ...form, floor: e.target.value })} required className={inputCls} />
             </div>
             <div>
               <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Room Number</label>
-              <input value={form.roomNumber} onChange={(e) => setForm({ ...form, roomNumber: e.target.value })} required className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm" />
+              <input value={form.roomNumber} onChange={(e) => setForm({ ...form, roomNumber: e.target.value })} required className={inputCls} />
             </div>
             <div>
               <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Hostel</label>
-              <select value={form.hostelGender} onChange={(e) => setForm({ ...form, hostelGender: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm">
+              <select value={form.hostelGender} onChange={(e) => setForm({ ...form, hostelGender: e.target.value })} className={inputCls}>
                 <option value="BOYS">Boys</option>
                 <option value="GIRLS">Girls</option>
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Room Type</label>
-              <select value={form.roomType} onChange={(e) => setForm({ ...form, roomType: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm">
+              <select value={form.roomType} onChange={(e) => setForm({ ...form, roomType: e.target.value })} className={inputCls}>
                 <option value="NORMAL">Normal</option>
                 <option value="DELUXE">Deluxe</option>
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">AC Type</label>
-              <select value={form.acType} onChange={(e) => setForm({ ...form, acType: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm">
+              <select value={form.acType} onChange={(e) => setForm({ ...form, acType: e.target.value })} className={inputCls}>
                 <option value="NON_AC">Non-AC</option>
                 <option value="AC">AC</option>
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Total Beds</label>
-              <input type="number" min={1} max={10} value={form.totalBeds} onChange={(e) => setForm({ ...form, totalBeds: Number(e.target.value) })} className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm" />
+              <input type="number" min={1} max={10} value={form.totalBeds} onChange={(e) => setForm({ ...form, totalBeds: Number(e.target.value) })} className={inputCls} />
             </div>
             <div>
               <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Fee / Semester (INR)</label>
-              <input type="number" min={0} value={form.feePerSemester} onChange={(e) => setForm({ ...form, feePerSemester: Number(e.target.value) })} className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm" />
+              <input type="number" min={0} value={form.feePerSemester} onChange={(e) => setForm({ ...form, feePerSemester: Number(e.target.value) })} className={inputCls} />
             </div>
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <button type="submit" className="w-full py-2 rounded-lg bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] font-medium text-sm">
+          {error && <ErrorBanner message={error} />}
+          <button type="submit" className="w-full py-2 rounded-lg bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] font-medium text-sm hover:opacity-90 transition-opacity">
             Create Room
           </button>
         </form>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* Room List */}
       {loading ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading...</p>
+        <PageSkeleton />
       ) : rooms.length === 0 ? (
-        <div className="text-center py-12 text-[hsl(var(--muted-foreground))]">
-          <p>No rooms added yet.</p>
-        </div>
+        <EmptyState title="No rooms added yet" description="Add your first room to get started." />
       ) : (
         <div className="space-y-3">
           {rooms.map((room) => {
             const bedsLeft = room.totalBeds - room.occupiedBeds;
             return (
-              <div key={room._id} className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl p-4">
+              <div
+                key={room._id}
+                className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl p-4 hover:border-[hsl(var(--accent))]/40 transition-colors"
+              >
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="font-semibold text-[hsl(var(--foreground))]">
@@ -177,15 +192,15 @@ export default function RoomsManagePage() {
                       <button
                         onClick={() => updateOccupancy(room._id, -1)}
                         disabled={room.occupiedBeds <= 0}
-                        className="w-7 h-7 rounded bg-gray-200 text-gray-700 text-sm font-bold disabled:opacity-30"
+                        className="w-7 h-7 rounded-lg bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] text-sm font-bold disabled:opacity-30 hover:bg-[hsl(var(--accent))]/20 transition-colors"
                       >
                         -
                       </button>
-                      <span className="text-sm font-medium">{room.occupiedBeds}/{room.totalBeds}</span>
+                      <span className="text-sm font-medium text-[hsl(var(--foreground))]">{room.occupiedBeds}/{room.totalBeds}</span>
                       <button
                         onClick={() => updateOccupancy(room._id, 1)}
                         disabled={room.occupiedBeds >= room.totalBeds}
-                        className="w-7 h-7 rounded bg-gray-200 text-gray-700 text-sm font-bold disabled:opacity-30"
+                        className="w-7 h-7 rounded-lg bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] text-sm font-bold disabled:opacity-30 hover:bg-[hsl(var(--accent))]/20 transition-colors"
                       >
                         +
                       </button>

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { apiFetch } from '@services/api';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface FaqItem {
   _id: string;
@@ -18,7 +19,6 @@ interface ChatMessage {
 const GREETINGS = ['hi', 'hello', 'hey', 'help'];
 const GREETING_RESPONSE = "Hi! I'm the SmartHostel assistant. Ask me about leaves, complaints, fees, rooms, laundry, mess menu, visitors, or anything else!";
 
-// Hardcoded fallback FAQs so the bot always has relevant answers
 const FALLBACK_FAQS: FaqItem[] = [
   { _id: 'f1', question: 'How do I apply for leave?', answer: 'Go to Actions > Request Leave. Select the leave type (day outing or overnight), pick your dates, and submit. Your warden will approve or reject it.', category: 'Leaves', keywords: ['leave', 'outing', 'permission', 'apply', 'request', 'absent', 'go home'] },
   { _id: 'f2', question: 'How do I file a complaint?', answer: 'Go to Actions > Report Issue. Select a category (electrical, plumbing, furniture, etc.), describe the issue, and submit. You can track the status on the Status page.', category: 'Complaints', keywords: ['complaint', 'issue', 'report', 'problem', 'maintenance', 'broken', 'fix', 'repair'] },
@@ -37,15 +37,12 @@ const FALLBACK_FAQS: FaqItem[] = [
 function findBestMatch(query: string, faqs: FaqItem[]): string | null {
   const lower = query.toLowerCase();
 
-  // Check greetings
   if (GREETINGS.some((g) => lower.includes(g)) && lower.length < 20) {
     return GREETING_RESPONSE;
   }
 
-  // Merge DB FAQs with fallback FAQs (DB entries take priority via higher score)
   const allFaqs = [...faqs, ...FALLBACK_FAQS];
 
-  // Score each FAQ by keyword overlap
   let bestScore = 0;
   let bestAnswer = '';
 
@@ -60,7 +57,6 @@ function findBestMatch(query: string, faqs: FaqItem[]): string | null {
       }
     }
 
-    // Bonus for exact substring match in question
     if (faq.question.toLowerCase().includes(lower)) {
       score += 3;
     }
@@ -102,7 +98,6 @@ export default function Chatbot() {
     setMessages((prev) => [...prev, userMsg]);
     setInput('');
 
-    // Find answer
     const answer = findBestMatch(text, faqs);
     const botMsg: ChatMessage = {
       id: (Date.now() + 1).toString(),
@@ -118,73 +113,116 @@ export default function Chatbot() {
   return (
     <>
       {/* Chat Toggle Button */}
-      <button
+      <motion.button
         onClick={() => setIsOpen(!isOpen)}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
         className="fixed bottom-20 right-4 z-50 w-14 h-14 rounded-full bg-teal-600 text-white shadow-lg hover:bg-teal-700 flex items-center justify-center"
         aria-label="Toggle chatbot"
       >
-        {isOpen ? (
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        ) : (
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
-        )}
-      </button>
+        <AnimatePresence mode="wait">
+          {isOpen ? (
+            <motion.svg
+              key="close"
+              initial={{ rotate: -90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: 90, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </motion.svg>
+          ) : (
+            <motion.svg
+              key="chat"
+              initial={{ rotate: 90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: -90, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </motion.svg>
+          )}
+        </AnimatePresence>
+      </motion.button>
 
       {/* Chat Window */}
-      {isOpen && (
-        <div className="fixed bottom-36 right-4 z-50 w-80 h-96 bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden">
-          {/* Header */}
-          <div className="bg-teal-600 text-white px-4 py-3 flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-400 rounded-full" />
-            <span className="font-medium text-sm">SmartHostel Assistant</span>
-          </div>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            className="fixed bottom-36 right-4 z-50 w-80 h-96 bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
+          >
+            {/* Header */}
+            <div className="bg-teal-600 text-white px-4 py-3 flex items-center gap-2">
+              <motion.div
+                animate={{ scale: [1, 1.3, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="w-2 h-2 bg-green-400 rounded-full"
+              />
+              <span className="font-medium text-sm">SmartHostel Assistant</span>
+            </div>
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-2">
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[80%] px-3 py-2 rounded-xl text-sm ${
-                    msg.role === 'user'
-                      ? 'bg-teal-600 text-white rounded-br-sm'
-                      : 'bg-gray-100 text-gray-800 rounded-bl-sm'
-                  }`}
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {messages.map((msg) => (
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.2 }}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  {msg.text}
-                </div>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
+                  <div
+                    className={`max-w-[80%] px-3 py-2 rounded-xl text-sm ${
+                      msg.role === 'user'
+                        ? 'bg-teal-600 text-white rounded-br-sm'
+                        : 'bg-gray-100 text-gray-800 rounded-bl-sm'
+                    }`}
+                  >
+                    {msg.text}
+                  </div>
+                </motion.div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
 
-          {/* Input */}
-          <div className="border-t p-2 flex gap-2">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="Ask a question..."
-              className="flex-1 px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-            />
-            <button
-              onClick={handleSend}
-              className="px-3 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
+            {/* Input */}
+            <div className="border-t p-2 flex gap-2">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                placeholder="Ask a question..."
+                className="flex-1 px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-shadow"
+              />
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={handleSend}
+                className="px-3 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

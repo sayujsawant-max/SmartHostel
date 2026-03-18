@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { apiFetch } from '@services/api';
+import { FadeIn, StaggerContainer, StaggerItem } from '@components/ui/motion';
 
 interface ComplaintDetail {
   _id: string;
@@ -81,8 +82,11 @@ export default function ComplaintDetailPage() {
 
   return (
     <div className="space-y-4">
-      <Link to="/student/status" className="text-sm text-blue-600">&larr; Back to Status</Link>
+      <FadeIn>
+        <Link to="/student/status" className="text-sm text-blue-600">&larr; Back to Status</Link>
+      </FadeIn>
 
+      <FadeIn delay={0.1}>
       <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2">
         <div className="flex justify-between items-start">
           <h2 className="text-lg font-bold text-[hsl(var(--foreground))]">
@@ -107,13 +111,16 @@ export default function ComplaintDetailPage() {
           </div>
         )}
       </div>
+      </FadeIn>
 
       {/* Timeline */}
+      <FadeIn delay={0.2}>
       <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
         <h3 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Timeline</h3>
-        <div className="space-y-3">
+        <StaggerContainer stagger={0.06} className="space-y-3">
           {timeline.map((event, i) => (
-            <div key={event._id} className="flex gap-3">
+            <StaggerItem key={event._id}>
+            <div className="flex gap-3">
               <div className="flex flex-col items-center">
                 <div className={`w-3 h-3 rounded-full ${i === timeline.length - 1 ? 'bg-[hsl(var(--primary))]' : 'bg-[hsl(var(--muted-foreground))]'}`} />
                 {i < timeline.length - 1 && <div className="w-0.5 flex-1 bg-[hsl(var(--border))]" />}
@@ -131,9 +138,11 @@ export default function ComplaintDetailPage() {
                 </p>
               </div>
             </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       </div>
+      </FadeIn>
     </div>
   );
 }

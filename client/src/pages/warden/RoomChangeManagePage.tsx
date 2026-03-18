@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { FadeIn, motion } from '@components/ui/motion';
 
 interface PopulatedRoom {
   _id: string;
@@ -104,24 +105,26 @@ export default function RoomChangeManagePage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-[hsl(var(--foreground))]">Room Change Requests</h2>
-          <p className="text-sm text-[hsl(var(--muted-foreground))]">
-            Review and manage student room change requests.
-          </p>
+      <FadeIn>
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-[hsl(var(--foreground))]">Room Change Requests</h2>
+            <p className="text-sm text-[hsl(var(--muted-foreground))]">
+              Review and manage student room change requests.
+            </p>
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-1.5 text-sm"
+          >
+            <option value="">All Status</option>
+            <option value="PENDING">Pending</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="REJECTED">Rejected</option>
+          </select>
         </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-1.5 text-sm"
-        >
-          <option value="">All Status</option>
-          <option value="PENDING">Pending</option>
-          <option value="COMPLETED">Completed</option>
-          <option value="REJECTED">Rejected</option>
-        </select>
-      </div>
+      </FadeIn>
 
       {loading ? (
         <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading...</p>
@@ -130,8 +133,10 @@ export default function RoomChangeManagePage() {
       ) : (
         <div className="space-y-3">
           {filtered.map((r) => (
-            <div
+            <motion.div
               key={r._id}
+              whileHover={{ x: 2 }}
+              transition={{ duration: 0.15 }}
               className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2"
             >
               {/* Header */}
@@ -243,7 +248,7 @@ export default function RoomChangeManagePage() {
                   )}
                 </div>
               )}
-            </div>
+            </motion.div>
           ))}
         </div>
       )}

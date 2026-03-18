@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { Reveal } from '@/components/motion/Reveal';
+import PageHeader from '@components/ui/PageHeader';
+import StatusBadge from '@components/ui/StatusBadge';
+import EmptyState from '@components/EmptyState';
+import { PageSkeleton } from '@components/Skeleton';
 
 interface ResolvedTask {
   _id: string;
@@ -26,21 +31,21 @@ export default function HistoryPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">Completed Tasks</h2>
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Your resolved maintenance history.</p>
-      </div>
+      <Reveal>
+        <PageHeader title="Completed Tasks" description="Your resolved maintenance history." />
+      </Reveal>
 
       {loading ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading...</p>
+        <PageSkeleton />
       ) : tasks.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-[hsl(var(--muted-foreground))]">No completed tasks yet.</p>
-        </div>
+        <EmptyState variant="compact" title="No completed tasks yet" description="Resolved tasks will appear here." />
       ) : (
         <div className="space-y-3">
           {tasks.map((t) => (
-            <div key={t._id} className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2">
+            <div
+              key={t._id}
+              className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:border-[hsl(var(--accent))]/40 transition-colors"
+            >
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-medium text-[hsl(var(--foreground))]">
@@ -52,17 +57,17 @@ export default function HistoryPage() {
                     {t.studentId?.roomNumber && ` · Room ${t.studentId.roomNumber}`}
                   </p>
                 </div>
-                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  {t.status}
-                </span>
+                <StatusBadge variant="success">
+                  {t.status.replace(/_/g, ' ')}
+                </StatusBadge>
               </div>
 
               <p className="text-sm text-[hsl(var(--foreground))]">{t.description}</p>
 
               {t.resolutionNotes && (
-                <div className="p-2 rounded-lg bg-green-50 border border-green-200">
-                  <p className="text-xs font-medium text-green-800">Resolution</p>
-                  <p className="text-sm text-green-700">{t.resolutionNotes}</p>
+                <div className="p-2 rounded-lg bg-green-50 border border-green-200 dark:bg-green-950/20 dark:border-green-900/40">
+                  <p className="text-xs font-medium text-green-800 dark:text-green-400">Resolution</p>
+                  <p className="text-sm text-green-700 dark:text-green-300">{t.resolutionNotes}</p>
                 </div>
               )}
 

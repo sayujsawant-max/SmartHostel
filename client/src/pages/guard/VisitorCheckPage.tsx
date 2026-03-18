@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { Reveal } from '@/components/motion/Reveal';
+import PageHeader from '@components/ui/PageHeader';
+import StatusBadge from '@components/ui/StatusBadge';
+import EmptyState from '@components/EmptyState';
+import { PageSkeleton } from '@components/Skeleton';
 
 interface VisitorItem {
   _id: string;
@@ -15,9 +20,11 @@ interface VisitorItem {
   studentId?: { _id: string; name: string; email: string; roomNumber?: string; block?: string } | null;
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  APPROVED: 'bg-green-100 text-green-800',
-  CHECKED_IN: 'bg-blue-100 text-blue-800',
+type BadgeVariant = 'success' | 'warning' | 'error' | 'info' | 'neutral' | 'accent';
+
+const STATUS_VARIANT: Record<string, BadgeVariant> = {
+  APPROVED: 'accent',
+  CHECKED_IN: 'info',
 };
 
 export default function VisitorCheckPage() {
@@ -62,21 +69,24 @@ export default function VisitorCheckPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-2xl font-bold text-[hsl(var(--foreground))]">Visitor Check-In/Out</h2>
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">
-          Manage today's approved visitors at the gate.
-        </p>
-      </div>
+      <Reveal>
+        <PageHeader
+          title="Visitor Check-In/Out"
+          description="Manage today's approved visitors at the gate."
+        />
+      </Reveal>
 
       {loading ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading...</p>
+        <PageSkeleton />
       ) : visitors.length === 0 ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">No approved visitors for today.</p>
+        <EmptyState variant="compact" title="No approved visitors for today" description="Approved visitors will appear here." />
       ) : (
         <div className="space-y-3">
           {visitors.map((v) => (
-            <div key={v._id} className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2">
+            <div
+              key={v._id}
+              className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:border-[hsl(var(--accent))]/40 transition-colors"
+            >
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-medium text-[hsl(var(--foreground))]">{v.visitorName}</p>
@@ -84,9 +94,9 @@ export default function VisitorCheckPage() {
                     {v.visitorPhone} &middot; {v.relationship}
                   </p>
                 </div>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[v.status] ?? ''}`}>
+                <StatusBadge variant={STATUS_VARIANT[v.status] ?? 'neutral'}>
                   {v.status.replace(/_/g, ' ')}
-                </span>
+                </StatusBadge>
               </div>
 
               {/* Student info */}
@@ -110,7 +120,7 @@ export default function VisitorCheckPage() {
                 {v.status === 'APPROVED' && (
                   <button
                     onClick={() => void handleCheckIn(v._id)}
-                    className="px-4 py-1.5 rounded bg-blue-600 text-white text-sm font-medium"
+                    className="px-4 py-1.5 rounded-lg bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] text-sm font-medium hover:opacity-90 transition-opacity"
                   >
                     Check In
                   </button>
@@ -118,7 +128,7 @@ export default function VisitorCheckPage() {
                 {v.status === 'CHECKED_IN' && (
                   <button
                     onClick={() => void handleCheckOut(v._id)}
-                    className="px-4 py-1.5 rounded bg-gray-600 text-white text-sm font-medium"
+                    className="px-4 py-1.5 rounded-lg bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] text-sm font-medium hover:opacity-90 transition-opacity"
                   >
                     Check Out
                   </button>

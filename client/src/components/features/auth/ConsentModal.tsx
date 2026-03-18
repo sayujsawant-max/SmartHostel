@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiFetch } from '@services/api';
 import { useAuth } from '@hooks/useAuth';
+import { motion } from 'motion/react';
 
 const CONSENT_VERSION = '1.0';
 
@@ -9,7 +10,6 @@ export default function ConsentModal() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Block Escape key from dismissing
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
@@ -39,13 +39,21 @@ export default function ConsentModal() {
   }, [setConsented]);
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="consent-title"
     >
-      <div className="mx-4 w-full max-w-lg rounded-xl bg-[hsl(var(--card))] p-6 shadow-2xl sm:p-8">
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.1 }}
+        className="mx-4 w-full max-w-lg rounded-xl bg-[hsl(var(--card))] p-6 shadow-2xl sm:p-8"
+      >
         <h2
           id="consent-title"
           className="mb-4 text-xl font-semibold text-[hsl(var(--card-foreground))]"
@@ -97,25 +105,31 @@ export default function ConsentModal() {
         </div>
 
         {error && (
-          <p className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/50 dark:text-red-400">
+          <motion.p
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/50 dark:text-red-400"
+          >
             {error}
-          </p>
+          </motion.p>
         )}
 
-        <button
+        <motion.button
           type="button"
           onClick={handleAccept}
           disabled={isSubmitting}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           className="w-full rounded-lg bg-[hsl(var(--primary))] px-4 py-3 text-sm font-medium text-[hsl(var(--primary-foreground))] transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isSubmitting ? 'Recording consent...' : 'I Accept'}
-        </button>
+        </motion.button>
 
         <p className="mt-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
           By clicking "I Accept", you acknowledge that you have read and agree to the above privacy
           notice. Consent version: {CONSENT_VERSION}
         </p>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

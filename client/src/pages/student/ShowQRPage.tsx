@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { apiFetch } from '@services/api';
+import { FadeIn, motion } from '@components/ui/motion';
 
 interface GatePass {
   _id: string;
@@ -13,17 +14,8 @@ interface GatePass {
   leaveId: string;
 }
 
-interface LeaveInfo {
-  type: string;
-  startDate: string;
-  endDate: string;
-  reason: string;
-  status: string;
-}
-
 export default function ShowQRPage() {
   const [gatePass, setGatePass] = useState<GatePass | null>(null);
-  const [leave, setLeave] = useState<LeaveInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
@@ -56,21 +48,6 @@ export default function ShowQRPage() {
     return () => {
       wakeLock?.release();
     };
-  }, [gatePass]);
-
-  // Fetch leave details when gate pass is loaded
-  useEffect(() => {
-    if (!gatePass) {
-      setLeave(null);
-      return;
-    }
-
-    apiFetch<{ gatePass: GatePass }>('/gate-passes/active')
-      .then(() => {
-        // We already have the gate pass; leave details come from the verify endpoint
-        // but that's guard-only. We'll display what we have from the pass itself.
-      })
-      .catch(() => { /* ignore */ });
   }, [gatePass]);
 
   const handleGenerate = async () => {
@@ -156,7 +133,9 @@ export default function ShowQRPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] p-4 space-y-6">
-      <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">Your Gate Pass</h2>
+      <FadeIn>
+        <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">Your Gate Pass</h2>
+      </FadeIn>
 
       {/* Status badge */}
       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}>
@@ -165,13 +144,18 @@ export default function ShowQRPage() {
 
       {/* QR Code */}
       {passStatus === 'ACTIVE' && (
-        <div className="bg-white p-4 rounded-xl shadow-lg">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+          className="bg-white p-4 rounded-xl shadow-lg"
+        >
           <QRCodeSVG
             value={gatePass.qrToken}
             size={Math.min(280, window.innerWidth * 0.6)}
             level="M"
           />
-        </div>
+        </motion.div>
       )}
 
       {passStatus !== 'ACTIVE' && (
@@ -183,14 +167,17 @@ export default function ShowQRPage() {
       )}
 
       {/* Fallback passcode */}
-      <div className="text-center space-y-2">
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Fallback code:</p>
-        <p className="text-3xl font-mono font-bold tracking-widest text-[hsl(var(--foreground))]">
-          {gatePass.passCode}
-        </p>
-      </div>
+      <FadeIn delay={0.15}>
+        <div className="text-center space-y-2">
+          <p className="text-sm text-[hsl(var(--muted-foreground))]">Fallback code:</p>
+          <p className="text-3xl font-mono font-bold tracking-widest text-[hsl(var(--foreground))]">
+            {gatePass.passCode}
+          </p>
+        </div>
+      </FadeIn>
 
       {/* Pass details card */}
+      <FadeIn delay={0.2}>
       <div className="w-full max-w-sm rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 space-y-3">
         <div className="flex justify-between text-sm">
           <span className="text-[hsl(var(--muted-foreground))]">Gate State</span>
@@ -204,6 +191,7 @@ export default function ShowQRPage() {
           </span>
         </div>
       </div>
+      </FadeIn>
 
       {passStatus === 'ACTIVE' && (
         <p className="text-xs text-orange-600 font-medium">Turn brightness to max for scanning</p>

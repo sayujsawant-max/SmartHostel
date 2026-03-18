@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { Reveal } from '@/components/motion/Reveal';
+import PageHeader from '@components/ui/PageHeader';
+import ErrorBanner from '@components/ui/ErrorBanner';
+import StatusBadge from '@components/ui/StatusBadge';
+import EmptyState from '@components/EmptyState';
+import { PageSkeleton } from '@components/Skeleton';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface SlotData {
   _id: string;
@@ -134,14 +141,15 @@ export default function LaundryBookingPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-[hsl(var(--foreground))]">Laundry Booking</h2>
-        <p className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">
-          Book a washing machine slot. Max 2 active bookings.
-        </p>
-      </div>
+      <Reveal>
+        <PageHeader
+          title="Laundry Booking"
+          description="Book a washing machine slot. Max 2 active bookings."
+        />
+      </Reveal>
 
       {/* Pricing Info */}
+      <Reveal direction="none" delay={0.1}>
       <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4">
         <div className="flex items-baseline justify-between mb-2">
           <h3 className="text-sm font-semibold text-[hsl(var(--foreground))]">Pricing</h3>
@@ -158,6 +166,7 @@ export default function LaundryBookingPage() {
           <li>• 1-hour wash cycle per slot</li>
         </ul>
       </div>
+      </Reveal>
 
       {/* Date Picker */}
       <div className="flex gap-1 overflow-x-auto pb-2">
@@ -176,17 +185,28 @@ export default function LaundryBookingPage() {
         ))}
       </div>
 
-      {error && (
-        <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-800 text-sm">
-          {error}
-          <button onClick={() => setError('')} className="ml-2 underline text-xs">
-            dismiss
-          </button>
-        </div>
-      )}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            key="laundry-error"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <ErrorBanner message={error} />
+              </div>
+              <button onClick={() => setError('')} className="shrink-0 text-xs font-medium text-[hsl(var(--muted-foreground))] hover:underline">
+                dismiss
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {loading ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading slots...</p>
+        <PageSkeleton />
       ) : (
         <>
           {/* Machine Grid */}
@@ -289,39 +309,46 @@ export default function LaundryBookingPage() {
           </div>
 
           {/* My Bookings */}
+          <Reveal delay={0.15}>
           <section>
             <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">My Upcoming Bookings</h3>
             {myBookings.length === 0 ? (
-              <p className="text-sm text-[hsl(var(--muted-foreground))]">No active bookings.</p>
+              <EmptyState variant="compact" title="No active bookings" description="Book a slot from the grid above." />
             ) : (
               <div className="space-y-2">
                 {myBookings.map((b) => (
                   <div
                     key={b._id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--card))] border border-[hsl(var(--border))]"
+                    className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:border-[hsl(var(--accent))]/40 transition-colors"
                   >
                     <div>
                       <p className="text-sm font-medium text-[hsl(var(--foreground))]">
                         Machine {b.machineNumber} &middot; {b.timeSlot}
                       </p>
                       <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                        {formatDate(b.date)} &middot; {b.status}
+                        {formatDate(b.date)}
                       </p>
                     </div>
-                    {b.status === 'BOOKED' && (
-                      <button
-                        onClick={() => void handleCancel(b._id)}
-                        disabled={actionInFlight === b._id}
-                        className="px-3 py-1.5 rounded text-xs font-medium bg-[hsl(var(--destructive))] text-white hover:opacity-90 disabled:opacity-50"
-                      >
-                        {actionInFlight === b._id ? 'Cancelling...' : 'Cancel'}
-                      </button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <StatusBadge variant={b.status === 'BOOKED' ? 'info' : b.status === 'IN_USE' ? 'warning' : 'neutral'}>
+                        {b.status.replace(/_/g, ' ')}
+                      </StatusBadge>
+                      {b.status === 'BOOKED' && (
+                        <button
+                          onClick={() => void handleCancel(b._id)}
+                          disabled={actionInFlight === b._id}
+                          className="px-3 py-1.5 rounded text-xs font-medium bg-[hsl(var(--destructive))] text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
+                        >
+                          {actionInFlight === b._id ? 'Cancelling...' : 'Cancel'}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
             )}
           </section>
+          </Reveal>
         </>
       )}
     </div>

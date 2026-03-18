@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { FadeIn, motion } from '@components/ui/motion';
 
 interface VisitorItem {
   _id: string;
@@ -89,10 +90,12 @@ export default function VisitorManagePage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-2xl font-bold text-[hsl(var(--foreground))]">Visitor Management</h2>
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Review and manage visitor registrations.</p>
-      </div>
+      <FadeIn>
+        <div>
+          <h2 className="text-2xl font-bold text-[hsl(var(--foreground))]">Visitor Management</h2>
+          <p className="text-sm text-[hsl(var(--muted-foreground))]">Review and manage visitor registrations.</p>
+        </div>
+      </FadeIn>
 
       {/* Filter Tabs */}
       <div className="flex gap-2">
@@ -118,7 +121,7 @@ export default function VisitorManagePage() {
       ) : (
         <div className="space-y-3">
           {visitors.map((v) => (
-            <div key={v._id} className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2">
+            <motion.div key={v._id} whileHover={{ x: 2 }} transition={{ duration: 0.15 }} className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-medium text-[hsl(var(--foreground))]">{v.visitorName}</p>
@@ -196,7 +199,7 @@ export default function VisitorManagePage() {
                   )}
                 </div>
               )}
-            </div>
+            </motion.div>
           ))}
         </div>
       )}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { FadeIn, motion, AnimatePresence } from '@components/ui/motion';
 
 interface UserItem {
   _id: string;
@@ -69,58 +70,69 @@ export default function UsersManagePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-[hsl(var(--foreground))]">User Management</h2>
-          <p className="mt-1 text-[hsl(var(--muted-foreground))]">Create and manage hostel users.</p>
-        </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 rounded-lg bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] text-sm font-medium"
-        >
-          {showForm ? 'Cancel' : '+ Add User'}
-        </button>
-      </div>
-
-      {showForm && (
-        <form onSubmit={handleCreate} className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl p-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Name</label>
-              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Email</label>
-              <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Password</label>
-              <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={8} className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Role</label>
-              <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm">
-                <option value="STUDENT">Student</option>
-                <option value="WARDEN_ADMIN">Warden / Admin</option>
-                <option value="GUARD">Guard</option>
-                <option value="MAINTENANCE">Maintenance</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Block</label>
-              <input value={form.block} onChange={(e) => setForm({ ...form, block: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm" placeholder="Optional" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Room Number</label>
-              <input value={form.roomNumber} onChange={(e) => setForm({ ...form, roomNumber: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm" placeholder="Optional" />
-            </div>
+      <FadeIn>
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-[hsl(var(--foreground))]">User Management</h2>
+            <p className="mt-1 text-[hsl(var(--muted-foreground))]">Create and manage hostel users.</p>
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <button type="submit" className="w-full py-2 rounded-lg bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] font-medium text-sm">
-            Create User
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="px-4 py-2 rounded-lg bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] text-sm font-medium"
+          >
+            {showForm ? 'Cancel' : '+ Add User'}
           </button>
-        </form>
-      )}
+        </div>
+      </FadeIn>
+
+      <AnimatePresence>
+        {showForm && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <form onSubmit={handleCreate} className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl p-4 space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Name</label>
+                  <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Email</label>
+                  <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Password</label>
+                  <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={8} className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Role</label>
+                  <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm">
+                    <option value="STUDENT">Student</option>
+                    <option value="WARDEN_ADMIN">Warden / Admin</option>
+                    <option value="GUARD">Guard</option>
+                    <option value="MAINTENANCE">Maintenance</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Block</label>
+                  <input value={form.block} onChange={(e) => setForm({ ...form, block: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm" placeholder="Optional" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Room Number</label>
+                  <input value={form.roomNumber} onChange={(e) => setForm({ ...form, roomNumber: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-sm" placeholder="Optional" />
+                </div>
+              </div>
+              {error && <p className="text-sm text-red-600">{error}</p>}
+              <button type="submit" className="w-full py-2 rounded-lg bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] font-medium text-sm">
+                Create User
+              </button>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {loading ? (
         <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading...</p>
@@ -131,7 +143,7 @@ export default function UsersManagePage() {
       ) : (
         <div className="space-y-2">
           {users.map((u) => (
-            <div key={u._id} className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl p-3 flex justify-between items-center">
+            <motion.div key={u._id} whileHover={{ x: 2 }} transition={{ duration: 0.15 }} className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl p-3 flex justify-between items-center">
               <div>
                 <p className="font-medium text-[hsl(var(--foreground))]">{u.name}</p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))]">
@@ -153,7 +165,7 @@ export default function UsersManagePage() {
                   </button>
                 )}
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       )}

@@ -45,10 +45,81 @@
   border-color: hsl(var(--border));
 }
 
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     'Helvetica Neue', Arial, sans-serif;
   color: hsl(var(--foreground));
   background-color: hsl(var(--background));
+}
+
+/* Smooth theme transitions */
+body,
+body * {
+  transition-property: background-color, border-color, color;
+  transition-duration: 0.15s;
+  transition-timing-function: ease-out;
+}
+
+/* Disable transitions for motion elements to avoid conflicts */
+[style*="transform"],
+[data-motion] {
+  transition-property: none;
+}
+
+/* Focus ring animation */
+input:focus,
+select:focus,
+textarea:focus {
+  transition: box-shadow 0.2s ease-out, border-color 0.2s ease-out;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+/* GlowingEffect glow element */
+.glow {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.glow::after {
+  position: absolute;
+  content: "";
 }

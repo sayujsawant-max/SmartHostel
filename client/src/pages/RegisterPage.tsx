@@ -6,7 +6,16 @@ import { useAuth } from '@hooks/useAuth';
 import { useNavigate, Link } from 'react-router-dom';
 import { ApiError } from '@services/api';
 import { getRoleHomePath } from '@utils/role-home';
-import ThemeToggle from '@components/ThemeToggle';
+import AuthSplitLayout from '@components/ui/AuthSplitLayout';
+import FormField from '@components/ui/FormField';
+import Spinner from '@components/ui/Spinner';
+import { motion } from 'motion/react';
+
+const REGISTER_ICON = (
+  <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM3 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 019.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+  </svg>
+);
 
 export default function RegisterPage() {
   const { register: registerUser } = useAuth();
@@ -41,142 +50,89 @@ export default function RegisterPage() {
   }
 
   return (
-    <div
-      className="relative min-h-screen flex items-center justify-center px-4"
-      style={{
-        background: 'linear-gradient(135deg, hsl(222 47% 19%) 0%, hsl(173 78% 24%) 100%)',
-      }}
+    <AuthSplitLayout
+      icon={REGISTER_ICON}
+      title="SmartHostel"
+      subtitle="Create your account"
     >
-      <div className="absolute top-4 right-4 text-white/80">
-        <ThemeToggle />
-      </div>
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white">SmartHostel</h1>
-          <p className="text-white/70 mt-1">Create your account</p>
-        </div>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <FormField
+          label="Full Name"
+          id="name"
+          error={errors.name?.message}
+          className="mb-4"
+          inputProps={{ ...register('name'), autoComplete: 'name' }}
+        />
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="bg-white/95 backdrop-blur rounded-xl p-6 shadow-2xl"
+        <FormField
+          label="Email"
+          id="email"
+          error={errors.email?.message}
+          className="mb-4"
+          inputProps={{ ...register('email'), type: 'email', autoComplete: 'email' }}
+        />
+
+        <FormField
+          label="Password"
+          id="password"
+          error={errors.password?.message}
+          className="mb-4"
+          inputProps={{ ...register('password'), type: 'password', autoComplete: 'new-password' }}
+        />
+
+        <FormField
+          as="select"
+          label="Gender"
+          id="gender"
+          error={errors.gender?.message}
+          className="mb-4"
+          inputProps={{ ...register('gender'), defaultValue: '' }}
         >
-          <div className="mb-4">
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name
-            </label>
-            <input
-              id="name"
-              type="text"
-              autoComplete="name"
-              {...register('name')}
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
-            />
-            {errors.name && (
-              <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
-            )}
-          </div>
+          <option value="" disabled>Select gender</option>
+          <option value="MALE">Male</option>
+          <option value="FEMALE">Female</option>
+        </FormField>
 
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              {...register('email')}
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
-            />
-            {errors.email && (
-              <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
-            )}
-          </div>
+        <FormField
+          as="select"
+          label="Academic Year"
+          id="academicYear"
+          error={errors.academicYear?.message}
+          className="mb-6"
+          inputProps={{ ...register('academicYear'), defaultValue: '' }}
+        >
+          <option value="" disabled>Select year</option>
+          <option value="1">1st Year</option>
+          <option value="2">2nd Year</option>
+          <option value="3">3rd Year</option>
+          <option value="4">4th Year</option>
+        </FormField>
 
-          <div className="mb-4">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="new-password"
-              {...register('password')}
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
-            />
-            {errors.password && (
-              <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
-            )}
-          </div>
-
-          <div className="mb-4">
-            <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">
-              Gender
-            </label>
-            <select
-              id="gender"
-              {...register('gender')}
-              defaultValue=""
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
-            >
-              <option value="" disabled>Select gender</option>
-              <option value="MALE">Male</option>
-              <option value="FEMALE">Female</option>
-            </select>
-            {errors.gender && (
-              <p className="mt-1 text-sm text-red-600">{errors.gender.message}</p>
-            )}
-          </div>
-
-          <div className="mb-6">
-            <label htmlFor="academicYear" className="block text-sm font-medium text-gray-700 mb-1">
-              Academic Year
-            </label>
-            <select
-              id="academicYear"
-              {...register('academicYear')}
-              defaultValue=""
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
-            >
-              <option value="" disabled>Select year</option>
-              <option value="1">1st Year</option>
-              <option value="2">2nd Year</option>
-              <option value="3">3rd Year</option>
-              <option value="4">4th Year</option>
-            </select>
-            {errors.academicYear && (
-              <p className="mt-1 text-sm text-red-600">{errors.academicYear.message}</p>
-            )}
-          </div>
-
-          {serverError && (
-            <div className="mb-4 text-sm text-red-600 text-center">
-              <p>{serverError}</p>
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full min-h-[48px] rounded-lg bg-teal-600 text-white font-medium hover:bg-teal-700 disabled:opacity-50 flex items-center justify-center"
+        {serverError && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="mb-4 text-sm text-[hsl(var(--destructive))] text-center"
           >
-            {isSubmitting ? (
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-            ) : (
-              'Create Account'
-            )}
-          </button>
+            <p>{serverError}</p>
+          </motion.div>
+        )}
 
-          <p className="text-sm text-center text-gray-600 mt-4">
-            Already have an account?{' '}
-            <Link to="/login" className="text-teal-600 hover:underline font-medium">
-              Sign in
-            </Link>
-          </p>
-        </form>
-      </div>
-    </div>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full min-h-[48px] rounded-xl bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] font-medium hover:opacity-90 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center transition-all"
+        >
+          {isSubmitting ? <Spinner /> : 'Create Account'}
+        </button>
+
+        <p className="text-sm text-center text-[hsl(var(--muted-foreground))] mt-4">
+          Already have an account?{' '}
+          <Link to="/login" className="text-[hsl(var(--accent))] hover:underline font-medium">
+            Sign in
+          </Link>
+        </p>
+      </form>
+    </AuthSplitLayout>
   );
 }

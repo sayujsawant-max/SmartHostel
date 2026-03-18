@@ -141,7 +141,7 @@ export function generateComplaintsReport(complaints: ComplaintRow[]): void {
   });
 
   // Summary section
-  const finalY = (doc as unknown as Record<string, number>).lastAutoTable?.finalY ?? 200;
+  const finalY = (doc as unknown as Record<string, { finalY: number }>).lastAutoTable?.finalY ?? 200;
   let summaryY = finalY + 10;
 
   // Totals by status
@@ -205,7 +205,6 @@ export function generateFeeCollectionReport(analytics: FeeCollectionData): void 
   const body = analytics.occupancy.byBlock.map((b) => {
     const occupiedRatio = b.total > 0 ? b.occupied / b.total : 0;
     const blockCollected = analytics.fees.totalCollected * (b.total > 0 ? b.occupied / analytics.occupancy.occupiedBeds : 0);
-    const blockPending = analytics.fees.totalPending * (b.total > 0 ? b.occupied / analytics.occupancy.occupiedBeds : 0);
     return [
       b.block,
       'Hostel Fee',
@@ -225,7 +224,7 @@ export function generateFeeCollectionReport(analytics: FeeCollectionData): void 
   });
 
   // Summary
-  const finalY = (doc as unknown as Record<string, number>).lastAutoTable?.finalY ?? 200;
+  const finalY = (doc as unknown as Record<string, { finalY: number }>).lastAutoTable?.finalY ?? 200;
   let summaryY = finalY + 10;
 
   doc.setFontSize(11);
@@ -281,7 +280,7 @@ export function generateLeaveReport(leaves: LeaveRow[]): void {
   });
 
   // Summary by status
-  const finalY = (doc as unknown as Record<string, number>).lastAutoTable?.finalY ?? 200;
+  const finalY = (doc as unknown as Record<string, { finalY: number }>).lastAutoTable?.finalY ?? 200;
   let summaryY = finalY + 10;
 
   const byStatus: Record<string, number> = {};
