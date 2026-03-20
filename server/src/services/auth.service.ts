@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { env } from '@config/env.js';
 import { User } from '@models/user.model.js';
 import { AppError } from '@utils/app-error.js';
@@ -218,4 +218,117 @@ export async function invalidateAllSessions(userId: string, correlationId?: stri
     { eventType: 'AUTH_INVALIDATE_ALL', correlationId, userId },
     'All sessions invalidated',
   );
+}
+
+const RESET_TOKEN_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
+
+export async function forgotPassword(email: string, correlationId?: string) {
+  const user = await User.findOne({ email: email.toLowerCase(), isActive: true });
+
+  // Always return success to prevent email enumeration
+  if (!user) {
+    logger.info({ eventType: 'AUTH_FORGOT_NO_USER', correlationId, email }, 'Forgot password for unknown email');
+    return;
+  }
+
+  const token = randomBytes(32).toString('hex');
+  const hashedToken = createHash('sha256').update(token).digest('hex');
+
+  await User.updateOne(
+    { _id: user._id },
+    {
+      $set: {
+        resetPasswordToken: hashedToken,
+        resetPasswordExpires: new Date(Date.now() + RESET_TOKEN_EXPIRY_MS),
+      },
+    },
+  );
+
+  // In development, log the reset link to the console
+  const resetUrl = `${env.ALLOWED_ORIGINS.split(',')[0].trim()}/reset-password?token=${token}`;
+  if (env.NODE_ENV === 'development') {
+    logger.info(
+      { eventType: 'AUTH_RESET_LINK', correlationId, userId: user._id.toString(), resetUrl },
+      `Password reset link (dev only): ${resetUrl}`,
+    );
+  }
+
+  // TODO: In production, send email with resetUrl
+
+  logger.info(
+    { eventType: 'AUTH_FORGOT', correlationId, userId: user._id.toString() },
+    'Password reset token generated',
+  );
+}
+
+export async function resetPassword(token: string, newPassword: string, correlationId?: string) {
+  const hashedToken = createHash('sha256').update(token).digest('hex');
+
+  const user = await User.findOne({
+    resetPasswordToken: hashedToken,
+    resetPasswordExpires: { $gt: new Date() },
+    isActive: true,
+  }).select('+resetPasswordToken +resetPasswordExpires');
+
+  if (!user) {
+    throw new AppError('UNAUTHORIZED', 'Invalid or expired reset token', 400);
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+  await User.updateOne(
+    { _id: user._id },
+    {
+      $set: {
+        passwordHash,
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+        refreshTokenJtis: [], // invalidate all sessions
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+      },
+    },
+  );
+
+  logger.info(
+    { eventType: 'AUTH_RESET_PASSWORD', correlationId, userId: user._id.toString() },
+    'Password reset successfully',
+  );
+}
+
+export async function googleLogin(googleId: string, email: string, name: string, correlationId?: string) {
+  // Check if user exists by googleId or email
+  let user = await User.findOne({ $or: [{ googleId }, { email: email.toLowerCase() }] });
+
+  if (user && !user.googleId) {
+    // Existing email user — link Google account
+    await User.updateOne({ _id: user._id }, { $set: { googleId } });
+    user.googleId = googleId;
+  }
+
+  if (!user) {
+    // Create new user with Google
+    user = await User.create({
+      name,
+      email: email.toLowerCase(),
+      passwordHash: await bcrypt.hash(randomBytes(32).toString('hex'), SALT_ROUNDS), // random password
+      role: 'STUDENT',
+      googleId,
+    });
+  }
+
+  if (!user.isActive) {
+    throw new AppError('UNAUTHORIZED', 'Account is disabled', 401);
+  }
+
+  const tokens = generateTokens(user._id.toString(), user.role);
+  const hashedJti = hashJti(tokens.jti);
+  await User.updateOne({ _id: user._id }, { $push: { refreshTokenJtis: hashedJti } });
+
+  logger.info(
+    { eventType: 'AUTH_GOOGLE_LOGIN', correlationId, userId: user._id.toString() },
+    'User logged in via Google',
+  );
+
+  return { user, tokens };
 }

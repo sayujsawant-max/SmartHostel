@@ -17,6 +17,9 @@ export interface IUser extends Document {
   refreshTokenJtis: string[];
   failedLoginAttempts: number;
   lockedUntil: Date | null;
+  resetPasswordToken: string | null;
+  resetPasswordExpires: Date | null;
+  googleId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -48,6 +51,9 @@ const userSchema = new Schema<IUser>(
     refreshTokenJtis: { type: [String], default: [], select: false },
     failedLoginAttempts: { type: Number, default: 0, select: false },
     lockedUntil: { type: Date, default: null, select: false },
+    resetPasswordToken: { type: String, default: null, select: false },
+    resetPasswordExpires: { type: Date, default: null, select: false },
+    googleId: { type: String, sparse: true },
   },
   {
     collection: 'users',
@@ -63,6 +69,8 @@ userSchema.set('toJSON', {
     delete ret.refreshTokenJtis;
     delete ret.failedLoginAttempts;
     delete ret.lockedUntil;
+    delete ret.resetPasswordToken;
+    delete ret.resetPasswordExpires;
     delete ret.__v;
     return ret;
   },

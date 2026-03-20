@@ -32,3 +32,20 @@ export const registerSchema = z.object({
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email(),
+});
+
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+export const selfResetPasswordSchema = z.object({
+  token: z.string().min(1),
+  password: z.string().min(8).max(128),
+});
+
+export type SelfResetPasswordInput = z.infer<typeof selfResetPasswordSchema>;
+
+export const googleAuthSchema = z.object({
+  credential: z.string().min(1),
+});

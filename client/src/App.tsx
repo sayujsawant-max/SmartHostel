@@ -18,6 +18,8 @@ const LoginPage = lazy(() => import('@pages/LoginPage'));
 const RegisterPage = lazy(() => import('@pages/RegisterPage'));
 const RoomsPage = lazy(() => import('@pages/RoomsPage'));
 const LandingPage = lazy(() => import('@pages/LandingPage'));
+const ForgotPasswordPage = lazy(() => import('@pages/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('@pages/ResetPasswordPage'));
 
 // Student pages
 const StudentStatusPage = lazy(() => import('@pages/student/StatusPage'));
@@ -137,6 +139,8 @@ function AppRoutes() {
         <Route path="/landing" element={<LandingPage />} />
         <Route path="/login" element={<LoginRoute />} />
         <Route path="/register" element={<RegisterRoute />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/rooms" element={<RoomsPage />} />
 
         {/* Protected routes */}

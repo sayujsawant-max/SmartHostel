@@ -9,6 +9,7 @@ import { getRoleHomePath } from '@utils/role-home';
 import AuthSplitLayout from '@components/ui/AuthSplitLayout';
 import FormField from '@components/ui/FormField';
 import Spinner from '@components/ui/Spinner';
+import GoogleSignInButton from '@components/ui/GoogleSignInButton';
 import { motion } from 'motion/react';
 
 const REGISTER_ICON = (
@@ -125,6 +126,8 @@ export default function RegisterPage() {
         >
           {isSubmitting ? <Spinner /> : 'Create Account'}
         </button>
+
+        <GoogleSignInButton onError={(msg) => setServerError(msg)} />
 
         <p className="text-sm text-center text-[hsl(var(--muted-foreground))] mt-4">
           Already have an account?{' '}

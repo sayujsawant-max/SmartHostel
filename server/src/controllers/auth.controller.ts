@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import { loginSchema, registerSchema } from '@smarthostel/shared';
+import { loginSchema, registerSchema, forgotPasswordSchema, selfResetPasswordSchema, googleAuthSchema } from '@smarthostel/shared';
+import { OAuth2Client } from 'google-auth-library';
 import { env } from '@config/env.js';
 import * as authService from '@services/auth.service.js';
 import { setAuthCookies, clearAuthCookies } from '@utils/auth-cookies.js';
@@ -148,6 +149,89 @@ export async function logout(req: Request, res: Response) {
   res.json({
     success: true,
     data: { message: 'Logged out' },
+    correlationId: req.correlationId,
+  });
+}
+
+export async function forgotPassword(req: Request, res: Response) {
+  const parsed = forgotPasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new AppError('VALIDATION_ERROR', 'Please provide a valid email', 400);
+  }
+
+  await authService.forgotPassword(parsed.data.email, req.correlationId);
+
+  // Always return success to prevent email enumeration
+  res.json({
+    success: true,
+    data: { message: 'If an account exists with that email, a reset link has been sent.' },
+    correlationId: req.correlationId,
+  });
+}
+
+export async function resetPassword(req: Request, res: Response) {
+  const parsed = selfResetPasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new AppError('VALIDATION_ERROR', 'Invalid input', 400, {
+      field: parsed.error.issues[0]?.path[0]?.toString(),
+    });
+  }
+
+  await authService.resetPassword(parsed.data.token, parsed.data.password, req.correlationId);
+
+  res.json({
+    success: true,
+    data: { message: 'Password reset successfully. You can now sign in.' },
+    correlationId: req.correlationId,
+  });
+}
+
+export async function googleAuth(req: Request, res: Response) {
+  const parsed = googleAuthSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new AppError('VALIDATION_ERROR', 'Google credential is required', 400);
+  }
+
+  if (!env.GOOGLE_CLIENT_ID) {
+    throw new AppError('INTERNAL_ERROR', 'Google Sign-In is not configured', 500);
+  }
+
+  const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
+  const ticket = await client.verifyIdToken({
+    idToken: parsed.data.credential,
+    audience: env.GOOGLE_CLIENT_ID,
+  });
+
+  const payload = ticket.getPayload();
+  if (!payload?.sub || !payload.email) {
+    throw new AppError('UNAUTHORIZED', 'Invalid Google token', 401);
+  }
+
+  const result = await authService.googleLogin(
+    payload.sub,
+    payload.email,
+    payload.name ?? payload.email.split('@')[0],
+    req.correlationId,
+  );
+
+  setAuthCookies(res, result.tokens);
+
+  res.json({
+    success: true,
+    data: {
+      user: {
+        id: result.user._id,
+        name: result.user.name,
+        email: result.user.email,
+        role: result.user.role,
+        gender: result.user.gender,
+        academicYear: result.user.academicYear,
+        hasConsented: result.user.hasConsented,
+        block: result.user.block,
+        floor: result.user.floor,
+        roomNumber: result.user.roomNumber,
+      },
+    },
     correlationId: req.correlationId,
   });
 }

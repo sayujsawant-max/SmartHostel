@@ -20,6 +20,7 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<UserProfile>;
   register: (name: string, email: string, password: string, gender: string, academicYear: string) => Promise<UserProfile>;
+  googleLogin: (credential: string) => Promise<UserProfile>;
   logout: () => Promise<void>;
   setConsented: () => void;
   refreshUser: () => Promise<void>;

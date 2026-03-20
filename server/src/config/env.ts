@@ -75,6 +75,7 @@ const envSchema = z.object({
       return z.NEVER;
     }),
   ALLOWED_ORIGINS: z.string().default('http://localhost:5173'),
+  GOOGLE_CLIENT_ID: z.string().optional().default(''),
 });
 
 // Validate on import — crashes server immediately if invalid

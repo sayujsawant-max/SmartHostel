@@ -9,6 +9,7 @@ import { getRoleHomePath } from '@utils/role-home';
 import AuthSplitLayout from '@components/ui/AuthSplitLayout';
 import FormField from '@components/ui/FormField';
 import Spinner from '@components/ui/Spinner';
+import GoogleSignInButton from '@components/ui/GoogleSignInButton';
 import { motion } from 'motion/react';
 
 const LOGIN_ICON = (
@@ -105,9 +106,15 @@ export default function LoginPage() {
           label="Password"
           id="password"
           error={errors.password?.message}
-          className="mb-6"
+          className="mb-2"
           inputProps={{ ...register('password'), type: 'password', autoComplete: 'current-password' }}
         />
+
+        <div className="text-right mb-4">
+          <Link to="/forgot-password" className="text-xs text-[hsl(var(--accent))] hover:underline">
+            Forgot password?
+          </Link>
+        </div>
 
         {serverError && (
           <motion.div
@@ -137,6 +144,8 @@ export default function LoginPage() {
             'Sign in'
           )}
         </button>
+
+        <GoogleSignInButton onError={(msg) => setServerError(msg)} />
 
         <p className="text-sm text-center text-[hsl(var(--muted-foreground))] mt-4">
           Don&apos;t have an account?{' '}
