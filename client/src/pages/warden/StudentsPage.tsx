@@ -31,6 +31,10 @@ const STATUS_VARIANT: Record<string, StatusVariant> = {
   COMPLETED: 'neutral',
 };
 
+function isPastLeave(endDate: string): boolean {
+  return new Date(endDate) < new Date(new Date().toDateString());
+}
+
 export default function StudentsPage() {
   const [leaves, setLeaves] = useState<Leave[]>([]);
   const [loading, setLoading] = useState(true);
@@ -120,8 +124,14 @@ export default function StudentsPage() {
                     {new Date(l.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                   </p>
                 </div>
-                <StatusBadge variant={STATUS_VARIANT[l.status] ?? 'neutral'}>
-                  {l.status.replace(/_/g, ' ')}
+                <StatusBadge variant={
+                  l.status === 'PENDING' && isPastLeave(l.endDate)
+                    ? 'neutral'
+                    : STATUS_VARIANT[l.status] ?? 'neutral'
+                }>
+                  {l.status === 'PENDING' && isPastLeave(l.endDate)
+                    ? 'EXPIRED'
+                    : l.status.replace(/_/g, ' ')}
                 </StatusBadge>
               </div>
 
@@ -131,7 +141,7 @@ export default function StudentsPage() {
                 Submitted {new Date(l.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
               </p>
 
-              {l.status === 'PENDING' && (
+              {l.status === 'PENDING' && !isPastLeave(l.endDate) && (
                 <div className="flex gap-2 pt-1">
                   <button
                     onClick={() => void handleApprove(l._id)}
