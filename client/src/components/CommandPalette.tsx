@@ -9,7 +9,7 @@ import {
   Settings, Bell, BarChart3, Bed, ClipboardList, MessageSquare,
   Sun, Moon, Monitor, Clock, QrCode, AlertTriangle, Package,
   ArrowRightLeft, HelpCircle, LogOut, Shirt, CreditCard, Command,
-  Map, PieChart, HeartPulse, FileBarChart, AlertOctagon, Star,
+  Map as MapIcon, PieChart, HeartPulse, FileBarChart, AlertOctagon, Star,
 } from 'lucide-react';
 
 interface CommandItem {
@@ -98,7 +98,7 @@ export default function CommandPalette() {
         { id: 'warden-inspections', label: 'Inspections', description: 'Room inspection records', icon: <ClipboardList size={16} />, action: () => go('/warden/inspections'), keywords: ['inspection', 'room', 'check'], section: 'Navigate' },
         { id: 'warden-communications', label: 'Bulk Communications', description: 'Send targeted announcements', icon: <MessageSquare size={16} />, action: () => go('/warden/communications'), keywords: ['bulk', 'announce', 'communicate', 'broadcast'], section: 'Navigate' },
         { id: 'warden-audit', label: 'Audit Trail', description: 'System activity log', icon: <Shield size={16} />, action: () => go('/warden/audit-trail'), keywords: ['audit', 'log', 'trail', 'activity'], section: 'Navigate' },
-        { id: 'warden-heatmap', label: 'Occupancy Heatmap', description: 'Live room occupancy map', icon: <Map size={16} />, action: () => go('/warden/occupancy-heatmap'), keywords: ['heatmap', 'occupancy', 'map', 'rooms', 'live'], section: 'Navigate' },
+        { id: 'warden-heatmap', label: 'Occupancy Heatmap', description: 'Live room occupancy map', icon: <MapIcon size={16} />, action: () => go('/warden/occupancy-heatmap'), keywords: ['heatmap', 'occupancy', 'map', 'rooms', 'live'], section: 'Navigate' },
         { id: 'warden-complaint-analytics', label: 'Complaint Analytics', description: 'Predictive complaint trends', icon: <PieChart size={16} />, action: () => go('/warden/complaint-analytics'), keywords: ['complaint', 'analytics', 'predict', 'trend'], section: 'Navigate' },
         { id: 'warden-wellness', label: 'Wellness Dashboard', description: 'Student wellness monitoring', icon: <HeartPulse size={16} />, action: () => go('/warden/wellness'), keywords: ['wellness', 'health', 'risk', 'student', 'monitoring'], section: 'Navigate' },
         { id: 'warden-report-builder', label: 'Report Builder', description: 'Custom report generator', icon: <FileBarChart size={16} />, action: () => go('/warden/report-builder'), keywords: ['report', 'builder', 'custom', 'generate', 'analytics'], section: 'Navigate' },
