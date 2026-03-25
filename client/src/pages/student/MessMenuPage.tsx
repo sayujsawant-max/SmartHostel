@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from '@components/ui/motion';
 import PageHeader from '@components/ui/PageHeader';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
+import { usePageTitle } from '@hooks/usePageTitle';
 import {
   Sun,
   UtensilsCrossed,
@@ -77,6 +78,7 @@ interface MenuDay {
 }
 
 export default function MessMenuPage() {
+  usePageTitle('Mess Menu');
   const [menus, setMenus] = useState<MenuDay[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState(new Date().getDay());

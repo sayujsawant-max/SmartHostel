@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import PageHeader from '@components/ui/PageHeader';
 import { PageSkeleton } from '@components/Skeleton';
 import { UtensilsCrossed, Leaf, Wheat, Egg, Fish, AlertCircle, Check, Save } from 'lucide-react';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface MealPref {
   dietaryType: 'VEG' | 'NON_VEG' | 'VEGAN' | 'EGGETARIAN';
@@ -40,6 +41,7 @@ const MEAL_PLANS = [
 const spring = { type: 'spring' as const, stiffness: 400, damping: 28 };
 
 export default function MealPreferencesPage() {
+  usePageTitle('Meal Preferences');
   const [pref, setPref] = useState<MealPref>({
     dietaryType: 'VEG',
     allergies: [],

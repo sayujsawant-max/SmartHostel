@@ -8,6 +8,7 @@ import { motion } from 'motion/react';
 import PageHeader from '@components/ui/PageHeader';
 import { PageSkeleton } from '@components/Skeleton';
 import { Calendar, Clock, CheckCircle2, XCircle, AlertTriangle, TrendingUp } from 'lucide-react';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface LeaveQuota {
   totalAllowed: number;
@@ -20,6 +21,7 @@ interface LeaveQuota {
 const spring = { type: 'spring' as const, stiffness: 400, damping: 28 };
 
 export default function LeaveTrackerPage() {
+  usePageTitle('Leave Tracker');
   const [data, setData] = useState<LeaveQuota | null>(null);
   const [loading, setLoading] = useState(true);
 

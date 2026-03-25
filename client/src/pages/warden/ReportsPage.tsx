@@ -17,6 +17,7 @@ import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
 import { motion, AnimatePresence } from 'motion/react';
 import PageHeader from '@components/ui/PageHeader';
 import { FileText, Download, FileSpreadsheet, Building2, MessageSquare, CreditCard, Calendar, CheckCircle2 } from 'lucide-react';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 type ExportFormat = 'pdf' | 'csv';
 
@@ -34,6 +35,7 @@ interface ReportCard {
 const spring = { type: 'spring' as const, stiffness: 400, damping: 28 };
 
 export default function ReportsPage() {
+  usePageTitle('Reports');
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [format, setFormat] = useState<ExportFormat>('pdf');
   const [lastGenerated, setLastGenerated] = useState<string | null>(null);

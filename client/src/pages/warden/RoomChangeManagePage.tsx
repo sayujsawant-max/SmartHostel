@@ -7,6 +7,7 @@ import PageHeader from '@components/ui/PageHeader';
 import StatusBadge, { type StatusVariant } from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface PopulatedRoom {
   _id: string;
@@ -60,6 +61,7 @@ function formatRoom(r: PopulatedRoom): string {
 }
 
 export default function RoomChangeManagePage() {
+  usePageTitle('Room Change Manage');
   const [requests, setRequests] = useState<RoomChangeRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [rejectingId, setRejectingId] = useState<string | null>(null);

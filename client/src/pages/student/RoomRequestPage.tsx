@@ -15,6 +15,7 @@ import { PageSkeleton } from '@components/Skeleton';
 import { motion, AnimatePresence } from 'motion/react';
 import { prefersReducedMotion } from '@/utils/motion';
 import SmartRoomMatcher from '@components/SmartRoomMatcher';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface Room {
   _id: string;
@@ -30,6 +31,7 @@ interface Room {
 }
 
 export default function RoomRequestPage() {
+  usePageTitle('Room Request');
   const { user, refreshUser } = useAuth();
   // refreshUser re-fetches /auth/me to update user state after room assignment
   const navigate = useNavigate();

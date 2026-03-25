@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { usePageTitle } from '@hooks/usePageTitle';
 import { motion, AnimatePresence } from 'motion/react';
 import { Reveal } from '@/components/motion/Reveal';
 import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
@@ -207,6 +208,7 @@ function ChartPreview({ chartType, reportType }: { chartType: ChartType; reportT
 
 /* ───── main component ───── */
 export default function ReportBuilderPage() {
+  usePageTitle('Report Builder');
   const [ready, setReady] = useState(false);
   const [selectedType, setSelectedType] = useState<ReportType>('occupancy');
   const [chartType, setChartType] = useState<ChartType>('bar');

@@ -9,6 +9,7 @@ import AuthSplitLayout from '@components/ui/AuthSplitLayout';
 import FormField from '@components/ui/FormField';
 import Spinner from '@components/ui/Spinner';
 import { motion } from 'motion/react';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 const FORGOT_ICON = (
   <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -17,6 +18,7 @@ const FORGOT_ICON = (
 );
 
 export default function ForgotPasswordPage() {
+  usePageTitle('Forgot Password');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 

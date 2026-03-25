@@ -11,6 +11,7 @@ import Spinner from '@components/ui/Spinner';
 import GoogleSignInButton from '@components/ui/GoogleSignInButton';
 import ThemeToggle from '@components/ThemeToggle';
 import { motion, AnimatePresence } from 'motion/react';
+import { usePageTitle } from '@hooks/usePageTitle';
 import {
   Users,
   Shield,
@@ -72,6 +73,7 @@ const rightItem = {
 /* ─── Component ───────────────────────────────────────────────── */
 
 export default function LoginPage() {
+  usePageTitle('Login');
   const { login } = useAuth();
   const navigate = useNavigate();
   const [serverError, setServerError] = useState<string | null>(null);

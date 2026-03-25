@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Virtuoso } from 'react-virtuoso';
 import { apiFetch } from '@services/api';
 import { showError, showSuccess } from '@/utils/toast';
 import { Reveal } from '@/components/motion/Reveal';
@@ -7,6 +8,7 @@ import StatusBadge from '@components/ui/StatusBadge';
 import FilterPanel from '@components/ui/FilterPanel';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface StaffMember {
   _id: string;
@@ -43,6 +45,7 @@ const PRIORITY_VARIANT: Record<string, BadgeVariant> = {
 };
 
 export default function ComplaintsPage() {
+  usePageTitle('Complaints');
   const [complaints, setComplaints] = useState<ComplaintItem[]>([]);
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -122,11 +125,12 @@ export default function ComplaintsPage() {
       ) : complaints.length === 0 ? (
         <EmptyState variant="compact" title="No complaints found" description="No complaints match the current filter." />
       ) : (
-        <div className="space-y-3">
-          {complaints.map((c) => (
+        <Virtuoso
+          useWindowScroll
+          data={complaints}
+          itemContent={(_index, c) => (
             <div
-              key={c._id}
-              className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:border-[hsl(var(--accent))]/40 transition-colors card-glow"
+              className="p-4 mb-3 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:border-[hsl(var(--accent))]/40 transition-colors card-glow"
             >
               <div className="flex justify-between items-start">
                 <div>
@@ -208,8 +212,8 @@ export default function ComplaintsPage() {
                 </div>
               )}
             </div>
-          ))}
-        </div>
+          )}
+        />
       )}
     </div>
   );

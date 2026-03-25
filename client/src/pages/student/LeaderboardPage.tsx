@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { usePageTitle } from '@hooks/usePageTitle';
 import { apiFetch } from '@services/api';
 import { showError } from '@/utils/toast';
 import { Reveal } from '@/components/motion/Reveal';
@@ -30,6 +31,7 @@ const RANK_STYLES = [
 ];
 
 export default function LeaderboardPage() {
+  usePageTitle('Leaderboard');
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 

@@ -12,6 +12,7 @@ import ErrorBanner from '@components/ui/ErrorBanner';
 import StatusBadge from '@components/ui/StatusBadge';
 import ThemeToggle from '@components/ThemeToggle';
 import { Search, BedDouble, Building2, Users, DoorOpen, ArrowRight, Sparkles, X } from 'lucide-react';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 /* ─── Types ─────────────────────────────────────────────────────── */
 
@@ -113,6 +114,7 @@ function FilterSelect({
 /* ─── Component ─────────────────────────────────────────────────── */
 
 export default function RoomsPage() {
+  usePageTitle('Rooms');
   const [rooms, setRooms] = useState<Room[]>([]);
   const [availability, setAvailability] = useState<Availability | null>(null);
   const [loading, setLoading] = useState(true);

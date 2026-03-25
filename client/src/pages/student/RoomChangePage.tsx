@@ -9,6 +9,7 @@ import StatusBadge from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
 import { AnimatePresence, motion } from 'motion/react';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface Room {
   _id: string;
@@ -59,6 +60,7 @@ function formatRoom(r: PopulatedRoom): string {
 }
 
 export default function RoomChangePage() {
+  usePageTitle('Room Change');
   const [rooms, setRooms] = useState<Room[]>([]);
   const [requests, setRequests] = useState<RoomChangeRequest[]>([]);
   const [selectedRoomId, setSelectedRoomId] = useState('');

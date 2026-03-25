@@ -12,6 +12,7 @@ import GoogleSignInButton from '@components/ui/GoogleSignInButton';
 import ThemeToggle from '@components/ThemeToggle';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, ArrowLeft, Check, Eye, EyeOff } from 'lucide-react';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 /* ─── Step definitions ────────────────────────────────────────── */
 
@@ -70,6 +71,7 @@ const stepVariants = {
 /* ─── Component ───────────────────────────────────────────────── */
 
 export default function RegisterPage() {
+  usePageTitle('Register');
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
   const [serverError, setServerError] = useState<string | null>(null);

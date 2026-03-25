@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { usePageTitle } from '@hooks/usePageTitle';
 import { motion, AnimatePresence } from 'motion/react';
 import { Reveal } from '@/components/motion/Reveal';
 import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
@@ -63,6 +64,7 @@ function getOccupancyStyle(percent: number) {
 }
 
 export default function OccupancyHeatmapPage() {
+  usePageTitle('Occupancy Heatmap');
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);

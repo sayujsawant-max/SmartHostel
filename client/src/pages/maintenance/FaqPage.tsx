@@ -8,6 +8,7 @@ import Accordion, { type AccordionItem } from '@components/ui/Accordion';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
 import { Search, Wrench, HelpCircle } from 'lucide-react';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface FaqItem {
   _id: string;
@@ -42,6 +43,7 @@ function getCategoryStyle(category: string) {
 }
 
 export default function FaqPage() {
+  usePageTitle('Faq');
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');

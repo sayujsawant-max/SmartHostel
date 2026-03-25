@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useRef } from 'react';
 import AnimatedShaderHero from '@components/ui/animated-shader-hero';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 /* ─── Floating stat card wrapper ───────────────────────────────── */
 
@@ -107,6 +108,7 @@ const demoAccounts = [
 /* ─── Component ─────────────────────────────────────────────────── */
 
 export default function LandingPage() {
+  usePageTitle('Landing');
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
   const heroTextY = useTransform(scrollYProgress, [0, 1], [0, 80]);

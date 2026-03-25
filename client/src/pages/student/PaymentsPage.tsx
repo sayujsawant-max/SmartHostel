@@ -10,6 +10,7 @@ import StatusBadge from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
 import { CreditCard, IndianRupee, CheckCircle2, Clock, AlertTriangle, Zap, Shield, ArrowRight } from 'lucide-react';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface PayableFee {
   _id: string;
@@ -41,6 +42,7 @@ const FEE_LABELS: Record<string, string> = {
 const spring = { type: 'spring' as const, stiffness: 400, damping: 28 };
 
 export default function PaymentsPage() {
+  usePageTitle('Payments');
   const [payable, setPayable] = useState<PayableFee[]>([]);
   const [history, setHistory] = useState<PaymentHistory[]>([]);
   const [loading, setLoading] = useState(true);

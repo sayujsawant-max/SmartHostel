@@ -22,6 +22,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import StreakBanner from '@components/StreakBanner';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 /* ─── Types ─────────────────────────────────────────────────────── */
 
@@ -183,6 +184,7 @@ function SLABadge({ dueAt }: { dueAt: string }) {
 /* ─── Component ─────────────────────────────────────────────────── */
 
 export default function StatusPage() {
+  usePageTitle('Status');
   const { user } = useAuth();
   const [leaves, setLeaves] = useState<Leave[]>([]);
   const [complaints, setComplaints] = useState<Complaint[]>([]);

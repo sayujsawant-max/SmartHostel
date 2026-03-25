@@ -7,6 +7,7 @@ import PageHeader from '@components/ui/PageHeader';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
 import { History, User, Shield, Settings, FileText, Search, ChevronDown } from 'lucide-react';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface AuditEvent {
   _id: string;
@@ -31,6 +32,7 @@ const ACTION_COLORS: Record<string, string> = {
 const spring = { type: 'spring' as const, stiffness: 400, damping: 28 };
 
 export default function AuditTrailPage() {
+  usePageTitle('Audit Trail');
   const [events, setEvents] = useState<AuditEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

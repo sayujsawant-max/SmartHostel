@@ -27,6 +27,7 @@ import {
   BedDouble,
   Download,
 } from 'lucide-react';
+import { usePageTitle } from '@hooks/usePageTitle';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -122,6 +123,7 @@ interface OverrideItem {
 }
 
 export default function DashboardPage() {
+  usePageTitle('Dashboard');
   const [dashStats, setDashStats] = useState<DashboardStats | null>(null);
   const [overrides, setOverrides] = useState<OverrideItem[]>([]);
   const [overrideStats, setOverrideStats] = useState<OverrideStats | null>(null);

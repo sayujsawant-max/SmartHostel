@@ -10,6 +10,7 @@ import Spinner from '@components/ui/Spinner';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
 import { motion, AnimatePresence } from 'motion/react';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface VisitorItem {
   _id: string;
@@ -51,6 +52,7 @@ const STATUS_VARIANT: Record<string, BadgeVariant> = {
 const inputCls = 'w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 text-sm text-[hsl(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent))]';
 
 export default function VisitorRegistrationPage() {
+  usePageTitle('Visitor Registration');
   const [visitors, setVisitors] = useState<VisitorItem[]>([]);
   const [loading, setLoading] = useState(true);
 

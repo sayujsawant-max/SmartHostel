@@ -9,6 +9,7 @@ import ErrorBanner from '@components/ui/ErrorBanner';
 import Spinner from '@components/ui/Spinner';
 import { motion, AnimatePresence } from 'motion/react';
 import { prefersReducedMotion } from '@/utils/motion';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 const CATEGORIES = [
   { value: 'PLUMBING', label: 'Plumbing' },
@@ -21,6 +22,7 @@ const CATEGORIES = [
 ];
 
 export default function ReportIssuePage() {
+  usePageTitle('Report Issue');
   const navigate = useNavigate();
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');

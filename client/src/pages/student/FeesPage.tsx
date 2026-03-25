@@ -11,6 +11,7 @@ import StatusBadge from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
 import { CreditCard, Download, TrendingUp, AlertTriangle, CheckCircle2, ArrowRight } from 'lucide-react';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface FeeItem {
   _id: string;
@@ -39,6 +40,7 @@ const FEE_LABELS: Record<string, string> = {
 const spring = { type: 'spring' as const, stiffness: 400, damping: 28 };
 
 export default function FeesPage() {
+  usePageTitle('Fees');
   const { user } = useAuth();
   const [fees, setFees] = useState<FeeItem[]>([]);
   const [loading, setLoading] = useState(true);

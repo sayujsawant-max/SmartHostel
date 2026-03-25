@@ -16,6 +16,7 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import { AnimatedCounter } from '@/components/motion/AnimatedCounter';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface FaqItem {
   _id: string;
@@ -92,6 +93,7 @@ function getActionLink(answer: string): { label: string; to: string } | null {
 }
 
 export default function FaqPage() {
+  usePageTitle('Faq');
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');

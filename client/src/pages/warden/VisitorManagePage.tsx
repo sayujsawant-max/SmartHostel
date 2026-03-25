@@ -7,6 +7,7 @@ import PageHeader from '@components/ui/PageHeader';
 import StatusBadge, { type StatusVariant } from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface VisitorItem {
   _id: string;
@@ -37,6 +38,7 @@ const STATUS_VARIANT: Record<string, StatusVariant> = {
 type FilterTab = 'ALL' | 'PENDING' | 'TODAY';
 
 export default function VisitorManagePage() {
+  usePageTitle('Visitor Manage');
   const [visitors, setVisitors] = useState<VisitorItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<FilterTab>('ALL');

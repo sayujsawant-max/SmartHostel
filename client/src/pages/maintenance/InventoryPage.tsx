@@ -10,6 +10,7 @@ import StatusBadge from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
 import { Package, Plus, Search, AlertTriangle, CheckCircle2, Wrench, Archive } from 'lucide-react';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface InventoryItem {
   _id: string;
@@ -32,6 +33,7 @@ const STATUS_VARIANT: Record<string, 'success' | 'warning' | 'error'> = {
 const spring = { type: 'spring' as const, stiffness: 400, damping: 28 };
 
 export default function InventoryPage() {
+  usePageTitle('Inventory');
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

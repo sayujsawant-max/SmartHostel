@@ -9,6 +9,7 @@ import StatusBadge from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
 import { FileText, Upload, Download, Eye, Trash2, File, Image, FileSpreadsheet, Clock } from 'lucide-react';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface Document {
   _id: string;
@@ -43,6 +44,7 @@ function formatSize(bytes: number): string {
 }
 
 export default function DocumentsPage() {
+  usePageTitle('Documents');
   const [docs, setDocs] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);

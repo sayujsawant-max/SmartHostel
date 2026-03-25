@@ -5,6 +5,7 @@ import { Reveal } from '@/components/motion/Reveal';
 import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
 import PageHeader from '@components/ui/PageHeader';
 import { PageSkeleton } from '@components/Skeleton';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MEALS = ['breakfast', 'lunch', 'snacks', 'dinner'] as const;
@@ -30,6 +31,7 @@ const emptyForm = (): DayForm => ({ breakfast: '', lunch: '', snacks: '', dinner
 const inputCls = 'w-full px-3 py-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] text-sm placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent))]';
 
 export default function MessMenuPage() {
+  usePageTitle('Mess Menu');
   const [forms, setForms] = useState<DayForm[]>(Array.from({ length: 7 }, () => emptyForm()));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<number | null>(null);

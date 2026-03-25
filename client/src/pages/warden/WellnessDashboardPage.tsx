@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { usePageTitle } from '@hooks/usePageTitle';
 import { motion, AnimatePresence } from 'motion/react';
 import { Reveal } from '@/components/motion/Reveal';
 import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
@@ -113,6 +114,7 @@ function factorColor(factor: string) {
 
 /* ───── component ───── */
 export default function WellnessDashboardPage() {
+  usePageTitle('Wellness Dashboard');
   const [data, setData] = useState<WellnessData | null>(null);
   const [loading, setLoading] = useState(true);
   const [sortAsc, setSortAsc] = useState(false);

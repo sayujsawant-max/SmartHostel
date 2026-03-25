@@ -10,6 +10,7 @@ import StatusBadge from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
 import { ClipboardCheck, Plus, Calendar, MapPin, Star, CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface Inspection {
   _id: string;
@@ -33,6 +34,7 @@ const STATUS_VARIANT: Record<string, 'success' | 'warning' | 'error' | 'neutral'
 const spring = { type: 'spring' as const, stiffness: 400, damping: 28 };
 
 export default function InspectionsPage() {
+  usePageTitle('Inspections');
   const [inspections, setInspections] = useState<Inspection[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

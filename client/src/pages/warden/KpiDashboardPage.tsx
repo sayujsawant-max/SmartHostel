@@ -9,6 +9,7 @@ import PageHeader from '@components/ui/PageHeader';
 import { PageSkeleton } from '@components/Skeleton';
 import { TrendingUp, TrendingDown, Users, Bed, ShieldCheck, Clock, Star, AlertTriangle, CheckCircle2, BarChart3 } from 'lucide-react';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface KpiData {
   occupancy: { totalBeds: number; occupiedBeds: number; availableBeds: number; occupancyRate: number; byBlock: { block: string; total: number; occupied: number }[] };
@@ -21,6 +22,7 @@ interface KpiData {
 const spring = { type: 'spring' as const, stiffness: 400, damping: 28 };
 
 export default function KpiDashboardPage() {
+  usePageTitle('Kpi Dashboard');
   const [data, setData] = useState<KpiData | null>(null);
   const [loading, setLoading] = useState(true);
 

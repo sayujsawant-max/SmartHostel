@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { apiFetch } from '@services/api';
+import { usePageTitle } from '@hooks/usePageTitle';
 import { motion } from 'motion/react';
 import { Reveal } from '@/components/motion/Reveal';
 import PageHeader from '@components/ui/PageHeader';
@@ -28,6 +29,7 @@ const STATUS_VARIANT: Record<string, StatusVariant> = {
 };
 
 export default function ShowQRPage() {
+  usePageTitle('Show QR');
   const [gatePass, setGatePass] = useState<GatePass | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);

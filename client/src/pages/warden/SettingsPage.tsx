@@ -10,8 +10,10 @@ import PageHeader from '@components/ui/PageHeader';
 import FormField from '@components/ui/FormField';
 import Spinner from '@components/ui/Spinner';
 import StatusBadge from '@components/ui/StatusBadge';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 export default function SettingsPage() {
+  usePageTitle('Settings');
   const { user, logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [pwSubmitting, setPwSubmitting] = useState(false);

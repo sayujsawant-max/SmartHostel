@@ -7,6 +7,7 @@ import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
 import PageHeader from '@components/ui/PageHeader';
 import ErrorBanner from '@components/ui/ErrorBanner';
 import { PageSkeleton } from '@components/Skeleton';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface ComplaintDetail {
   _id: string;
@@ -58,6 +59,7 @@ function SLABadge({ dueAt, status }: { dueAt: string; status: string }) {
 }
 
 export default function ComplaintDetailPage() {
+  usePageTitle('Complaint Detail');
   const { complaintId } = useParams<{ complaintId: string }>();
   const [complaint, setComplaint] = useState<ComplaintDetail | null>(null);
   const [timeline, setTimeline] = useState<TimelineEvent[]>([]);

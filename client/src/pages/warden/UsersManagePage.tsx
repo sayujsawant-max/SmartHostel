@@ -9,6 +9,7 @@ import StatusBadge from '@components/ui/StatusBadge';
 import ErrorBanner from '@components/ui/ErrorBanner';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface UserItem {
   _id: string;
@@ -25,6 +26,7 @@ interface UserItem {
 const inputCls = 'w-full px-3 py-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent))]';
 
 export default function UsersManagePage() {
+  usePageTitle('Users Manage');
   const [users, setUsers] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

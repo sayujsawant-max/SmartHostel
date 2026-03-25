@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { usePageTitle } from '@hooks/usePageTitle';
 import { motion, AnimatePresence } from 'motion/react';
 import { Reveal } from '@/components/motion/Reveal';
 import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
@@ -128,6 +129,7 @@ function StarRating({
 }
 
 export default function FeedbackPage() {
+  usePageTitle('Feedback');
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [rating, setRating] = useState(0);

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { usePageTitle } from '@hooks/usePageTitle';
 import { motion, AnimatePresence } from 'motion/react';
 import { Reveal } from '@/components/motion/Reveal';
 import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
@@ -67,6 +68,7 @@ function alertTypeBadge(type: AlertType) {
 }
 
 export default function EmergencyPage() {
+  usePageTitle('Emergency');
   const [loading, setLoading] = useState(true);
   const [activeAlerts, setActiveAlerts] = useState<ActiveAlert[]>([]);
   const [sending, setSending] = useState(false);

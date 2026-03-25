@@ -11,6 +11,7 @@ import type { StatusVariant } from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
 import { motion, AnimatePresence } from 'motion/react';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 /* ---------- Types ---------- */
 
@@ -74,6 +75,7 @@ const inputCls =
 /* ---------- Component ---------- */
 
 export default function LostFoundPage() {
+  usePageTitle('Lost Found');
   const { user } = useAuth();
   const userId = user?.id;
 

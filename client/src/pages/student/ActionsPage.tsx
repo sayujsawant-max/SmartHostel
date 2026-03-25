@@ -4,6 +4,7 @@ import { apiFetch } from '@services/api';
 import { showError } from '@/utils/toast';
 import { motion } from '@components/ui/motion';
 import PageHeader from '@components/ui/PageHeader';
+import { usePageTitle } from '@hooks/usePageTitle';
 import {
   QrCode,
   Wrench,
@@ -85,6 +86,7 @@ const actions = [
 ];
 
 export default function ActionsPage() {
+  usePageTitle('Actions');
   const [hasActivePass, setHasActivePass] = useState(false);
 
   useEffect(() => {

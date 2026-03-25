@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { usePageTitle } from '@hooks/usePageTitle';
 import { apiFetch } from '@services/api';
 import { showError, showSuccess } from '@/utils/toast';
 import { Reveal } from '@/components/motion/Reveal';
@@ -19,6 +20,7 @@ const SCOPE_OPTIONS: { value: TargetScope; label: string; icon: typeof Users; de
 ];
 
 export default function BulkCommunicationsPage() {
+  usePageTitle('Bulk Communications');
   const [scope, setScope] = useState<TargetScope>('ALL');
   const [targetValue, setTargetValue] = useState('');
   const [title, setTitle] = useState('');

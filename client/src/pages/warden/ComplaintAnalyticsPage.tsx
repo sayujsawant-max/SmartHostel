@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { usePageTitle } from '@hooks/usePageTitle';
 import { motion } from 'motion/react';
 import { Reveal } from '@/components/motion/Reveal';
 import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
@@ -131,6 +132,7 @@ const categoryColorMap: Record<Category, string> = {
 };
 
 export default function ComplaintAnalyticsPage() {
+  usePageTitle('Complaint Analytics');
   const [loading, setLoading] = useState(true);
   const [weeklyData, setWeeklyData] = useState<WeekData[]>([]);
   const [categoryData, setCategoryData] = useState<CategoryData[]>([]);

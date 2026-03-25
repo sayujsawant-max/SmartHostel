@@ -7,6 +7,7 @@ import { PageSkeleton } from '@components/Skeleton';
 import { apiFetch } from '@services/api';
 import { showError, showSuccess } from '@/utils/toast';
 import { useAuth } from '@hooks/useAuth';
+import { usePageTitle } from '@hooks/usePageTitle';
 import {
   MessageCircle,
   Send,
@@ -39,6 +40,7 @@ interface Conversation {
 }
 
 export default function ChatPage() {
+  usePageTitle('Chat');
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [conversations, setConversations] = useState<Conversation[]>([]);

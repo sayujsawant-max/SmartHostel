@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Virtuoso } from 'react-virtuoso';
 import { apiFetch } from '@services/api';
 import { showError, showSuccess } from '@/utils/toast';
 import { Reveal } from '@/components/motion/Reveal';
@@ -8,6 +9,7 @@ import StatusBadge from '@components/ui/StatusBadge';
 import FilterPanel from '@components/ui/FilterPanel';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface Leave {
   _id: string;
@@ -37,6 +39,7 @@ function isPastLeave(endDate: string): boolean {
 }
 
 export default function StudentsPage() {
+  usePageTitle('Students');
   const [leaves, setLeaves] = useState<Leave[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('PENDING');
@@ -232,14 +235,16 @@ export default function StudentsPage() {
             </motion.div>
           )}
 
-          {leaves.map((l, idx) => (
+          <Virtuoso
+            useWindowScroll
+            data={leaves}
+            itemContent={(_index, l) => (
             <motion.div
-              key={l._id}
               initial={{ opacity: 0, y: 10, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: Math.min(idx * 0.04, 0.3), duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               whileHover={{ y: -1 }}
-              className={`p-4 rounded-2xl bg-[hsl(var(--card))] border transition-all duration-200 ${
+              className={`p-4 mb-3 rounded-2xl bg-[hsl(var(--card))] border transition-all duration-200 ${
                 selectedIds.has(l._id) ? 'border-[hsl(var(--accent))] ring-1 ring-[hsl(var(--accent))]/20 shadow-sm' : 'border-[hsl(var(--border))] hover:border-[hsl(var(--accent))]/30 hover:shadow-sm'
               }`}
             >
@@ -345,7 +350,8 @@ export default function StudentsPage() {
                 </div>
               )}
             </motion.div>
-          ))}
+            )}
+          />
         </div>
       )}
     </div>

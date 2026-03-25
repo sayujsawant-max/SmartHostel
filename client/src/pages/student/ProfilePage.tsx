@@ -15,6 +15,7 @@ import Spinner from '@components/ui/Spinner';
 import { PageSkeleton } from '@components/Skeleton';
 import ErrorBanner from '@components/ui/ErrorBanner';
 import NotificationPreferences from '@components/NotificationPreferences';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface FeeItem {
   _id: string;
@@ -33,6 +34,7 @@ interface Complaint {
 }
 
 export default function ProfilePage() {
+  usePageTitle('Profile');
   const { user } = useAuth();
   const [pwSubmitting, setPwSubmitting] = useState(false);
   const [pwSuccess, setPwSuccess] = useState(false);

@@ -7,6 +7,7 @@ import PageHeader from '@components/ui/PageHeader';
 import ErrorBanner from '@components/ui/ErrorBanner';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface Room {
   _id: string;
@@ -23,6 +24,7 @@ interface Room {
 }
 
 export default function RoomsManagePage() {
+  usePageTitle('Rooms Manage');
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

@@ -4,6 +4,7 @@ import { useAuth } from '@hooks/useAuth';
 import { apiFetch, ApiError } from '@services/api';
 import { Reveal } from '@/components/motion/Reveal';
 import { showError, showSuccess } from '@/utils/toast';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 type Verdict = 'ALLOW' | 'DENY' | 'OFFLINE' | null;
 
@@ -74,6 +75,7 @@ interface VerifyResponse {
 type InputMode = 'camera' | 'token';
 
 export default function ScanPage() {
+  usePageTitle('Scan');
   const { user, logout } = useAuth();
   const [verdict, setVerdict] = useState<Verdict>(null);
   const [scanData, setScanData] = useState<ScanResponse | null>(null);

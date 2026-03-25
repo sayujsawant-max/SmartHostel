@@ -16,6 +16,7 @@ import {
   User,
 } from 'lucide-react';
 import { AnimatedCounter } from '@/components/motion/AnimatedCounter';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface TaskItem {
   _id: string;
@@ -65,6 +66,7 @@ function SLABadge({ dueAt }: { dueAt: string }) {
 }
 
 export default function TasksPage() {
+  usePageTitle('Tasks');
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [resolvingId, setResolvingId] = useState<string | null>(null);

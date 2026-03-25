@@ -9,6 +9,7 @@ import PageHeader from '@components/ui/PageHeader';
 import { PageSkeleton } from '@components/Skeleton';
 import { Shield, Users, Clock, TrendingUp, AlertTriangle, CheckCircle2, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, AreaChart, Area } from 'recharts';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface GateStats {
   totalScans: number;
@@ -24,6 +25,7 @@ interface GateStats {
 const spring = { type: 'spring' as const, stiffness: 400, damping: 28 };
 
 export default function GateAnalyticsPage() {
+  usePageTitle('Gate Analytics');
   const [stats, setStats] = useState<GateStats | null>(null);
   const [loading, setLoading] = useState(true);
 

@@ -6,6 +6,7 @@ import PageHeader from '@components/ui/PageHeader';
 import StatusBadge from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
+import { usePageTitle } from '@hooks/usePageTitle';
 import {
   UserCheck,
   LogIn,
@@ -40,6 +41,7 @@ const STATUS_VARIANT: Record<string, BadgeVariant> = {
 const spring = { type: 'spring' as const, stiffness: 400, damping: 25 };
 
 export default function VisitorCheckPage() {
+  usePageTitle('Visitor Check');
   const [visitors, setVisitors] = useState<VisitorItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);

@@ -8,6 +8,7 @@ import StatusBadge from '@components/ui/StatusBadge';
 import Spinner from '@components/ui/Spinner';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface Notice {
   _id: string;
@@ -22,6 +23,7 @@ interface Notice {
 }
 
 export default function NoticesPage() {
+  usePageTitle('Notices');
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

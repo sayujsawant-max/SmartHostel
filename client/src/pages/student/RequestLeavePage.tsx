@@ -9,6 +9,7 @@ import ErrorBanner from '@components/ui/ErrorBanner';
 import Spinner from '@components/ui/Spinner';
 import { motion, AnimatePresence } from 'motion/react';
 import { prefersReducedMotion } from '@/utils/motion';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 const LEAVE_TYPES = [
   { value: 'DAY_OUTING', label: 'Day Outing' },
@@ -28,6 +29,7 @@ function toISOWithOffset(dateStr: string): string {
 const inputCls = 'w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 text-sm text-[hsl(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent))]';
 
 export default function RequestLeavePage() {
+  usePageTitle('Request Leave');
   const navigate = useNavigate();
   const [type, setType] = useState('');
   const [startDate, setStartDate] = useState('');

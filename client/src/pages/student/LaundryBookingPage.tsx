@@ -6,6 +6,7 @@ import PageHeader from '@components/ui/PageHeader';
 import StatusBadge from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
+import { usePageTitle } from '@hooks/usePageTitle';
 import {
   Shirt,
   Clock,
@@ -122,6 +123,7 @@ const STAT_CARDS = [
 ];
 
 export default function LaundryBookingPage() {
+  usePageTitle('Laundry Booking');
   const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
   const [slots, setSlots] = useState<SlotData[]>([]);
   const [myBookings, setMyBookings] = useState<MyBooking[]>([]);

@@ -14,6 +14,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { AnimatedCounter } from '@/components/motion/AnimatedCounter';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface ResolvedTask {
   _id: string;
@@ -30,6 +31,7 @@ interface ResolvedTask {
 const spring = { type: 'spring' as const, stiffness: 400, damping: 25 };
 
 export default function HistoryPage() {
+  usePageTitle('History');
   const [tasks, setTasks] = useState<ResolvedTask[]>([]);
   const [loading, setLoading] = useState(true);
 

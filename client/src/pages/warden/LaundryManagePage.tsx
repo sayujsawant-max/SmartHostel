@@ -7,6 +7,7 @@ import ErrorBanner from '@components/ui/ErrorBanner';
 import EmptyState from '@components/EmptyState';
 import StatusBadge from '@components/ui/StatusBadge';
 import { PageSkeleton } from '@components/Skeleton';
+import { usePageTitle } from '@hooks/usePageTitle';
 
 interface SlotData {
   _id: string;
@@ -24,6 +25,7 @@ function toDateString(d: Date): string {
 }
 
 export default function LaundryManagePage() {
+  usePageTitle('Laundry Manage');
   const [slots, setSlots] = useState<SlotData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
