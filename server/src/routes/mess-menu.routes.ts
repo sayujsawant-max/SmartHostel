@@ -1,8 +1,10 @@
 import { Router, type Request, type Response } from 'express';
-import { Role } from '@smarthostel/shared';
+import { Role, updateMessMenuSchema, rateMenuSchema } from '@smarthostel/shared';
 import { authMiddleware } from '@middleware/auth.middleware.js';
 import { requireRole } from '@middleware/rbac.middleware.js';
+import { validate } from '@middleware/validate.middleware.js';
 import { MessMenu } from '@models/mess-menu.model.js';
+import { cacheGet, cacheSet, cacheDelPattern } from '../config/cache.js';
 
 const router = Router();
 
@@ -10,6 +12,12 @@ router.use(authMiddleware);
 
 // GET / — Returns all 7 days' menus with aggregated ratings
 router.get('/', async (_req: Request, res: Response) => {
+  const cached = await cacheGet<{ menus: unknown[] }>('mess-menus:all');
+  if (cached) {
+    res.json({ success: true, data: cached });
+    return;
+  }
+
   const menus = await MessMenu.find({ isActive: true }).sort({ dayOfWeek: 1 }).lean();
 
   const result = menus.map((menu) => {
@@ -35,12 +43,22 @@ router.get('/', async (_req: Request, res: Response) => {
     };
   });
 
-  res.json({ success: true, data: { menus: result } });
+  const data = { menus: result };
+  await cacheSet('mess-menus:all', data, 300);
+  res.json({ success: true, data });
 });
 
 // GET /today — Returns today's menu
 router.get('/today', async (_req: Request, res: Response) => {
   const today = new Date().getDay();
+  const cacheKey = `mess-menus:today:${today}`;
+
+  const cached = await cacheGet<{ menu: unknown }>(cacheKey);
+  if (cached) {
+    res.json({ success: true, data: cached });
+    return;
+  }
+
   const menu = await MessMenu.findOne({ dayOfWeek: today, isActive: true }).lean();
 
   if (!menu) {
@@ -59,24 +77,23 @@ router.get('/today', async (_req: Request, res: Response) => {
     };
   }
 
-  res.json({
-    success: true,
-    data: {
-      menu: {
-        _id: menu._id,
-        dayOfWeek: menu.dayOfWeek,
-        breakfast: menu.breakfast,
-        lunch: menu.lunch,
-        snacks: menu.snacks,
-        dinner: menu.dinner,
-        ratings,
-      },
+  const data = {
+    menu: {
+      _id: menu._id,
+      dayOfWeek: menu.dayOfWeek,
+      breakfast: menu.breakfast,
+      lunch: menu.lunch,
+      snacks: menu.snacks,
+      dinner: menu.dinner,
+      ratings,
     },
-  });
+  };
+  await cacheSet(cacheKey, data, 300);
+  res.json({ success: true, data });
 });
 
 // PUT /:dayOfWeek — Warden updates a day's menu (upsert)
-router.put('/:dayOfWeek', requireRole(Role.WARDEN_ADMIN), async (req: Request, res: Response) => {
+router.put('/:dayOfWeek', requireRole(Role.WARDEN_ADMIN), validate(updateMessMenuSchema), async (req: Request, res: Response) => {
   const dayOfWeek = Number(req.params.dayOfWeek);
   if (isNaN(dayOfWeek) || dayOfWeek < 0 || dayOfWeek > 6) {
     res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'dayOfWeek must be 0-6' } });
@@ -95,11 +112,12 @@ router.put('/:dayOfWeek', requireRole(Role.WARDEN_ADMIN), async (req: Request, r
     { upsert: true, new: true },
   );
 
+  await cacheDelPattern('mess-menus:*');
   res.json({ success: true, data: { menu } });
 });
 
 // POST /:dayOfWeek/rate — Student rates a meal
-router.post('/:dayOfWeek/rate', requireRole(Role.STUDENT), async (req: Request, res: Response) => {
+router.post('/:dayOfWeek/rate', requireRole(Role.STUDENT), validate(rateMenuSchema), async (req: Request, res: Response) => {
   const dayOfWeek = Number(req.params.dayOfWeek);
   if (isNaN(dayOfWeek) || dayOfWeek < 0 || dayOfWeek > 6) {
     res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'dayOfWeek must be 0-6' } });
@@ -134,6 +152,7 @@ router.post('/:dayOfWeek/rate', requireRole(Role.STUDENT), async (req: Request, 
     return;
   }
 
+  await cacheDelPattern('mess-menus:*');
   res.json({ success: true, data: { message: 'Rating recorded' } });
 });
 

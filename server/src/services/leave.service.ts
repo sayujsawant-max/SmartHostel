@@ -119,7 +119,7 @@ export async function approveLeave(leaveId: string, wardenId: string, correlatio
     eventType: 'LEAVE_APPROVED',
     actorId: wardenId,
     actorRole: 'WARDEN_ADMIN',
-    metadata: { studentId: leave.studentId.toString() },
+    metadata: { leaveId: leave._id.toString(), studentId: leave.studentId.toString(), type: leave.type },
     correlationId,
   });
 
@@ -180,7 +180,7 @@ export async function rejectLeave(leaveId: string, wardenId: string, reason?: st
     eventType: 'LEAVE_REJECTED',
     actorId: wardenId,
     actorRole: 'WARDEN_ADMIN',
-    metadata: { reason: reason ?? null },
+    metadata: { leaveId: leave._id.toString(), studentId: leave.studentId.toString(), type: leave.type, reason: reason ?? null },
     correlationId,
   });
 

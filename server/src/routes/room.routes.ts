@@ -6,6 +6,7 @@ import * as roomController from '@controllers/room.controller.js';
 import { Room } from '@models/room.model.js';
 import { User } from '@models/user.model.js';
 import { AppError } from '@utils/app-error.js';
+import { cacheDel } from '../config/cache.js';
 
 const router = Router();
 
@@ -164,6 +165,7 @@ router.post('/request', authMiddleware, requireRole(Role.STUDENT), async (req, r
     student.roomNumber = room.roomNumber;
     await student.save();
 
+    await cacheDel('rooms:availability');
     res.json({ success: true, data: { user: student.toJSON() } });
   } catch (err) {
     next(err);

@@ -5,7 +5,7 @@ export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 2 : 1,
   workers: 1,
   reporter: 'html',
   use: {
@@ -22,13 +22,13 @@ export default defineConfig({
     {
       command: 'npm run dev --workspace=server',
       port: 5000,
-      reuseExistingServer: false,
+      reuseExistingServer: !process.env.CI,
       timeout: 30_000,
     },
     {
       command: 'npm run dev --workspace=client',
       port: 5173,
-      reuseExistingServer: false,
+      reuseExistingServer: !process.env.CI,
       timeout: 30_000,
     },
   ],

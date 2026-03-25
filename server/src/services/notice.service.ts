@@ -1,8 +1,10 @@
 import { Notice } from '@models/notice.model.js';
 import { Notification } from '@models/notification.model.js';
+import { AuditEvent } from '@models/audit-event.model.js';
 import { User } from '@models/user.model.js';
 import { Role, NotificationType } from '@smarthostel/shared';
 import { cacheGet, cacheSet, cacheDelPattern } from '@config/cache.js';
+import { logger } from '@utils/logger.js';
 import type mongoose from 'mongoose';
 
 interface CreateNoticeInput {
@@ -14,7 +16,7 @@ interface CreateNoticeInput {
   targetFloor?: string;
 }
 
-export async function createNotice(input: CreateNoticeInput) {
+export async function createNotice(input: CreateNoticeInput, correlationId?: string) {
   const notice = await Notice.create(input);
 
   // Find targeted students
@@ -41,6 +43,18 @@ export async function createNotice(input: CreateNoticeInput) {
     }));
     await Notification.insertMany(notifications);
   }
+
+  await AuditEvent.create({
+    entityType: 'Notice',
+    entityId: notice._id,
+    eventType: 'NOTICE_CREATED',
+    actorId: input.authorId,
+    actorRole: Role.WARDEN_ADMIN,
+    metadata: { title: input.title, target: input.target, targetBlock: input.targetBlock, targetFloor: input.targetFloor },
+    correlationId: correlationId ?? '',
+  });
+
+  logger.info({ eventType: 'NOTICE_CREATED', correlationId, noticeId: notice._id.toString() }, 'Notice created');
 
   await cacheDelPattern('notices:*');
   return notice;
@@ -77,8 +91,23 @@ export async function getStudentNotices(block?: string, floor?: string) {
   });
 }
 
-export async function deactivateNotice(noticeId: string) {
+export async function deactivateNotice(noticeId: string, actorId?: string, correlationId?: string) {
   const result = await Notice.findByIdAndUpdate(noticeId, { isActive: false }, { returnDocument: 'after' });
+
+  if (result) {
+    await AuditEvent.create({
+      entityType: 'Notice',
+      entityId: result._id,
+      eventType: 'NOTICE_DEACTIVATED',
+      actorId: actorId ?? null,
+      actorRole: 'WARDEN_ADMIN',
+      metadata: { title: result.title },
+      correlationId: correlationId ?? '',
+    });
+
+    logger.info({ eventType: 'NOTICE_DEACTIVATED', correlationId, noticeId }, 'Notice deactivated');
+  }
+
   await cacheDelPattern('notices:*');
   return result;
 }

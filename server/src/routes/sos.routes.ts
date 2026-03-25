@@ -1,7 +1,8 @@
 import { Router, type Request, type Response } from 'express';
-import { Role } from '@smarthostel/shared';
+import { Role, createSosSchema } from '@smarthostel/shared';
 import { authMiddleware } from '@middleware/auth.middleware.js';
 import { requireRole } from '@middleware/rbac.middleware.js';
+import { validate } from '@middleware/validate.middleware.js';
 import { Sos } from '@models/sos.model.js';
 
 const router = Router();
@@ -9,7 +10,7 @@ const router = Router();
 router.use(authMiddleware);
 
 // POST / — Student creates SOS alert
-router.post('/', requireRole(Role.STUDENT), async (req: Request, res: Response) => {
+router.post('/', requireRole(Role.STUDENT), validate(createSosSchema), async (req: Request, res: Response) => {
   const alert = await Sos.create({
     studentId: req.user!._id,
     message: req.body.message || 'Emergency SOS activated',

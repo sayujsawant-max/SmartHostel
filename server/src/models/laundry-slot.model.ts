@@ -28,5 +28,6 @@ const laundrySlotSchema = new Schema<ILaundrySlot>(
 
 laundrySlotSchema.index({ machineNumber: 1, date: 1, timeSlot: 1 }, { unique: true });
 laundrySlotSchema.index({ bookedBy: 1, status: 1 });
+laundrySlotSchema.index({ date: 1, status: 1 });
 
 export const LaundrySlot = mongoose.model<ILaundrySlot>('LaundrySlot', laundrySlotSchema);

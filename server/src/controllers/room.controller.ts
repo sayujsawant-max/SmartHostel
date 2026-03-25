@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { createRoomSchema } from '@smarthostel/shared';
 import * as roomService from '@services/room.service.js';
 import { AppError } from '@utils/app-error.js';
+import { cacheGet, cacheSet, cacheDel } from '../config/cache.js';
 
 export async function listRooms(req: Request, res: Response, next: NextFunction) {
   try {
@@ -36,6 +37,7 @@ export async function createRoom(req: Request, res: Response, next: NextFunction
       });
     }
     const room = await roomService.createRoom(parsed.data, req.correlationId);
+    await cacheDel('rooms:availability');
     res.status(201).json({ success: true, data: { room } });
   } catch (err) {
     next(err);
@@ -45,6 +47,7 @@ export async function createRoom(req: Request, res: Response, next: NextFunction
 export async function updateRoom(req: Request<{ id: string }>, res: Response, next: NextFunction) {
   try {
     const room = await roomService.updateRoom(req.params.id, req.body, req.correlationId);
+    await cacheDel('rooms:availability');
     res.json({ success: true, data: { room } });
   } catch (err) {
     next(err);
@@ -53,7 +56,14 @@ export async function updateRoom(req: Request<{ id: string }>, res: Response, ne
 
 export async function getAvailability(_req: Request, res: Response, next: NextFunction) {
   try {
+    const cached = await cacheGet<unknown>('rooms:availability');
+    if (cached) {
+      res.json({ success: true, data: { availability: cached } });
+      return;
+    }
+
     const availability = await roomService.getAvailability();
+    await cacheSet('rooms:availability', availability, 120);
     res.json({ success: true, data: { availability } });
   } catch (err) {
     next(err);

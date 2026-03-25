@@ -20,7 +20,7 @@ export async function createNotice(req: Request, res: Response, next: NextFuncti
       target,
       targetBlock,
       targetFloor,
-    });
+    }, req.correlationId);
 
     res.status(201).json({ success: true, data: { notice } });
   } catch (err) {
@@ -52,7 +52,7 @@ export async function getStudentNotices(req: Request, res: Response, next: NextF
 
 export async function deactivateNotice(req: Request, res: Response, next: NextFunction) {
   try {
-    const notice = await noticeService.deactivateNotice(req.params.id as string);
+    const notice = await noticeService.deactivateNotice(req.params.id as string, req.user!._id, req.correlationId);
     if (!notice) {
       throw new AppError('NOT_FOUND', 'Notice not found', 404);
     }

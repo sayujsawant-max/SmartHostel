@@ -169,7 +169,7 @@ export async function assignComplaint(
           eventType: 'COMPLAINT_ASSIGNED',
           actorId,
           actorRole: Role.WARDEN_ADMIN,
-          metadata: { assigneeId },
+          metadata: { complaintId: updated._id.toString(), assigneeId, newStatus: ComplaintStatus.ASSIGNED },
           correlationId,
         },
       ],
@@ -226,10 +226,10 @@ export async function updatePriority(
   await AuditEvent.create({
     entityType: 'Complaint',
     entityId: complaint._id,
-    eventType: 'PRIORITY_CHANGED',
+    eventType: 'COMPLAINT_PRIORITY_CHANGED',
     actorId,
     actorRole: Role.WARDEN_ADMIN,
-    metadata: { oldPriority, newPriority: priority, newDueAt: complaint.dueAt },
+    metadata: { complaintId: complaint._id.toString(), oldPriority, newPriority: priority, newDueAt: complaint.dueAt },
     correlationId,
   });
 
@@ -294,10 +294,10 @@ export async function updateStatus(
   await AuditEvent.create({
     entityType: 'Complaint',
     entityId: complaint._id,
-    eventType,
+    eventType: 'COMPLAINT_STATUS_CHANGED',
     actorId,
     actorRole,
-    metadata: { from: complaint.status, to: newStatus },
+    metadata: { complaintId: complaint._id.toString(), from: complaint.status, newStatus },
     correlationId,
   });
 

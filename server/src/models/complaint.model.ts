@@ -61,5 +61,7 @@ complaintSchema.set('toJSON', {
 
 complaintSchema.index({ status: 1, dueAt: 1 });
 complaintSchema.index({ assigneeId: 1, status: 1 });
+complaintSchema.index({ status: 1, createdAt: -1 });
+complaintSchema.index({ category: 1, status: 1 });
 
 export const Complaint = mongoose.model<IComplaint>('Complaint', complaintSchema);

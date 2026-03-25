@@ -1,7 +1,8 @@
 import { Router, type Request, type Response } from 'express';
-import { Role } from '@smarthostel/shared';
+import { Role, createLostFoundSchema } from '@smarthostel/shared';
 import { authMiddleware } from '@middleware/auth.middleware.js';
 import { requireRole } from '@middleware/rbac.middleware.js';
+import { validate } from '@middleware/validate.middleware.js';
 import mongoose from 'mongoose';
 import { LostFound } from '@models/lost-found.model.js';
 
@@ -13,6 +14,7 @@ router.use(authMiddleware);
 router.post(
   '/',
   requireRole(Role.STUDENT, Role.WARDEN_ADMIN),
+  validate(createLostFoundSchema),
   async (req: Request, res: Response) => {
     const { type, itemName, description, category, locationFound, dateOccurred, contactInfo } =
       req.body;

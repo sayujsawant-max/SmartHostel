@@ -1,7 +1,8 @@
 import { Router, type Request, type Response } from 'express';
-import { Role } from '@smarthostel/shared';
+import { Role, registerVisitorSchema } from '@smarthostel/shared';
 import { authMiddleware } from '@middleware/auth.middleware.js';
 import { requireRole } from '@middleware/rbac.middleware.js';
+import { validate } from '@middleware/validate.middleware.js';
 import { Visitor } from '@models/visitor.model.js';
 
 const router = Router();
@@ -9,7 +10,7 @@ const router = Router();
 router.use(authMiddleware);
 
 // POST / — Student registers a visitor
-router.post('/', requireRole(Role.STUDENT), async (req: Request, res: Response) => {
+router.post('/', requireRole(Role.STUDENT), validate(registerVisitorSchema), async (req: Request, res: Response) => {
   const { visitorName, visitorPhone, relationship, purpose, expectedDate, expectedTime } = req.body as {
     visitorName: string;
     visitorPhone: string;

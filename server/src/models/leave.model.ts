@@ -57,5 +57,7 @@ leaveSchema.set('toJSON', {
 });
 
 leaveSchema.index({ studentId: 1, status: 1 });
+leaveSchema.index({ startDate: 1, endDate: 1 });
+leaveSchema.index({ status: 1, createdAt: -1 });
 
 export const Leave = mongoose.model<ILeave>('Leave', leaveSchema);

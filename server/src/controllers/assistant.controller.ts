@@ -2,10 +2,18 @@ import type { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import * as assistantService from '@services/assistant.service.js';
 import { AppError } from '@utils/app-error.js';
+import { cacheGet, cacheSet } from '../config/cache.js';
 
 export async function getFaqEntries(_req: Request, res: Response, next: NextFunction) {
   try {
+    const cached = await cacheGet<unknown[]>('faqs:all');
+    if (cached) {
+      res.json({ success: true, data: { faqs: cached } });
+      return;
+    }
+
     const faqs = await assistantService.getFaqEntries();
+    await cacheSet('faqs:all', faqs, 600);
     res.json({ success: true, data: { faqs } });
   } catch (err) {
     next(err);

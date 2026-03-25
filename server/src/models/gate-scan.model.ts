@@ -65,5 +65,7 @@ gateScanSchema.set('toJSON', {
 
 gateScanSchema.index({ leaveId: 1 });
 gateScanSchema.index({ createdAt: -1 });
+gateScanSchema.index({ studentId: 1, createdAt: -1 });
+gateScanSchema.index({ verdict: 1, createdAt: -1 });
 
 export const GateScan = mongoose.model<IGateScan>('GateScan', gateScanSchema);

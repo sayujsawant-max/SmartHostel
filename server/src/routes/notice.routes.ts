@@ -1,7 +1,8 @@
 import { Router } from 'express';
-import { Role } from '@smarthostel/shared';
+import { Role, createNoticeSchema } from '@smarthostel/shared';
 import { authMiddleware } from '@middleware/auth.middleware.js';
 import { requireRole } from '@middleware/rbac.middleware.js';
+import { validate } from '@middleware/validate.middleware.js';
 import * as noticeController from '@controllers/notice.controller.js';
 
 const router = Router();
@@ -33,7 +34,7 @@ router.use(authMiddleware);
  *       401: { description: Unauthorized }
  *       403: { description: Forbidden - WARDEN_ADMIN only }
  */
-router.post('/', requireRole(Role.WARDEN_ADMIN), noticeController.createNotice);
+router.post('/', requireRole(Role.WARDEN_ADMIN), validate(createNoticeSchema), noticeController.createNotice);
 
 /**
  * @openapi

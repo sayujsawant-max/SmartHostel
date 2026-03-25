@@ -64,5 +64,6 @@ visitorSchema.set('toJSON', {
 
 visitorSchema.index({ studentId: 1, status: 1 });
 visitorSchema.index({ expectedDate: 1, status: 1 });
+visitorSchema.index({ status: 1, expectedDate: 1 });
 
 export const Visitor = mongoose.model<IVisitor>('Visitor', visitorSchema);
