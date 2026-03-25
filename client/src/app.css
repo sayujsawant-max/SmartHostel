@@ -277,3 +277,128 @@ textarea:focus {
   position: absolute;
   content: "";
 }
+
+/* ─── Premium Gradient Borders ───────────────────────────────── */
+
+.gradient-border {
+  position: relative;
+  border: none;
+}
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--primary)), hsl(var(--accent)));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Animated gradient border */
+@keyframes gradient-rotate {
+  0% { --angle: 0deg; }
+  100% { --angle: 360deg; }
+}
+
+/* Hover glow effect */
+.hover-glow {
+  transition: box-shadow 0.3s ease;
+}
+.hover-glow:hover {
+  box-shadow: 0 0 20px hsl(var(--accent) / 0.15), 0 0 40px hsl(var(--accent) / 0.05);
+}
+
+/* Premium input focus */
+.input-premium {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.input-premium:focus {
+  border-color: hsl(var(--accent));
+  box-shadow: 0 0 0 3px hsl(var(--accent) / 0.1), 0 0 12px hsl(var(--accent) / 0.08);
+}
+
+/* Animated underline for links/tabs */
+.animated-underline {
+  position: relative;
+}
+.animated-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: hsl(var(--accent));
+  transition: width 0.3s ease, left 0.3s ease;
+  border-radius: 1px;
+}
+.animated-underline:hover::after {
+  width: 100%;
+  left: 0;
+}
+
+/* Pulse dot for active indicators */
+.pulse-dot {
+  position: relative;
+}
+.pulse-dot::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: hsl(var(--accent));
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.3); }
+}
+
+/* Premium table styling */
+.table-premium {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.table-premium thead th {
+  background: hsl(var(--muted) / 0.5);
+  backdrop-filter: blur(8px);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  color: hsl(var(--muted-foreground));
+  padding: 0.75rem 1rem;
+}
+.table-premium thead th:first-child {
+  border-top-left-radius: 0.75rem;
+}
+.table-premium thead th:last-child {
+  border-top-right-radius: 0.75rem;
+}
+.table-premium tbody tr {
+  transition: background 0.15s ease;
+}
+.table-premium tbody tr:hover {
+  background: hsl(var(--muted) / 0.3);
+}
+.table-premium tbody td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
+}
+
+/* Smooth number transition */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Modal backdrop blur */
+.modal-backdrop {
+  backdrop-filter: blur(4px) saturate(120%);
+  -webkit-backdrop-filter: blur(4px) saturate(120%);
+}
