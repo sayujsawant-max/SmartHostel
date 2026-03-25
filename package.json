@@ -22,10 +22,12 @@
     "lint": "npm -w client run lint && npm -w server run lint",
     "lint:stories": "node scripts/lint-stories.mjs",
     "test": "npm -w client run test && npm -w server run test",
+    "test:coverage": "npm -w client run test:coverage && npm -w server run test:coverage",
     "test:e2e": "npx playwright test"
   },
   "devDependencies": {
     "@playwright/test": "1.58.2",
+    "@vitest/coverage-v8": "^4.1.1",
     "concurrently": "9.2.1"
   }
 }

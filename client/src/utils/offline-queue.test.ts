@@ -1,5 +1,24 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+vi.mock('motion/react', () => {
+  const React = require('react');
+  const motion = new Proxy(
+    {},
+    {
+      get: (_target: object, prop: string) =>
+        React.forwardRef((props: Record<string, unknown>, ref: unknown) => {
+          const { initial: _i, animate: _a, exit: _e, transition: _t, ...rest } = props;
+          return React.createElement(prop, { ...rest, ref });
+        }),
+    },
+  );
+  return {
+    motion,
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
+  };
+});
+
 import { OfflineQueue, offlineFetch, syncQueue } from './offline-queue';
 
 const QUEUE_KEY = 'smarthostel-offline-queue';
@@ -96,7 +115,9 @@ describe('offlineFetch', () => {
   beforeEach(() => {
     localStorage.clear();
     originalFetch = globalThis.fetch;
+    const originalCrypto = globalThis.crypto;
     vi.stubGlobal('crypto', {
+      ...originalCrypto,
       randomUUID: vi.fn().mockReturnValue('mock-uuid'),
     });
   });
@@ -138,9 +159,14 @@ describe('offlineFetch', () => {
   it('throws for GET requests when offline', async () => {
     Object.defineProperty(navigator, 'onLine', { value: false, writable: true, configurable: true });
 
-    await expect(offlineFetch('/api/data')).rejects.toThrow(
-      'Cannot perform GET requests while offline',
-    );
+    let caught: unknown;
+    try {
+      await offlineFetch('/api/data');
+    } catch (e) {
+      caught = e;
+    }
+    expect(caught).toBeInstanceOf(Error);
+    expect((caught as Error).message).toBe('Cannot perform GET requests while offline');
   });
 
   it('queues non-GET request when online fetch throws network error', async () => {
@@ -158,13 +184,27 @@ describe('offlineFetch', () => {
     Object.defineProperty(navigator, 'onLine', { value: true, writable: true, configurable: true });
     globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
-    await expect(offlineFetch('/api/data', { method: 'GET' })).rejects.toThrow('Network error');
+    let caught: unknown;
+    try {
+      await offlineFetch('/api/data', { method: 'GET' });
+    } catch (e) {
+      caught = e;
+    }
+    expect(caught).toBeInstanceOf(Error);
+    expect((caught as Error).message).toBe('Network error');
   });
 
   it('defaults method to GET when options.method is not provided', async () => {
     Object.defineProperty(navigator, 'onLine', { value: false, writable: true, configurable: true });
 
-    await expect(offlineFetch('/api/data')).rejects.toThrow(
+    let caught: unknown;
+    try {
+      await offlineFetch('/api/data');
+    } catch (e) {
+      caught = e;
+    }
+    expect(caught).toBeInstanceOf(Error);
+    expect((caught as Error).message).toBe(
       'Cannot perform GET requests while offline',
     );
   });

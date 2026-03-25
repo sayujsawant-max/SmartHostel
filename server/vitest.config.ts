@@ -11,5 +11,11 @@ export default defineConfig({
     include: ['src/**/*.test.ts'],
     exclude: ['dist/**', 'node_modules/**'],
     fileParallelism: false,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      include: ['src/**/*.ts'],
+      exclude: ['src/**/*.test.ts', 'src/test/**'],
+    },
   },
 });

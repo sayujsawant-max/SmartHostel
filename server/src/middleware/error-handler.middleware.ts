@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { ErrorCode } from '@smarthostel/shared';
+import { Sentry } from '@config/sentry.js';
 import { AppError } from '@utils/app-error.js';
 import { logger } from '@utils/logger.js';
 
@@ -40,7 +41,8 @@ export function errorHandlerMiddleware(
     return;
   }
 
-  // Unhandled error — never expose internals
+  // Unhandled error — report to Sentry and never expose internals
+  Sentry.captureException(err, { extra: { correlationId } });
   logger.error(
     {
       eventType: 'UNHANDLED_ERROR',

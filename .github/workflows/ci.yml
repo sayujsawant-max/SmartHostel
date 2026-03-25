@@ -61,11 +61,20 @@ jobs:
       - name: Build shared (needed by tests)
         run: npm run build -w shared
 
-      - name: Server tests
-        run: npm test -w server
+      - name: Server tests with coverage
+        run: npm run test:coverage -w server
 
-      - name: Client tests
-        run: npm test -w client
+      - name: Client tests with coverage
+        run: npm run test:coverage -w client
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            server/coverage/
+            client/coverage/
 
   build:
     runs-on: ubuntu-latest

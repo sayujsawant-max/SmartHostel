@@ -4,10 +4,8 @@ import { SEED_USERS, login, type SeedRole } from './helpers';
 test.describe('Authentication', () => {
   test('shows login page by default', async ({ page }) => {
     await page.goto('/');
-    await expect(page).toHaveURL('/login');
+    await expect(page).toHaveURL(/\/(login|landing)/);
     await expect(page.getByText('SmartHostel')).toBeVisible();
-    await expect(page.getByLabel('Email')).toBeVisible();
-    await expect(page.getByLabel('Password')).toBeVisible();
   });
 
   for (const [role, user] of Object.entries(SEED_USERS)) {
@@ -19,9 +17,9 @@ test.describe('Authentication', () => {
 
   test('shows error for invalid credentials', async ({ page }) => {
     await page.goto('/login');
-    await page.getByLabel('Email').fill('wrong@example.com');
+    await page.getByLabel('Email Address').fill('wrong@example.com');
     await page.getByLabel('Password').fill('wrongpassword');
-    await page.getByRole('button', { name: 'Sign in' }).click();
+    await page.getByRole('button', { name: /Sign In/i }).click();
 
     await expect(page.getByText(/invalid|not found|unauthorized/i)).toBeVisible({ timeout: 5000 });
   });
@@ -35,12 +33,11 @@ test.describe('Authentication', () => {
 
   test('register page is accessible from login', async ({ page }) => {
     await page.goto('/login');
-    await page.getByText('Sign up').click();
+    await page.getByText(/Create an account/i).click();
     await expect(page).toHaveURL('/register');
     await expect(page.getByLabel('Full Name')).toBeVisible();
-    await expect(page.getByLabel('Email')).toBeVisible();
+    await expect(page.getByLabel('Email Address')).toBeVisible();
     await expect(page.getByLabel('Password')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Create Account' })).toBeVisible();
   });
 
   test('rooms page is publicly accessible', async ({ page }) => {

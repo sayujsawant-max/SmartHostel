@@ -85,6 +85,9 @@ const envSchema = z.object({
   SMTP_PASS: z.string().optional().default(''),
   EMAIL_FROM: z.string().optional().default('noreply@smarthostel.com'),
 
+  // Error monitoring (optional — Sentry)
+  SENTRY_DSN: z.string().optional().default(''),
+
   // Push notifications (optional — VAPID)
   VAPID_PUBLIC_KEY: z.string().optional().default(''),
   VAPID_PRIVATE_KEY: z.string().optional().default(''),

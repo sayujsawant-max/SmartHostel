@@ -254,7 +254,10 @@ export async function forgotPassword(email: string, correlationId?: string) {
     );
   }
 
-  // TODO: In production, send email with resetUrl
+  // Send password reset email (skipped when SMTP is not configured)
+  if (env.SMTP_HOST) {
+    await sendPasswordResetEmail(user.email, resetUrl);
+  }
 
   logger.info(
     { eventType: 'AUTH_FORGOT', correlationId, userId: user._id.toString() },

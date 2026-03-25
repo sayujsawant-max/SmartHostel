@@ -1,9 +1,22 @@
 import { createServer } from 'node:http';
+import { Sentry } from '@config/sentry.js';
 import { env } from '@config/env.js';
 import { connectDB } from '@config/db.js';
 import { initSocket } from '@config/socket.js';
 import { logger } from '@utils/logger.js';
 import app from './app.js';
+
+// Global handlers for truly unhandled errors
+process.on('unhandledRejection', (reason) => {
+  logger.fatal({ eventType: 'UNHANDLED_REJECTION', error: reason }, 'Unhandled promise rejection');
+  Sentry.captureException(reason);
+});
+
+process.on('uncaughtException', (err) => {
+  logger.fatal({ eventType: 'UNCAUGHT_EXCEPTION', error: err }, 'Uncaught exception');
+  Sentry.captureException(err);
+  process.exit(1);
+});
 
 async function start(): Promise<void> {
   try {
@@ -20,6 +33,7 @@ async function start(): Promise<void> {
     });
   } catch (err) {
     logger.fatal({ eventType: 'STARTUP_FAILURE', error: err }, 'Failed to start server');
+    Sentry.captureException(err);
     process.exit(1);
   }
 }
