@@ -6,6 +6,8 @@ export const ErrorCode = {
   CONFLICT: 'CONFLICT',
   RATE_LIMITED: 'RATE_LIMITED',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
+  AI_NOT_CONFIGURED: 'AI_NOT_CONFIGURED',
+  AI_ERROR: 'AI_ERROR',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
@@ -18,4 +20,6 @@ export const ERROR_STATUS_MAP: Record<ErrorCode, number> = {
   CONFLICT: 409,
   RATE_LIMITED: 429,
   INTERNAL_ERROR: 500,
+  AI_NOT_CONFIGURED: 503,
+  AI_ERROR: 502,
 };

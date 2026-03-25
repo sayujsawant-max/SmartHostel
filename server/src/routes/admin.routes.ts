@@ -71,6 +71,7 @@ router.post('/', adminController.createUser);
  *       404: { description: User not found }
  */
 router.patch('/:id/disable', adminController.disableUser);
+router.patch('/:id/enable', adminController.enableUser);
 
 /**
  * @openapi

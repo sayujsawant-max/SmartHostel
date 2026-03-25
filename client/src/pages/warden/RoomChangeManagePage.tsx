@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { showError, showSuccess } from '@/utils/toast';
 import { Reveal } from '@/components/motion/Reveal';
 import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
 import PageHeader from '@components/ui/PageHeader';
@@ -69,8 +70,8 @@ export default function RoomChangeManagePage() {
     try {
       const res = await apiFetch<{ requests: RoomChangeRequest[] }>('/room-changes');
       setRequests(res.data.requests);
-    } catch {
-      // silently fail
+    } catch (err) {
+      showError(err, 'Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -83,9 +84,11 @@ export default function RoomChangeManagePage() {
   const handleApprove = async (id: string) => {
     try {
       await apiFetch(`/room-changes/${id}/approve`, { method: 'PATCH' });
+      showSuccess('Room change approved');
+      void import('@/utils/confetti').then(m => m.celebrateMini());
       void fetchRequests();
-    } catch {
-      // silently fail
+    } catch (err) {
+      showError(err);
     }
   };
 
@@ -98,9 +101,10 @@ export default function RoomChangeManagePage() {
       });
       setRejectingId(null);
       setRejectReason('');
+      showSuccess('Room change rejected');
       void fetchRequests();
-    } catch {
-      // silently fail
+    } catch (err) {
+      showError(err);
     }
   };
 
@@ -134,7 +138,7 @@ export default function RoomChangeManagePage() {
         <StaggerContainer stagger={0.05} className="space-y-3">
           {filtered.map((r) => (
             <StaggerItem key={r._id}>
-            <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:shadow-sm transition-shadow">
+            <div className="card-glow p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:shadow-sm transition-shadow">
               {/* Header */}
               <div className="flex justify-between items-start">
                 <div>

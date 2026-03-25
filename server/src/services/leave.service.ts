@@ -6,6 +6,7 @@ import { AppError } from '@utils/app-error.js';
 import { logger } from '@utils/logger.js';
 import { createGatePass, invalidatePassByLeaveId } from '@services/gate-pass.service.js';
 import { AuditEvent } from '@models/audit-event.model.js';
+import { emitToUser } from '@config/socket.js';
 
 export async function createLeave(studentId: string, data: CreateLeaveInput, correlationId?: string) {
   const startDate = new Date(data.startDate);
@@ -86,13 +87,24 @@ export async function approveLeave(leaveId: string, wardenId: string, correlatio
     throw new AppError('CONFLICT', `Leave is ${existing.status}, not PENDING`, 409);
   }
 
-  await Notification.create({
+  const notification = await Notification.create({
     recipientId: leave.studentId,
     type: NotificationType.LEAVE_APPROVED,
     entityType: 'leave',
     entityId: leave._id,
     title: 'Leave Approved',
     body: `Your ${leave.type} leave from ${leave.startDate.toISOString().slice(0, 10)} to ${leave.endDate.toISOString().slice(0, 10)} has been approved.`,
+  });
+
+  // Push real-time notification
+  emitToUser(leave.studentId.toString(), 'notification', {
+    _id: notification._id,
+    type: notification.type,
+    title: notification.title,
+    body: notification.body,
+    entityType: notification.entityType,
+    entityId: notification.entityId,
+    createdAt: notification.createdAt,
   });
 
   const gatePass = await createGatePass(leave, correlationId);
@@ -137,7 +149,7 @@ export async function rejectLeave(leaveId: string, wardenId: string, reason?: st
     throw new AppError('CONFLICT', `Leave is ${existing.status}, not PENDING`, 409);
   }
 
-  await Notification.create({
+  const notification = await Notification.create({
     recipientId: leave.studentId,
     type: NotificationType.LEAVE_REJECTED,
     entityType: 'leave',
@@ -146,6 +158,16 @@ export async function rejectLeave(leaveId: string, wardenId: string, reason?: st
     body: reason
       ? `Your leave request was rejected: ${reason}`
       : 'Your leave request was rejected.',
+  });
+
+  emitToUser(leave.studentId.toString(), 'notification', {
+    _id: notification._id,
+    type: notification.type,
+    title: notification.title,
+    body: notification.body,
+    entityType: notification.entityType,
+    entityId: notification.entityId,
+    createdAt: notification.createdAt,
   });
 
   await AuditEvent.create({

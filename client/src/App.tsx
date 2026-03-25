@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import { Role } from '@smarthostel/shared';
 import { useAuth } from '@hooks/useAuth';
 import { getRoleHomePath } from '@utils/role-home';
@@ -12,6 +13,13 @@ import MaintenanceShell from '@components/layout/MaintenanceShell';
 import Chatbot from '@components/Chatbot';
 import { motion } from 'motion/react';
 import { useSmoothScroll } from '@hooks/useSmoothScroll';
+import ScrollProgress from '@components/ui/ScrollProgress';
+import CommandPalette from '@components/CommandPalette';
+import AccessibilityPanel from '@components/AccessibilityPanel';
+import { OfflineBanner } from '@utils/offline-queue';
+import { I18nProvider } from '@context/I18nContext';
+import PWAInstallPrompt from '@components/PWAInstallPrompt';
+import PushPermissionPrompt from '@components/PushPermissionPrompt';
 
 // Lazy-loaded pages (route-level code splitting)
 const LoginPage = lazy(() => import('@pages/LoginPage'));
@@ -36,6 +44,14 @@ const VisitorRegistrationPage = lazy(() => import('@pages/student/VisitorRegistr
 const RoomChangePage = lazy(() => import('@pages/student/RoomChangePage'));
 const LostFoundPage = lazy(() => import('@pages/student/LostFoundPage'));
 const RoomRequestPage = lazy(() => import('@pages/student/RoomRequestPage'));
+const FeesPage = lazy(() => import('@pages/student/FeesPage'));
+const MealPreferencesPage = lazy(() => import('@pages/student/MealPreferencesPage'));
+const LeaveTrackerPage = lazy(() => import('@pages/student/LeaveTrackerPage'));
+const LeaderboardPage = lazy(() => import('@pages/student/LeaderboardPage'));
+const DocumentsPage = lazy(() => import('@pages/student/DocumentsPage'));
+const PaymentsPage = lazy(() => import('@pages/student/PaymentsPage'));
+const ChatPage = lazy(() => import('@pages/student/ChatPage'));
+const FeedbackPage = lazy(() => import('@pages/student/FeedbackPage'));
 
 // Warden pages
 const WardenDashboardPage = lazy(() => import('@pages/warden/DashboardPage'));
@@ -50,15 +66,27 @@ const WardenLaundryManagePage = lazy(() => import('@pages/warden/LaundryManagePa
 const WardenVisitorManagePage = lazy(() => import('@pages/warden/VisitorManagePage'));
 const WardenRoomChangeManagePage = lazy(() => import('@pages/warden/RoomChangeManagePage'));
 const WardenReportsPage = lazy(() => import('@pages/warden/ReportsPage'));
+const WardenKpiDashboardPage = lazy(() => import('@pages/warden/KpiDashboardPage'));
+const WardenInspectionsPage = lazy(() => import('@pages/warden/InspectionsPage'));
+const WardenBulkCommunicationsPage = lazy(() => import('@pages/warden/BulkCommunicationsPage'));
+const WardenAuditTrailPage = lazy(() => import('@pages/warden/AuditTrailPage'));
+const WardenOccupancyHeatmapPage = lazy(() => import('@pages/warden/OccupancyHeatmapPage'));
+const WardenComplaintAnalyticsPage = lazy(() => import('@pages/warden/ComplaintAnalyticsPage'));
+const WardenWellnessDashboardPage = lazy(() => import('@pages/warden/WellnessDashboardPage'));
+const WardenReportBuilderPage = lazy(() => import('@pages/warden/ReportBuilderPage'));
+const WardenEmergencyPage = lazy(() => import('@pages/warden/EmergencyPage'));
 
 // Guard pages
 const GuardVisitorCheckPage = lazy(() => import('@pages/guard/VisitorCheckPage'));
 const GuardScanPage = lazy(() => import('@pages/guard/ScanPage'));
+const GuardGateAnalyticsPage = lazy(() => import('@pages/guard/GateAnalyticsPage'));
 
 // Maintenance pages
 const MaintenanceTasksPage = lazy(() => import('@pages/maintenance/TasksPage'));
 const MaintenanceHistoryPage = lazy(() => import('@pages/maintenance/HistoryPage'));
 const MaintenanceFaqPage = lazy(() => import('@pages/maintenance/FaqPage'));
+const MaintenanceInventoryPage = lazy(() => import('@pages/maintenance/InventoryPage'));
+const MaintenanceAssetTrackingPage = lazy(() => import('@pages/maintenance/AssetTrackingPage'));
 
 function PageSpinner() {
   return (
@@ -165,6 +193,14 @@ function AppRoutes() {
               <Route path="/student/room-change" element={<RoomChangePage />} />
               <Route path="/student/lost-found" element={<LostFoundPage />} />
               <Route path="/student/room-request" element={<RoomRequestPage />} />
+              <Route path="/student/fees" element={<FeesPage />} />
+              <Route path="/student/meal-preferences" element={<MealPreferencesPage />} />
+              <Route path="/student/leave-tracker" element={<LeaveTrackerPage />} />
+              <Route path="/student/leaderboard" element={<LeaderboardPage />} />
+              <Route path="/student/documents" element={<DocumentsPage />} />
+              <Route path="/student/payments" element={<PaymentsPage />} />
+              <Route path="/student/chat" element={<ChatPage />} />
+              <Route path="/student/feedback" element={<FeedbackPage />} />
             </Route>
           </Route>
 
@@ -183,6 +219,15 @@ function AppRoutes() {
               <Route path="/warden/visitors" element={<WardenVisitorManagePage />} />
               <Route path="/warden/room-changes" element={<WardenRoomChangeManagePage />} />
               <Route path="/warden/reports" element={<WardenReportsPage />} />
+              <Route path="/warden/kpi" element={<WardenKpiDashboardPage />} />
+              <Route path="/warden/inspections" element={<WardenInspectionsPage />} />
+              <Route path="/warden/communications" element={<WardenBulkCommunicationsPage />} />
+              <Route path="/warden/audit-trail" element={<WardenAuditTrailPage />} />
+              <Route path="/warden/occupancy-heatmap" element={<WardenOccupancyHeatmapPage />} />
+              <Route path="/warden/complaint-analytics" element={<WardenComplaintAnalyticsPage />} />
+              <Route path="/warden/wellness" element={<WardenWellnessDashboardPage />} />
+              <Route path="/warden/report-builder" element={<WardenReportBuilderPage />} />
+              <Route path="/warden/emergency" element={<WardenEmergencyPage />} />
             </Route>
           </Route>
 
@@ -191,6 +236,7 @@ function AppRoutes() {
             <Route element={<GuardShell />}>
               <Route path="/guard/scan" element={<GuardScanPage />} />
               <Route path="/guard/visitors" element={<GuardVisitorCheckPage />} />
+              <Route path="/guard/analytics" element={<GuardGateAnalyticsPage />} />
             </Route>
           </Route>
 
@@ -200,6 +246,8 @@ function AppRoutes() {
               <Route path="/maintenance/tasks" element={<MaintenanceTasksPage />} />
               <Route path="/maintenance/history" element={<MaintenanceHistoryPage />} />
               <Route path="/maintenance/faq" element={<MaintenanceFaqPage />} />
+              <Route path="/maintenance/inventory" element={<MaintenanceInventoryPage />} />
+              <Route path="/maintenance/assets" element={<MaintenanceAssetTrackingPage />} />
             </Route>
           </Route>
         </Route>
@@ -218,9 +266,30 @@ function App() {
   useSmoothScroll();
 
   return (
+    <I18nProvider>
     <BrowserRouter>
+      <OfflineBanner />
+      <ScrollProgress />
+      <CommandPalette />
+      <AccessibilityPanel />
+      <PWAInstallPrompt />
+      <PushPermissionPrompt />
       <AppRoutes />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          className: 'text-sm',
+          style: {
+            background: 'hsl(var(--card))',
+            color: 'hsl(var(--foreground))',
+            border: '1px solid hsl(var(--border))',
+          },
+        }}
+        richColors
+        closeButton
+      />
     </BrowserRouter>
+    </I18nProvider>
   );
 }
 

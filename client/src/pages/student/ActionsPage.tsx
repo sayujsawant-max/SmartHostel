@@ -1,15 +1,26 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '@services/api';
-import { Reveal } from '@/components/motion/Reveal';
-import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
-import { MotionCard } from '@/components/motion/MotionCard';
+import { showError } from '@/utils/toast';
+import { motion } from '@components/ui/motion';
 import PageHeader from '@components/ui/PageHeader';
+import {
+  QrCode,
+  Wrench,
+  CalendarDays,
+  Users,
+  ArrowLeftRight,
+  Search,
+  Home,
+  ChevronRight,
+} from 'lucide-react';
 
 interface Leave {
   _id: string;
   status: string;
 }
+
+const spring = { type: 'spring' as const, stiffness: 400, damping: 25 };
 
 const actions = [
   {
@@ -18,72 +29,58 @@ const actions = [
     desc: 'Display your active gate pass',
     descInactive: 'No active pass',
     needsPass: true,
-    icon: (
-      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 14.625v2.25m0 3v.75m3-3h.75m-6 0h.75m2.25-2.25h3v3h-3v-3z" />
-      </svg>
-    ),
+    icon: QrCode,
+    color: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400',
+    activeColor: 'bg-emerald-50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800/40',
+    ring: 'group-hover:ring-emerald-200 dark:group-hover:ring-emerald-800/40',
   },
   {
     to: '/student/actions/report-issue',
     title: 'Report Issue',
     desc: 'File a maintenance complaint',
-    icon: (
-      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085" />
-      </svg>
-    ),
+    icon: Wrench,
+    color: 'bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400',
+    ring: 'group-hover:ring-rose-200 dark:group-hover:ring-rose-800/40',
   },
   {
     to: '/student/actions/request-leave',
     title: 'Request Leave',
     desc: 'Apply for day outing or overnight leave',
-    icon: (
-      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-      </svg>
-    ),
+    icon: CalendarDays,
+    color: 'bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400',
+    ring: 'group-hover:ring-blue-200 dark:group-hover:ring-blue-800/40',
   },
   {
     to: '/student/visitors',
     title: 'Register Visitor',
     desc: 'Pre-register an expected visitor',
-    icon: (
-      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-      </svg>
-    ),
+    icon: Users,
+    color: 'bg-violet-100 text-violet-600 dark:bg-violet-950/40 dark:text-violet-400',
+    ring: 'group-hover:ring-violet-200 dark:group-hover:ring-violet-800/40',
   },
   {
     to: '/student/room-change',
     title: 'Room Change',
     desc: 'Request a room transfer',
-    icon: (
-      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
-      </svg>
-    ),
+    icon: ArrowLeftRight,
+    color: 'bg-amber-100 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400',
+    ring: 'group-hover:ring-amber-200 dark:group-hover:ring-amber-800/40',
   },
   {
     to: '/student/lost-found',
     title: 'Lost & Found',
     desc: 'Report or find lost items',
-    icon: (
-      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-      </svg>
-    ),
+    icon: Search,
+    color: 'bg-teal-100 text-teal-600 dark:bg-teal-950/40 dark:text-teal-400',
+    ring: 'group-hover:ring-teal-200 dark:group-hover:ring-teal-800/40',
   },
   {
     to: '/student/room-request',
     title: 'Request Room',
     desc: 'Browse and request a hostel room',
-    icon: (
-      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-      </svg>
-    ),
+    icon: Home,
+    color: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400',
+    ring: 'group-hover:ring-indigo-200 dark:group-hover:ring-indigo-800/40',
   },
 ];
 
@@ -96,54 +93,81 @@ export default function ActionsPage() {
         const active = res.data.leaves.some((l) => l.status === 'APPROVED' || l.status === 'SCANNED_OUT');
         setHasActivePass(active);
       })
-      .catch(() => {});
+      .catch((err: unknown) => showError(err, 'Failed to load data'));
   }, []);
 
   return (
-    <div className="space-y-4">
-      <Reveal>
+    <div className="space-y-5">
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+      >
         <PageHeader title="Actions" description="Quick actions for your hostel needs." />
-      </Reveal>
+      </motion.div>
 
-      <StaggerContainer className="grid gap-3" stagger={0.05}>
-        {actions.map((action) => {
+      <div className="grid grid-cols-2 gap-3">
+        {actions.map((action, i) => {
           const isQR = action.needsPass;
           const disabled = isQR && !hasActivePass;
+          const Icon = action.icon;
 
           return (
-            <StaggerItem key={action.to}>
-              <MotionCard lift={disabled ? 0 : 3}>
+            <motion.div
+              key={action.to}
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{
+                duration: 0.4,
+                delay: 0.08 * i,
+                ease: [0.25, 0.46, 0.45, 0.94],
+              }}
+            >
+              <motion.div
+                whileHover={disabled ? {} : { y: -4, scale: 1.02 }}
+                whileTap={disabled ? {} : { scale: 0.97 }}
+                transition={spring}
+              >
                 <Link
                   to={action.to}
                   aria-disabled={disabled}
                   tabIndex={disabled ? -1 : undefined}
-                  className={`flex items-center gap-4 p-4 rounded-xl border text-left transition-all ${
+                  className={`group relative flex flex-col items-center text-center gap-3 p-5 rounded-2xl border transition-all duration-200 ${
                     isQR
                       ? hasActivePass
-                        ? 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800/40 hover:shadow-sm'
-                        : 'bg-[hsl(var(--muted))] border-[hsl(var(--border))] opacity-60 pointer-events-none'
-                      : 'border-[hsl(var(--border))] bg-[hsl(var(--card))] hover:border-[hsl(var(--accent))]/40 hover:shadow-sm'
+                        ? `${action.activeColor} hover:shadow-md ring-0 hover:ring-2 ${action.ring}`
+                        : 'bg-[hsl(var(--muted))] border-[hsl(var(--border))] opacity-50 pointer-events-none'
+                      : `border-[hsl(var(--border))] bg-[hsl(var(--card))] hover:shadow-md hover:border-transparent ring-0 hover:ring-2 ${action.ring} card-glow`
                   }`}
                 >
-                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
-                    isQR && hasActivePass
-                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                      : 'bg-[hsl(var(--accent))]/10 text-[hsl(var(--accent))]'
-                  }`}>
-                    {action.icon}
-                  </div>
+                  <motion.div
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+                      isQR && !hasActivePass
+                        ? 'bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))]'
+                        : action.color
+                    }`}
+                    whileHover={disabled ? {} : { rotate: [0, -8, 8, -4, 0], scale: 1.1 }}
+                    transition={{ duration: 0.5, ease: 'easeInOut' }}
+                  >
+                    <Icon className="w-6 h-6" />
+                  </motion.div>
                   <div>
-                    <p className="text-base font-semibold text-[hsl(var(--foreground))]">{action.title}</p>
-                    <p className="text-sm text-[hsl(var(--muted-foreground))] mt-0.5">
+                    <p className="text-sm font-semibold text-[hsl(var(--foreground))] leading-tight">
+                      {action.title}
+                    </p>
+                    <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 leading-snug">
                       {isQR ? (hasActivePass ? action.desc : action.descInactive) : action.desc}
                     </p>
                   </div>
+                  {!disabled && (
+                    <ChevronRight className="absolute top-3 right-3 w-4 h-4 text-[hsl(var(--muted-foreground))] opacity-0 group-hover:opacity-60 transition-opacity" />
+                  )}
                 </Link>
-              </MotionCard>
-            </StaggerItem>
+              </motion.div>
+            </motion.div>
           );
         })}
-      </StaggerContainer>
+      </div>
     </div>
   );
 }

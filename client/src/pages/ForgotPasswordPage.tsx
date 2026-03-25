@@ -3,7 +3,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { forgotPasswordSchema, type ForgotPasswordInput } from '@smarthostel/shared';
 import { Link } from 'react-router-dom';
-import { apiFetch, ApiError } from '@services/api';
+import { apiFetch } from '@services/api';
+import { showError } from '@/utils/toast';
 import AuthSplitLayout from '@components/ui/AuthSplitLayout';
 import FormField from '@components/ui/FormField';
 import Spinner from '@components/ui/Spinner';
@@ -17,7 +18,6 @@ const FORGOT_ICON = (
 
 export default function ForgotPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
   const {
@@ -30,7 +30,6 @@ export default function ForgotPasswordPage() {
   });
 
   async function onSubmit(data: ForgotPasswordInput) {
-    setServerError(null);
     setIsSubmitting(true);
     try {
       await apiFetch('/auth/forgot-password', {
@@ -39,11 +38,7 @@ export default function ForgotPasswordPage() {
       });
       setSuccess(true);
     } catch (err) {
-      if (err instanceof ApiError) {
-        setServerError(err.message);
-      } else {
-        setServerError('An unexpected error occurred');
-      }
+      showError(err, 'An unexpected error occurred');
     } finally {
       setIsSubmitting(false);
     }
@@ -57,8 +52,8 @@ export default function ForgotPasswordPage() {
     >
       {success ? (
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 10, filter: 'blur(6px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           className="text-center space-y-4"
         >
           <div className="w-14 h-14 rounded-full bg-green-100 dark:bg-green-900/30 mx-auto flex items-center justify-center">
@@ -72,7 +67,7 @@ export default function ForgotPasswordPage() {
           <p className="text-xs text-gray-500">
             In development mode, check the server console for the reset link.
           </p>
-          <Link to="/login" className="inline-block text-sm text-teal-600 hover:underline font-medium">
+          <Link to="/login" className="inline-block text-sm text-[hsl(var(--accent))] hover:underline font-medium">
             Back to Sign In
           </Link>
         </motion.div>
@@ -90,16 +85,6 @@ export default function ForgotPasswordPage() {
             inputProps={{ ...register('email'), type: 'email', autoComplete: 'email' }}
           />
 
-          {serverError && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              className="mb-4 text-sm text-red-600 text-center"
-            >
-              <p>{serverError}</p>
-            </motion.div>
-          )}
-
           <button
             type="submit"
             disabled={isSubmitting}
@@ -110,7 +95,7 @@ export default function ForgotPasswordPage() {
 
           <p className="text-sm text-center text-gray-600 mt-4">
             Remember your password?{' '}
-            <Link to="/login" className="text-teal-600 hover:underline font-medium">
+            <Link to="/login" className="text-[hsl(var(--accent))] hover:underline font-medium">
               Sign in
             </Link>
           </p>

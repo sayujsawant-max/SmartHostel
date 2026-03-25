@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { showError, showSuccess } from '@/utils/toast';
 import { Reveal } from '@/components/motion/Reveal';
 import { motion, AnimatePresence } from 'motion/react';
 import PageHeader from '@components/ui/PageHeader';
@@ -34,7 +35,7 @@ export default function NoticesPage() {
   const fetchNotices = () => {
     apiFetch<{ notices: Notice[] }>('/notices')
       .then((res) => setNotices(res.data.notices))
-      .catch(() => {})
+      .catch((err: unknown) => showError(err, 'Failed to load data'))
       .finally(() => setLoading(false));
   };
 
@@ -54,10 +55,11 @@ export default function NoticesPage() {
       setTargetBlock('');
       setTargetFloor('');
       setShowForm(false);
+      showSuccess('Notice published');
       setLoading(true);
       fetchNotices();
-    } catch {
-      // silently fail
+    } catch (err) {
+      showError(err);
     } finally {
       setSubmitting(false);
     }
@@ -67,8 +69,9 @@ export default function NoticesPage() {
     try {
       await apiFetch(`/notices/${id}/deactivate`, { method: 'PATCH' });
       setNotices((prev) => prev.map((n) => (n._id === id ? { ...n, isActive: false } : n)));
-    } catch {
-      // silently fail
+      showSuccess('Notice deactivated');
+    } catch (err) {
+      showError(err);
     }
   };
 
@@ -93,8 +96,8 @@ export default function NoticesPage() {
 
       <AnimatePresence>
       {showForm && (
-        <motion.div key="notice-form" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }} style={{ overflow: 'hidden' }}>
-        <form onSubmit={(e) => void handleSubmit(e)} className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-3">
+        <motion.div key="notice-form" initial={{ opacity: 0, height: 0, filter: 'blur(6px)' }} animate={{ opacity: 1, height: 'auto', filter: 'blur(0px)' }} exit={{ opacity: 0, height: 0, filter: 'blur(6px)' }} transition={{ duration: 0.2 }} style={{ overflow: 'hidden' }}>
+        <form onSubmit={(e) => void handleSubmit(e)} className="card-glow p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-3">
           <div>
             <label className="block text-sm font-medium text-[hsl(var(--foreground))] mb-1">Title</label>
             <input value={title} onChange={(e) => setTitle(e.target.value)} required className={inputCls} />
@@ -145,7 +148,7 @@ export default function NoticesPage() {
           {notices.map((n) => (
             <div
               key={n._id}
-              className={`p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:border-[hsl(var(--accent))]/40 transition-colors ${!n.isActive ? 'opacity-50' : ''}`}
+              className={`card-glow p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:border-[hsl(var(--accent))]/40 transition-colors ${!n.isActive ? 'opacity-50' : ''}`}
             >
               <div className="flex justify-between items-start">
                 <div>

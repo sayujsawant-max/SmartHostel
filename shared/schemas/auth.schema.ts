@@ -46,6 +46,13 @@ export const selfResetPasswordSchema = z.object({
 
 export type SelfResetPasswordInput = z.infer<typeof selfResetPasswordSchema>;
 
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z.string().min(8, 'Password must be at least 8 characters').max(128),
+});
+
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
 export const googleAuthSchema = z.object({
   credential: z.string().min(1),
 });

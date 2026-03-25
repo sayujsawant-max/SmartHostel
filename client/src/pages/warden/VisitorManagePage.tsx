@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { showError, showSuccess } from '@/utils/toast';
 import { Reveal } from '@/components/motion/Reveal';
 import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
 import PageHeader from '@components/ui/PageHeader';
@@ -52,8 +53,8 @@ export default function VisitorManagePage() {
 
       const res = await apiFetch<VisitorItem[]>(`/visitors${query}`);
       setVisitors(res.data);
-    } catch {
-      // silently fail
+    } catch (err) {
+      showError(err, 'Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -67,9 +68,11 @@ export default function VisitorManagePage() {
   const handleApprove = async (id: string) => {
     try {
       await apiFetch(`/visitors/${id}/approve`, { method: 'PATCH' });
+      showSuccess('Visitor approved');
+      void import('@/utils/confetti').then(m => m.celebrateMini());
       void fetchVisitors();
-    } catch {
-      // silently fail
+    } catch (err) {
+      showError(err);
     }
   };
 
@@ -81,9 +84,10 @@ export default function VisitorManagePage() {
       });
       setRejectingId(null);
       setRejectReason('');
+      showSuccess('Visitor rejected');
       void fetchVisitors();
-    } catch {
-      // silently fail
+    } catch (err) {
+      showError(err);
     }
   };
 
@@ -124,7 +128,7 @@ export default function VisitorManagePage() {
         <StaggerContainer stagger={0.05} className="space-y-3">
           {visitors.map((v) => (
             <StaggerItem key={v._id}>
-            <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:shadow-sm transition-shadow">
+            <div className="card-glow p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:shadow-sm transition-shadow">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-medium text-[hsl(var(--foreground))]">{v.visitorName}</p>

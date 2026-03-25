@@ -18,6 +18,11 @@ import { MessMenu } from '../models/mess-menu.model.js';
 import { Visitor } from '../models/visitor.model.js';
 import { LaundrySlot } from '../models/laundry-slot.model.js';
 import { LostFound } from '../models/lost-found.model.js';
+import { Feedback } from '../models/feedback.model.js';
+import { ChatMessage } from '../models/chat-message.model.js';
+import { Asset } from '../models/asset.model.js';
+import { WellnessCheck } from '../models/wellness-check.model.js';
+import { EmergencyAlert } from '../models/emergency-alert.model.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -1171,6 +1176,618 @@ async function seedLostFound(): Promise<{ created: number }> {
 
   await LostFound.insertMany(items);
   return { created: items.length };
+}
+
+// ---------------------------------------------------------------------------
+// Seed Feedback
+// ---------------------------------------------------------------------------
+
+async function seedFeedback(): Promise<{ created: number }> {
+  const alice = await User.findOne({ email: 'student@smarthostel.dev' });
+  const rahul = await User.findOne({ email: 'rahul@smarthostel.dev' });
+  const priya = await User.findOne({ email: 'priya@smarthostel.dev' });
+  const arjun = await User.findOne({ email: 'arjun@smarthostel.dev' });
+  const sneha = await User.findOne({ email: 'sneha@smarthostel.dev' });
+  const vikram = await User.findOne({ email: 'vikram@smarthostel.dev' });
+  const ananya = await User.findOne({ email: 'ananya@smarthostel.dev' });
+  if (!alice) return { created: 0 };
+
+  const studentIds = [alice, rahul, priya, arjun, sneha, vikram, ananya].filter(Boolean).map((s) => s!._id);
+  await Feedback.deleteMany({ studentId: { $in: studentIds } });
+
+  const now = new Date();
+  const feedbacks = [
+    {
+      studentId: alice._id,
+      category: 'MESS',
+      rating: 4,
+      comment: 'The new Wednesday paneer tikka is excellent! Great improvement to the menu.',
+      isAnonymous: false,
+      createdAt: new Date(now.getTime() - 2 * DAY),
+    },
+    {
+      studentId: alice._id,
+      category: 'LAUNDRY',
+      rating: 3,
+      comment: 'Machines are often occupied during peak hours. Would be helpful to have more machines or longer operating hours.',
+      isAnonymous: false,
+      createdAt: new Date(now.getTime() - 5 * DAY),
+    },
+    ...(rahul
+      ? [
+          {
+            studentId: rahul._id,
+            category: 'ROOMS',
+            rating: 2,
+            comment: 'The mattresses in Block A are quite old and uncomfortable. They need replacement urgently.',
+            isAnonymous: false,
+            createdAt: new Date(now.getTime() - 3 * DAY),
+          },
+          {
+            studentId: rahul._id,
+            category: 'MAINTENANCE',
+            rating: 5,
+            comment: 'The maintenance team fixed my electrical issue within hours. Very impressed with the response time.',
+            isAnonymous: false,
+            createdAt: new Date(now.getTime() - 1 * DAY),
+          },
+        ]
+      : []),
+    ...(priya
+      ? [
+          {
+            studentId: priya._id,
+            category: 'GENERAL',
+            rating: 4,
+            comment: 'The new hostel management system is very convenient. Being able to book laundry and register visitors online saves a lot of time.',
+            isAnonymous: false,
+            createdAt: new Date(now.getTime() - 4 * DAY),
+          },
+        ]
+      : []),
+    ...(arjun
+      ? [
+          {
+            studentId: arjun._id,
+            category: 'MESS',
+            rating: 1,
+            comment: 'Found hair in the dal today. Kitchen hygiene needs serious improvement. This is unacceptable.',
+            isAnonymous: true,
+            createdAt: new Date(now.getTime() - 6 * DAY),
+          },
+        ]
+      : []),
+    ...(sneha
+      ? [
+          {
+            studentId: sneha._id,
+            category: 'ROOMS',
+            rating: 4,
+            comment: 'Block B rooms are well-maintained. The cleaning staff does a great job with the common areas.',
+            isAnonymous: false,
+            createdAt: new Date(now.getTime() - 7 * DAY),
+          },
+        ]
+      : []),
+    ...(vikram
+      ? [
+          {
+            studentId: vikram._id,
+            category: 'LAUNDRY',
+            rating: 2,
+            comment: 'Machine 3 in the laundry room keeps stopping mid-cycle. Has been reported multiple times but not fixed yet.',
+            isAnonymous: true,
+            createdAt: new Date(now.getTime() - 8 * DAY),
+          },
+        ]
+      : []),
+    ...(ananya
+      ? [
+          {
+            studentId: ananya._id,
+            category: 'MAINTENANCE',
+            rating: 3,
+            comment: 'Plumbing repair was done well but it took 4 days to get someone assigned. Response time could be better.',
+            isAnonymous: false,
+            createdAt: new Date(now.getTime() - 2 * DAY),
+          },
+        ]
+      : []),
+  ];
+
+  await Feedback.insertMany(feedbacks);
+  return { created: feedbacks.length };
+}
+
+// ---------------------------------------------------------------------------
+// Seed Chat Messages
+// ---------------------------------------------------------------------------
+
+async function seedChatMessages(): Promise<{ created: number }> {
+  const alice = await User.findOne({ email: 'student@smarthostel.dev' });
+  const rahul = await User.findOne({ email: 'rahul@smarthostel.dev' });
+  const priya = await User.findOne({ email: 'priya@smarthostel.dev' });
+  const sneha = await User.findOne({ email: 'sneha@smarthostel.dev' });
+  const warden = await User.findOne({ email: 'warden@smarthostel.dev' });
+  if (!alice || !warden) return { created: 0 };
+
+  const participants = [alice, rahul, priya, sneha, warden].filter(Boolean).map((u) => u!._id);
+  await ChatMessage.deleteMany({
+    $or: [{ senderId: { $in: participants } }, { receiverId: { $in: participants } }],
+  });
+
+  const now = new Date();
+  const messages = [
+    // Alice <-> Warden conversation
+    {
+      senderId: alice._id,
+      receiverId: warden._id,
+      message: 'Good morning sir. I wanted to ask about the room change request I submitted last week.',
+      isRead: true,
+      createdAt: new Date(now.getTime() - 3 * DAY - 4 * HOUR),
+    },
+    {
+      senderId: warden._id,
+      receiverId: alice._id,
+      message: 'Hi Alice. Your request is under review. We are checking room availability in the preferred block.',
+      isRead: true,
+      createdAt: new Date(now.getTime() - 3 * DAY - 3 * HOUR),
+    },
+    {
+      senderId: alice._id,
+      receiverId: warden._id,
+      message: 'Thank you sir. Is there an estimated timeline?',
+      isRead: true,
+      createdAt: new Date(now.getTime() - 3 * DAY - 2 * HOUR),
+    },
+    {
+      senderId: warden._id,
+      receiverId: alice._id,
+      message: 'Should be processed by end of this week. You will get a notification once approved.',
+      isRead: true,
+      createdAt: new Date(now.getTime() - 3 * DAY - 1 * HOUR),
+    },
+    {
+      senderId: alice._id,
+      receiverId: warden._id,
+      message: 'Also, the ceiling fan complaint I raised — it is still making that grinding noise. Could you prioritize it?',
+      isRead: false,
+      createdAt: new Date(now.getTime() - 6 * HOUR),
+    },
+    // Alice <-> Rahul conversation (student-student)
+    ...(rahul
+      ? [
+          {
+            senderId: rahul._id,
+            receiverId: alice._id,
+            message: 'Hey Alice, are you going to the hostel day celebration tomorrow?',
+            isRead: true,
+            createdAt: new Date(now.getTime() - 2 * DAY - 5 * HOUR),
+          },
+          {
+            senderId: alice._id,
+            receiverId: rahul._id,
+            message: 'Yes! I signed up for the singing competition. Are you participating in anything?',
+            isRead: true,
+            createdAt: new Date(now.getTime() - 2 * DAY - 4 * HOUR),
+          },
+          {
+            senderId: rahul._id,
+            receiverId: alice._id,
+            message: 'I am in the cricket match. Also, do you have the notes for yesterday\'s DSA lecture? I missed it.',
+            isRead: true,
+            createdAt: new Date(now.getTime() - 2 * DAY - 3 * HOUR),
+          },
+          {
+            senderId: alice._id,
+            receiverId: rahul._id,
+            message: 'Sure, I will share them after dinner. Meet me in the study room around 8?',
+            isRead: false,
+            createdAt: new Date(now.getTime() - 2 * DAY - 2 * HOUR),
+          },
+        ]
+      : []),
+    // Priya <-> Warden conversation
+    ...(priya
+      ? [
+          {
+            senderId: priya._id,
+            receiverId: warden._id,
+            message: 'Sir, the common bathroom cleaning issue I reported has been resolved. Thank you for the quick action.',
+            isRead: true,
+            createdAt: new Date(now.getTime() - 1 * DAY - 6 * HOUR),
+          },
+          {
+            senderId: warden._id,
+            receiverId: priya._id,
+            message: 'Glad to hear that Priya. We have updated the cleaning schedule to prevent such issues in future.',
+            isRead: true,
+            createdAt: new Date(now.getTime() - 1 * DAY - 5 * HOUR),
+          },
+        ]
+      : []),
+    // Sneha <-> Alice conversation
+    ...(sneha
+      ? [
+          {
+            senderId: sneha._id,
+            receiverId: alice._id,
+            message: 'Alice, did you find your earbuds yet? I saw a lost & found post on the board.',
+            isRead: true,
+            createdAt: new Date(now.getTime() - 1 * DAY - 3 * HOUR),
+          },
+          {
+            senderId: alice._id,
+            receiverId: sneha._id,
+            message: 'Not yet :( I posted about it in the app too. If you hear anything, please let me know!',
+            isRead: true,
+            createdAt: new Date(now.getTime() - 1 * DAY - 2 * HOUR),
+          },
+          {
+            senderId: sneha._id,
+            receiverId: alice._id,
+            message: 'Will do! Also, want to grab dinner together today? The mess has malai kofta tonight.',
+            isRead: false,
+            createdAt: new Date(now.getTime() - 4 * HOUR),
+          },
+        ]
+      : []),
+    // Rahul <-> Warden
+    ...(rahul
+      ? [
+          {
+            senderId: rahul._id,
+            receiverId: warden._id,
+            message: 'Sir, regarding the sparking power socket in my room — it is still not fixed. This is a serious safety concern.',
+            isRead: false,
+            createdAt: new Date(now.getTime() - 2 * HOUR),
+          },
+        ]
+      : []),
+  ];
+
+  await ChatMessage.insertMany(messages);
+  return { created: messages.length };
+}
+
+// ---------------------------------------------------------------------------
+// Seed Assets
+// ---------------------------------------------------------------------------
+
+async function seedAssets(): Promise<{ created: number }> {
+  await Asset.deleteMany({
+    assetTag: { $regex: /^SEED-/ },
+  });
+
+  const now = new Date();
+  const assets = [
+    {
+      name: 'Study Desk',
+      assetTag: 'SEED-FUR-001',
+      category: 'FURNITURE',
+      location: { block: 'A', floor: '1', room: 'A-101' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 365 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 365 * DAY),
+      lastMaintenanceDate: new Date(now.getTime() - 30 * DAY),
+      qrCode: 'QR-SEED-FUR-001',
+      notes: null,
+    },
+    {
+      name: 'Wooden Wardrobe',
+      assetTag: 'SEED-FUR-002',
+      category: 'FURNITURE',
+      location: { block: 'B', floor: '2', room: 'B-202' },
+      status: 'NEEDS_REPAIR',
+      purchaseDate: new Date(now.getTime() - 730 * DAY),
+      warrantyExpiry: null,
+      lastMaintenanceDate: new Date(now.getTime() - 180 * DAY),
+      qrCode: 'QR-SEED-FUR-002',
+      notes: 'Door hinge is loose, needs replacement',
+    },
+    {
+      name: 'Ceiling Fan',
+      assetTag: 'SEED-ELE-001',
+      category: 'ELECTRICAL',
+      location: { block: 'A', floor: '2', room: 'A-201' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 500 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 230 * DAY),
+      lastMaintenanceDate: new Date(now.getTime() - 60 * DAY),
+      qrCode: 'QR-SEED-ELE-001',
+      notes: null,
+    },
+    {
+      name: 'Ceiling Fan',
+      assetTag: 'SEED-ELE-002',
+      category: 'ELECTRICAL',
+      location: { block: 'B', floor: '2', room: 'B-202' },
+      status: 'UNDER_REPAIR',
+      purchaseDate: new Date(now.getTime() - 400 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 330 * DAY),
+      lastMaintenanceDate: null,
+      qrCode: 'QR-SEED-ELE-002',
+      notes: 'Motor grinding — sent for rewinding',
+    },
+    {
+      name: 'Water Heater (Geyser)',
+      assetTag: 'SEED-ELE-003',
+      category: 'ELECTRICAL',
+      location: { block: 'C', floor: '1', room: 'C-101' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 200 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 530 * DAY),
+      lastMaintenanceDate: new Date(now.getTime() - 45 * DAY),
+      qrCode: 'QR-SEED-ELE-003',
+      notes: null,
+    },
+    {
+      name: 'Bathroom Faucet Set',
+      assetTag: 'SEED-PLU-001',
+      category: 'PLUMBING',
+      location: { block: 'A', floor: '1', room: 'A-102' },
+      status: 'NEEDS_REPAIR',
+      purchaseDate: new Date(now.getTime() - 600 * DAY),
+      warrantyExpiry: null,
+      lastMaintenanceDate: new Date(now.getTime() - 90 * DAY),
+      qrCode: 'QR-SEED-PLU-001',
+      notes: 'Slow drip from hot water tap',
+    },
+    {
+      name: 'Flush Valve',
+      assetTag: 'SEED-PLU-002',
+      category: 'PLUMBING',
+      location: { block: 'B', floor: '3', room: 'B-301' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 150 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 580 * DAY),
+      lastMaintenanceDate: null,
+      qrCode: 'QR-SEED-PLU-002',
+      notes: null,
+    },
+    {
+      name: 'Wi-Fi Access Point',
+      assetTag: 'SEED-IT-001',
+      category: 'IT_EQUIPMENT',
+      location: { block: 'A', floor: '2', room: 'A-202' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 300 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 430 * DAY),
+      lastMaintenanceDate: new Date(now.getTime() - 15 * DAY),
+      qrCode: 'QR-SEED-IT-001',
+      notes: 'Firmware updated to v3.2.1',
+    },
+    {
+      name: 'Wi-Fi Access Point',
+      assetTag: 'SEED-IT-002',
+      category: 'IT_EQUIPMENT',
+      location: { block: 'B', floor: '1', room: 'B-103' },
+      status: 'NEEDS_REPAIR',
+      purchaseDate: new Date(now.getTime() - 300 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 430 * DAY),
+      lastMaintenanceDate: new Date(now.getTime() - 10 * DAY),
+      qrCode: 'QR-SEED-IT-002',
+      notes: 'Weak signal — antenna may be damaged',
+    },
+    {
+      name: 'Network Switch 24-Port',
+      assetTag: 'SEED-IT-003',
+      category: 'IT_EQUIPMENT',
+      location: { block: 'C', floor: '2', room: 'C-201' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 100 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 630 * DAY),
+      lastMaintenanceDate: null,
+      qrCode: 'QR-SEED-IT-003',
+      notes: null,
+    },
+    {
+      name: 'Bunk Bed Frame',
+      assetTag: 'SEED-FUR-003',
+      category: 'FURNITURE',
+      location: { block: 'C', floor: '3', room: 'C-301' },
+      status: 'UNDER_REPAIR',
+      purchaseDate: new Date(now.getTime() - 800 * DAY),
+      warrantyExpiry: null,
+      lastMaintenanceDate: new Date(now.getTime() - 5 * DAY),
+      qrCode: 'QR-SEED-FUR-003',
+      notes: 'Welding repair on lower frame joints',
+    },
+    {
+      name: 'Tube Light Fixture',
+      assetTag: 'SEED-ELE-004',
+      category: 'ELECTRICAL',
+      location: { block: 'A', floor: '3', room: 'A-301' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 250 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 480 * DAY),
+      lastMaintenanceDate: new Date(now.getTime() - 20 * DAY),
+      qrCode: 'QR-SEED-ELE-004',
+      notes: null,
+    },
+  ];
+
+  await Asset.insertMany(assets);
+  return { created: assets.length };
+}
+
+// ---------------------------------------------------------------------------
+// Seed Wellness Checks
+// ---------------------------------------------------------------------------
+
+async function seedWellnessChecks(): Promise<{ created: number }> {
+  const alice = await User.findOne({ email: 'student@smarthostel.dev' });
+  const rahul = await User.findOne({ email: 'rahul@smarthostel.dev' });
+  const priya = await User.findOne({ email: 'priya@smarthostel.dev' });
+  const arjun = await User.findOne({ email: 'arjun@smarthostel.dev' });
+  const sneha = await User.findOne({ email: 'sneha@smarthostel.dev' });
+  const vikram = await User.findOne({ email: 'vikram@smarthostel.dev' });
+  const warden = await User.findOne({ email: 'warden@smarthostel.dev' });
+  if (!alice || !warden) return { created: 0 };
+
+  const studentIds = [alice, rahul, priya, arjun, sneha, vikram].filter(Boolean).map((s) => s!._id);
+  await WellnessCheck.deleteMany({ studentId: { $in: studentIds } });
+
+  const now = new Date();
+  const checks = [
+    {
+      studentId: alice._id,
+      checkedBy: warden._id,
+      moodScore: 7,
+      stressLevel: 'MODERATE',
+      notes: 'Seems a bit stressed about upcoming exams but overall in good spirits.',
+      flags: ['academic_stress'],
+      followUpRequired: false,
+      followUpDate: null,
+      createdAt: new Date(now.getTime() - 5 * DAY),
+    },
+    {
+      studentId: alice._id,
+      checkedBy: warden._id,
+      moodScore: 8,
+      stressLevel: 'LOW',
+      notes: 'Doing well after the exam period. Engaged in hostel activities.',
+      flags: [],
+      followUpRequired: false,
+      followUpDate: null,
+      createdAt: new Date(now.getTime() - 1 * DAY),
+    },
+    ...(rahul
+      ? [
+          {
+            studentId: rahul._id,
+            checkedBy: warden._id,
+            moodScore: 4,
+            stressLevel: 'HIGH' as const,
+            notes: 'Reported feeling isolated. Not attending meals regularly. Roommate mentioned he stays in bed most of the day.',
+            flags: ['isolation', 'appetite_change'],
+            followUpRequired: true,
+            followUpDate: new Date(now.getTime() + 3 * DAY),
+            createdAt: new Date(now.getTime() - 2 * DAY),
+          },
+        ]
+      : []),
+    ...(priya
+      ? [
+          {
+            studentId: priya._id,
+            checkedBy: warden._id,
+            moodScore: 6,
+            stressLevel: 'MODERATE' as const,
+            notes: 'Adjusting to hostel life as a first-year student. Homesick but managing well with peer support.',
+            flags: ['homesickness'],
+            followUpRequired: false,
+            followUpDate: null,
+            createdAt: new Date(now.getTime() - 4 * DAY),
+          },
+        ]
+      : []),
+    ...(arjun
+      ? [
+          {
+            studentId: arjun._id,
+            checkedBy: warden._id,
+            moodScore: 3,
+            stressLevel: 'CRITICAL' as const,
+            notes: 'Extremely anxious about campus placements. Sleeping very poorly. Recommended counselor visit.',
+            flags: ['academic_stress', 'sleep_issues', 'anxiety'],
+            followUpRequired: true,
+            followUpDate: new Date(now.getTime() + 2 * DAY),
+            createdAt: new Date(now.getTime() - 1 * DAY),
+          },
+        ]
+      : []),
+    ...(sneha
+      ? [
+          {
+            studentId: sneha._id,
+            checkedBy: warden._id,
+            moodScore: 9,
+            stressLevel: 'LOW' as const,
+            notes: 'Very positive outlook. Active in photography club and maintaining good academic performance.',
+            flags: [],
+            followUpRequired: false,
+            followUpDate: null,
+            createdAt: new Date(now.getTime() - 3 * DAY),
+          },
+        ]
+      : []),
+    ...(vikram
+      ? [
+          {
+            studentId: vikram._id,
+            checkedBy: warden._id,
+            moodScore: 5,
+            stressLevel: 'HIGH' as const,
+            notes: 'Strained relationship with roommates. Prefers to spend time alone. Mentioned feeling unsupported.',
+            flags: ['isolation', 'peer_conflict'],
+            followUpRequired: true,
+            followUpDate: new Date(now.getTime() + 5 * DAY),
+            createdAt: new Date(now.getTime() - 2 * DAY),
+          },
+        ]
+      : []),
+  ];
+
+  await WellnessCheck.insertMany(checks);
+  return { created: checks.length };
+}
+
+// ---------------------------------------------------------------------------
+// Seed Emergency Alerts
+// ---------------------------------------------------------------------------
+
+async function seedEmergencyAlerts(): Promise<{ created: number }> {
+  const warden = await User.findOne({ email: 'warden@smarthostel.dev' });
+  if (!warden) return { created: 0 };
+
+  await EmergencyAlert.deleteMany({ createdBy: warden._id });
+
+  const now = new Date();
+  const alerts = [
+    {
+      type: 'FIRE',
+      severity: 'HIGH',
+      title: 'Fire Drill — Block A',
+      description: 'Scheduled fire drill for Block A residents. All students must evacuate to the assembly point within 5 minutes. This is a drill — do not panic.',
+      targetScope: 'BLOCK',
+      targetValue: 'A',
+      createdBy: warden._id,
+      status: 'RESOLVED',
+      resolvedAt: new Date(now.getTime() - 10 * DAY + 2 * HOUR),
+      resolvedBy: warden._id,
+      createdAt: new Date(now.getTime() - 10 * DAY),
+    },
+    {
+      type: 'MEDICAL',
+      severity: 'MEDIUM',
+      title: 'Water Contamination Advisory',
+      description: 'Water supply in Block B may be contaminated due to pipeline work. Do not drink tap water until further notice. Bottled water is available at the common room.',
+      targetScope: 'BLOCK',
+      targetValue: 'B',
+      createdBy: warden._id,
+      status: 'RESOLVED',
+      resolvedAt: new Date(now.getTime() - 3 * DAY),
+      resolvedBy: warden._id,
+      createdAt: new Date(now.getTime() - 4 * DAY),
+    },
+    {
+      type: 'SECURITY',
+      severity: 'CRITICAL',
+      title: 'Unauthorized Person Spotted Near Block C',
+      description: 'Security has reported an unidentified individual near Block C rear entrance. All students should remain in their rooms and keep doors locked. Security team is investigating.',
+      targetScope: 'ALL',
+      targetValue: null,
+      createdBy: warden._id,
+      status: 'ACTIVE',
+      resolvedAt: null,
+      resolvedBy: null,
+      createdAt: new Date(now.getTime() - 2 * HOUR),
+    },
+  ];
+
+  await EmergencyAlert.insertMany(alerts);
+  return { created: alerts.length };
 }
 
 // ---------------------------------------------------------------------------

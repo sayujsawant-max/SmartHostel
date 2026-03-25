@@ -3,6 +3,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { useAuth } from '@hooks/useAuth';
 import { apiFetch, ApiError } from '@services/api';
 import { Reveal } from '@/components/motion/Reveal';
+import { showError, showSuccess } from '@/utils/toast';
 
 type Verdict = 'ALLOW' | 'DENY' | 'OFFLINE' | null;
 
@@ -348,6 +349,7 @@ export default function ScanPage() {
       setShowOverrideSheet(false);
       setScanData({ verdict: 'ALLOW', scanResult: 'OVERRIDE', reason: `Override — ${overrideReason}` });
       setVerdict('ALLOW');
+      showSuccess('Override approved');
       navigator.vibrate?.(100);
       verdictTimeoutRef.current = setTimeout(() => {
         setVerdict(null);
@@ -355,7 +357,7 @@ export default function ScanPage() {
         lastScanRef.current = '';
       }, 1200);
     } catch (err) {
-      console.error('[ScanPage] Override submission failed', err);
+      showError(err, 'Override submission failed');
     }
   };
 

@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
 import { motion, AnimatePresence } from 'motion/react';
+import { showError } from '@/utils/toast';
+import { useSocket } from '@hooks/useSocket';
+import { toast } from 'sonner';
 
 interface NotificationItem {
   _id: string;
@@ -21,8 +24,8 @@ export default function NotificationBell() {
       const res = await apiFetch<{ notifications: NotificationItem[]; unreadCount: number }>('/notifications');
       setNotifications(res.data.notifications);
       setUnreadCount(res.data.unreadCount);
-    } catch (err) {
-      console.error('[NotificationBell]', err);
+    } catch {
+      // Silently fail — this runs on a 30s poll; avoid spamming toasts
     }
   }, []);
 
@@ -33,6 +36,17 @@ export default function NotificationBell() {
     return () => clearInterval(interval);
   }, [fetchNotifications]);
 
+  // Real-time: listen for new notifications via WebSocket
+  useSocket('notification', (data) => {
+    const n = data as NotificationItem;
+    if (n && n._id) {
+      setNotifications((prev) => [{ ...n, isRead: false }, ...prev]);
+      setUnreadCount((c) => c + 1);
+      // Show a push-style toast
+      toast(n.title, { description: n.body, duration: 5000 });
+    }
+  });
+
   const handleMarkRead = async (id: string) => {
     try {
       await apiFetch(`/notifications/${id}/read`, { method: 'PATCH' });
@@ -41,7 +55,7 @@ export default function NotificationBell() {
       );
       setUnreadCount((c) => Math.max(0, c - 1));
     } catch (err) {
-      console.error('[NotificationBell]', err);
+      showError(err, 'Failed to mark notification as read');
     }
   };
 
@@ -51,7 +65,7 @@ export default function NotificationBell() {
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (err) {
-      console.error('[NotificationBell]', err);
+      showError(err, 'Failed to mark all as read');
     }
   };
 
@@ -75,8 +89,14 @@ export default function NotificationBell() {
               animate={{ scale: 1 }}
               exit={{ scale: 0 }}
               transition={{ type: 'spring', stiffness: 500, damping: 20 }}
-              className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold"
+              className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-[badge-glow_2s_ease-in-out_infinite]"
             >
+              <style>{`
+                @keyframes badge-glow {
+                  0%, 100% { box-shadow: 0 0 6px rgba(239,68,68,0.4); }
+                  50% { box-shadow: 0 0 14px rgba(239,68,68,0.8); }
+                }
+              `}</style>
               {unreadCount > 99 ? '99+' : unreadCount}
             </motion.span>
           )}
@@ -88,11 +108,11 @@ export default function NotificationBell() {
           <>
             <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
             <motion.div
-              initial={{ opacity: 0, y: -8, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              className="absolute right-0 top-10 z-50 w-80 max-h-96 overflow-y-auto rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] shadow-lg"
+              initial={{ opacity: 0, y: -8, scale: 0.95, filter: 'blur(6px)' }}
+              animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, y: -8, scale: 0.95, filter: 'blur(6px)' }}
+              transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+              className="absolute right-0 top-10 z-50 w-80 max-h-96 overflow-y-auto rounded-2xl glass-strong shadow-xl card-glow"
             >
               <div className="flex justify-between items-center p-3 border-b border-[hsl(var(--border))]">
                 <p className="text-sm font-semibold text-[hsl(var(--foreground))]">Notifications</p>
@@ -113,9 +133,9 @@ export default function NotificationBell() {
                   {notifications.slice(0, 20).map((n, idx) => (
                     <motion.button
                       key={n._id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.03 }}
+                      initial={{ opacity: 0, x: -10, filter: 'blur(4px)' }}
+                      animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                      transition={{ delay: idx * 0.03, duration: 0.3 }}
                       onClick={() => {
                         if (!n.isRead) void handleMarkRead(n._id);
                       }}

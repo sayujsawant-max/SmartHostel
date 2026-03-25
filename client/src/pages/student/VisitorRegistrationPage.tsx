@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { showError, showSuccess } from '@/utils/toast';
 import { Reveal } from '@/components/motion/Reveal';
 import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
 import PageHeader from '@components/ui/PageHeader';
@@ -61,7 +62,6 @@ export default function VisitorRegistrationPage() {
   const [expectedTime, setExpectedTime] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -69,8 +69,8 @@ export default function VisitorRegistrationPage() {
     try {
       const res = await apiFetch<VisitorItem[]>('/visitors/my');
       setVisitors(res.data);
-    } catch {
-      // silently fail
+    } catch (err) {
+      showError(err, 'Failed to load visitors');
     } finally {
       setLoading(false);
     }
@@ -83,7 +83,6 @@ export default function VisitorRegistrationPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setSuccessMsg(null);
 
     if (!visitorName.trim()) { setError('Visitor name is required'); return; }
     if (!visitorPhone.trim()) { setError('Visitor phone is required'); return; }
@@ -103,7 +102,7 @@ export default function VisitorRegistrationPage() {
           expectedTime,
         }),
       });
-      setSuccessMsg('Visitor registered successfully!');
+      showSuccess('Visitor registered successfully');
       setVisitorName('');
       setVisitorPhone('');
       setRelationship('');
@@ -112,7 +111,7 @@ export default function VisitorRegistrationPage() {
       setExpectedTime('');
       void fetchVisitors();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to register visitor');
+      showError(err, 'Failed to register visitor');
     } finally {
       setSubmitting(false);
     }
@@ -126,7 +125,7 @@ export default function VisitorRegistrationPage() {
 
       {/* Registration Form */}
       <Reveal direction="none" delay={0.1}>
-      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4 p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
+      <form onSubmit={(e) => void handleSubmit(e)} className="relative overflow-hidden space-y-4 p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] card-glow">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-medium text-[hsl(var(--foreground))] mb-1">Visitor Name</label>
@@ -210,15 +209,6 @@ export default function VisitorRegistrationPage() {
             </motion.div>
           )}
         </AnimatePresence>
-        <AnimatePresence>
-          {successMsg && (
-            <motion.div key="visitor-success" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-              <div className="p-3 rounded-lg bg-green-50 border border-green-200 dark:bg-green-950/20 dark:border-green-800/40 text-green-700 dark:text-green-300 text-sm">
-                {successMsg}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         <button
           type="submit"
@@ -244,7 +234,7 @@ export default function VisitorRegistrationPage() {
           <StaggerContainer stagger={0.06} className="space-y-3">
             {visitors.map((v) => (
               <StaggerItem key={v._id}>
-              <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:border-[hsl(var(--accent))]/40 transition-colors">
+              <div className="relative overflow-hidden p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:border-[hsl(var(--accent))]/40 transition-colors card-glow">
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="font-medium text-[hsl(var(--foreground))]">{v.visitorName}</p>

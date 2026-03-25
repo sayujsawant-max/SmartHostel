@@ -17,8 +17,8 @@ export type { SlaCategoryDefault } from './constants/sla-defaults.js';
 export type { ApiSuccess, ApiError, PaginatedResponse } from './types/api-responses.js';
 
 // Schemas
-export { loginSchema, registerSchema, forgotPasswordSchema, selfResetPasswordSchema, googleAuthSchema, Gender, AcademicYear } from './schemas/auth.schema.js';
-export type { LoginInput, RegisterInput, ForgotPasswordInput, SelfResetPasswordInput } from './schemas/auth.schema.js';
+export { loginSchema, registerSchema, forgotPasswordSchema, selfResetPasswordSchema, changePasswordSchema, googleAuthSchema, Gender, AcademicYear } from './schemas/auth.schema.js';
+export type { LoginInput, RegisterInput, ForgotPasswordInput, SelfResetPasswordInput, ChangePasswordInput } from './schemas/auth.schema.js';
 export { createUserSchema, resetPasswordSchema } from './schemas/admin.schema.js';
 export type { CreateUserInput, ResetPasswordInput } from './schemas/admin.schema.js';
 export { createLeaveSchema } from './schemas/leave.schema.js';

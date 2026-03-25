@@ -30,28 +30,28 @@ export default class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))] px-4">
           <div className="max-w-md w-full text-center space-y-4">
             <div className="text-5xl">⚠️</div>
-            <h1 className="text-2xl font-bold text-gray-900">Something went wrong</h1>
-            <p className="text-gray-600">
+            <h1 className="text-2xl font-bold text-[hsl(var(--foreground))]">Something went wrong</h1>
+            <p className="text-[hsl(var(--muted-foreground))]">
               An unexpected error occurred. Please try refreshing the page.
             </p>
             {this.state.error && (
-              <pre className="mt-2 p-3 bg-gray-100 rounded text-xs text-left text-gray-700 overflow-auto max-h-32">
+              <pre className="mt-2 p-3 bg-[hsl(var(--muted))] rounded text-xs text-left text-[hsl(var(--foreground))] overflow-auto max-h-32">
                 {this.state.error.message}
               </pre>
             )}
             <div className="flex gap-3 justify-center pt-2">
               <button
                 onClick={this.handleReset}
-                className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+                className="px-4 py-2 bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-lg hover:opacity-90 transition-all"
               >
                 Try Again
               </button>
               <button
                 onClick={() => window.location.assign('/')}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                className="px-4 py-2 bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] rounded-lg hover:opacity-90 transition-all"
               >
                 Go Home
               </button>

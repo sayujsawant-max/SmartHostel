@@ -146,8 +146,8 @@ export default function ShowQRPage() {
       {/* QR Code */}
       {passStatus === 'ACTIVE' && (
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
+          initial={{ scale: 0.8, opacity: 0, filter: 'blur(6px)' }}
+          animate={{ scale: 1, opacity: 1, filter: 'blur(0px)' }}
           transition={{ type: 'spring', stiffness: 200, damping: 20 }}
           className="bg-white p-4 rounded-xl shadow-lg"
         >
@@ -179,7 +179,7 @@ export default function ShowQRPage() {
 
       {/* Pass details card */}
       <Reveal delay={0.2}>
-      <div className="w-full max-w-sm rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 space-y-3">
+      <div className="w-full max-w-sm rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] card-glow p-4 space-y-3">
         <div className="flex justify-between text-sm">
           <span className="text-[hsl(var(--muted-foreground))]">Gate State</span>
           <span className="font-medium text-[hsl(var(--foreground))]">{gatePass.lastGateState}</span>

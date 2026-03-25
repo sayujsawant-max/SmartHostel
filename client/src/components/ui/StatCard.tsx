@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { AnimatedCounter } from '@/components/motion/AnimatedCounter';
+import TiltCard from './TiltCard';
 
 interface StatCardProps {
   /** Numeric value to display (animated via AnimatedCounter) */
@@ -16,10 +17,8 @@ interface StatCardProps {
 }
 
 /**
- * Reusable stat card with animated counter.
- *
- * Works for dashboard summaries, availability stats, and hero stat strips.
- * Counter respects reduced-motion preferences (shows final value immediately).
+ * Premium stat card with animated counter, 3D tilt, gradient accent line,
+ * and glow border on hover.
  */
 export default function StatCard({
   value,
@@ -31,26 +30,30 @@ export default function StatCard({
   className = '',
 }: StatCardProps) {
   return (
-    <div
-      className={`py-4 px-3 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center shadow-sm ${className}`}
-    >
-      {icon && (
-        <div className="flex justify-center mb-2 text-[hsl(var(--muted-foreground))]">
-          {icon}
-        </div>
-      )}
-      <p
-        className={`text-2xl font-bold ${
-          accent
-            ? 'text-[hsl(var(--accent))]'
-            : 'text-[hsl(var(--foreground))]'
-        }`}
+    <TiltCard maxTilt={10} glare className="rounded-xl">
+      <div
+        className={`relative py-4 px-3 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center shadow-sm transition-shadow hover:shadow-md card-glow accent-line ${className}`}
       >
-        <AnimatedCounter to={value} prefix={prefix} suffix={suffix} />
-      </p>
-      <p className="text-xs text-[hsl(var(--muted-foreground))] mt-0.5 font-medium">
-        {label}
-      </p>
-    </div>
+        {/* Top gradient shimmer line */}
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[hsl(var(--accent))]/25 to-transparent" />
+        {icon && (
+          <div className="flex justify-center mb-2 text-[hsl(var(--muted-foreground))]">
+            {icon}
+          </div>
+        )}
+        <p
+          className={`text-2xl font-bold tabular-nums ${
+            accent
+              ? 'text-[hsl(var(--accent))]'
+              : 'text-[hsl(var(--foreground))]'
+          }`}
+        >
+          <AnimatedCounter to={value} prefix={prefix} suffix={suffix} />
+        </p>
+        <p className="text-xs text-[hsl(var(--muted-foreground))] mt-0.5 font-medium">
+          {label}
+        </p>
+      </div>
+    </TiltCard>
   );
 }

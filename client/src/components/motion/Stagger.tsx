@@ -2,7 +2,7 @@ import { useRef, type ReactNode } from 'react';
 import { motion, useInView } from 'motion/react';
 import {
   staggerContainer,
-  staggerItem as staggerItemVariants,
+  staggerItemBlur as staggerItemVariants,
   prefersReducedMotion,
 } from '@/utils/motion';
 

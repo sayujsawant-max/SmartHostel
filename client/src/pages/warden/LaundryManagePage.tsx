@@ -89,23 +89,23 @@ export default function LaundryManagePage() {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center">
+        <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] card-glow text-center">
           <p className="text-2xl font-bold text-[hsl(var(--foreground))]"><AnimatedCounter to={totalSlots} /></p>
           <p className="text-xs text-[hsl(var(--muted-foreground))]">Total Slots</p>
         </div>
-        <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center">
+        <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] card-glow text-center">
           <p className="text-2xl font-bold text-[hsl(var(--foreground))]"><AnimatedCounter to={availableSlots} /></p>
           <p className="text-xs text-[hsl(var(--muted-foreground))]">Available</p>
         </div>
-        <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center">
+        <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] card-glow text-center">
           <p className="text-2xl font-bold text-[hsl(var(--foreground))]"><AnimatedCounter to={bookedSlots} /></p>
           <p className="text-xs text-[hsl(var(--muted-foreground))]">Booked</p>
         </div>
-        <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center">
+        <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] card-glow text-center">
           <p className="text-2xl font-bold text-[hsl(var(--foreground))]"><AnimatedCounter to={inUseSlots} /></p>
           <p className="text-xs text-[hsl(var(--muted-foreground))]">In Use</p>
         </div>
-        <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-center">
+        <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] card-glow text-center">
           <p className="text-2xl font-bold text-[hsl(var(--foreground))]"><AnimatedCounter to={completedSlots} /></p>
           <p className="text-xs text-[hsl(var(--muted-foreground))]">Completed</p>
         </div>
@@ -113,7 +113,7 @@ export default function LaundryManagePage() {
 
       {/* Machine Utilization */}
       <Reveal delay={0.1}>
-      <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
+      <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] card-glow">
         <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">Machine Utilization</h3>
         <div className="space-y-3">
           {machineStats.map((ms) => (
@@ -141,7 +141,7 @@ export default function LaundryManagePage() {
 
       {/* Active Bookings */}
       <Reveal delay={0.15}>
-      <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
+      <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] card-glow">
         <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">
           Active Bookings Today
           {activeBookings.length > 0 && (

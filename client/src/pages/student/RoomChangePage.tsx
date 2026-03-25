@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { showError, showSuccess } from '@/utils/toast';
 import { Reveal } from '@/components/motion/Reveal';
 import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
 import PageHeader from '@components/ui/PageHeader';
@@ -64,7 +65,6 @@ export default function RoomChangePage() {
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [loadingRequests, setLoadingRequests] = useState(true);
 
@@ -73,8 +73,8 @@ export default function RoomChangePage() {
       const res = await apiFetch<{ rooms: Room[] }>('/rooms');
       const available = res.data.rooms.filter((r) => r.totalBeds > r.occupiedBeds);
       setRooms(available);
-    } catch {
-      // silently fail
+    } catch (err) {
+      showError(err, 'Failed to load rooms');
     } finally {
       setLoadingRooms(false);
     }
@@ -84,8 +84,8 @@ export default function RoomChangePage() {
     try {
       const res = await apiFetch<{ requests: RoomChangeRequest[] }>('/room-changes/my');
       setRequests(res.data.requests);
-    } catch {
-      // silently fail
+    } catch (err) {
+      showError(err, 'Failed to load requests');
     } finally {
       setLoadingRequests(false);
     }
@@ -99,7 +99,6 @@ export default function RoomChangePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setSuccess(null);
 
     if (!selectedRoomId) {
       setError('Please select a room');
@@ -116,12 +115,12 @@ export default function RoomChangePage() {
         method: 'POST',
         body: JSON.stringify({ requestedRoomId: selectedRoomId, reason: reason.trim() }),
       });
-      setSuccess('Room change request submitted successfully');
+      showSuccess('Room change request submitted');
       setSelectedRoomId('');
       setReason('');
       void fetchRequests();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit request');
+      showError(err, 'Failed to submit request');
     } finally {
       setSubmitting(false);
     }
@@ -139,7 +138,7 @@ export default function RoomChangePage() {
       </Reveal>
 
       <Reveal delay={0.1}>
-      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
+      <form onSubmit={(e) => void handleSubmit(e)} className="relative overflow-hidden space-y-4 p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] card-glow">
         {/* Room Selection */}
         <div>
           <label className="block text-sm font-medium text-[hsl(var(--foreground))] mb-2">
@@ -212,15 +211,6 @@ export default function RoomChangePage() {
           )}
         </AnimatePresence>
 
-        <AnimatePresence>
-          {success && (
-            <motion.div key="success" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-              <div className="p-3 rounded-lg bg-green-50 border border-green-200 text-green-700 dark:bg-green-950/30 dark:border-green-800/40 dark:text-green-300 text-sm">
-                {success}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         <button
           type="submit"
@@ -252,7 +242,7 @@ export default function RoomChangePage() {
           {requests.map((r) => (
             <StaggerItem key={r._id}>
             <div
-              className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2"
+              className="relative overflow-hidden p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 card-glow"
             >
               <div className="flex justify-between items-start">
                 <div className="text-sm text-[hsl(var(--foreground))]">

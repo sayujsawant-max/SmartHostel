@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { showError } from '@/utils/toast';
 import { Reveal } from '@/components/motion/Reveal';
 import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
 import PageHeader from '@components/ui/PageHeader';
@@ -48,7 +49,7 @@ export default function MessMenuPage() {
         }
         setForms(updated);
       })
-      .catch(() => {})
+      .catch((err: unknown) => showError(err, 'Failed to load data'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -102,7 +103,7 @@ export default function MessMenuPage() {
       {DAY_NAMES.map((name, dayIndex) => (
         <StaggerItem key={dayIndex}>
         <div
-          className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-3"
+          className="card-glow p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-3"
         >
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">{name}</h2>

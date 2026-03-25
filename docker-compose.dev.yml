@@ -1,0 +1,52 @@
+# Development override — use with:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+services:
+  mongo:
+    ports:
+      - "27017:27017"
+
+  api:
+    build:
+      context: .
+      target: deps
+    volumes:
+      - ./server/src:/app/server/src
+      - ./shared:/app/shared
+      - ./client/src:/app/client/src
+    environment:
+      - NODE_ENV=development
+      - PORT=5000
+      - MONGODB_URI=mongodb://${MONGO_ROOT_USERNAME:-smarthostel}:${MONGO_ROOT_PASSWORD:-smarthostel_dev}@mongo:27017/smarthostel?authSource=admin
+      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5000
+    command: ["npx", "tsx", "watch", "-r", "tsconfig-paths/register", "server/src/index.ts"]
+    ports:
+      - "5000:5000"
+
+  client:
+    build:
+      context: .
+      target: deps
+    volumes:
+      - ./client/src:/app/client/src
+      - ./client/index.html:/app/client/index.html
+      - ./shared:/app/shared
+    environment:
+      - NODE_ENV=development
+    command: ["npx", "vite", "--host", "0.0.0.0", "--config", "client/vite.config.ts"]
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+
+  worker:
+    build:
+      context: .
+      target: deps
+    volumes:
+      - ./server/src:/app/server/src
+      - ./shared:/app/shared
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://${MONGO_ROOT_USERNAME:-smarthostel}:${MONGO_ROOT_PASSWORD:-smarthostel_dev}@mongo:27017/smarthostel?authSource=admin
+      - CRON_ENABLED=true
+    command: ["npx", "tsx", "watch", "-r", "tsconfig-paths/register", "server/src/worker/index.ts"]

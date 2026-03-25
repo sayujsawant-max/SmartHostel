@@ -44,41 +44,46 @@ export const revealVariants: Record<
   { hidden: Variant; visible: (delay?: number) => Variant }
 > = {
   up: {
-    hidden: { opacity: 0, y: offset },
+    hidden: { opacity: 0, y: offset, filter: 'blur(6px)' },
     visible: (delay = 0) => ({
       opacity: 1,
       y: 0,
+      filter: 'blur(0px)',
       transition: { duration: duration.slow, delay, ease: ease.out },
     }),
   },
   down: {
-    hidden: { opacity: 0, y: -offset },
+    hidden: { opacity: 0, y: -offset, filter: 'blur(6px)' },
     visible: (delay = 0) => ({
       opacity: 1,
       y: 0,
+      filter: 'blur(0px)',
       transition: { duration: duration.slow, delay, ease: ease.out },
     }),
   },
   left: {
-    hidden: { opacity: 0, x: offset },
+    hidden: { opacity: 0, x: offset, filter: 'blur(6px)' },
     visible: (delay = 0) => ({
       opacity: 1,
       x: 0,
+      filter: 'blur(0px)',
       transition: { duration: duration.slow, delay, ease: ease.out },
     }),
   },
   right: {
-    hidden: { opacity: 0, x: -offset },
+    hidden: { opacity: 0, x: -offset, filter: 'blur(6px)' },
     visible: (delay = 0) => ({
       opacity: 1,
       x: 0,
+      filter: 'blur(0px)',
       transition: { duration: duration.slow, delay, ease: ease.out },
     }),
   },
   none: {
-    hidden: { opacity: 0 },
+    hidden: { opacity: 0, filter: 'blur(4px)' },
     visible: (delay = 0) => ({
       opacity: 1,
+      filter: 'blur(0px)',
       transition: { duration: duration.slow, delay, ease: ease.out },
     }),
   },
@@ -113,4 +118,64 @@ export const hoverLift = {
 export const hoverSubtle = {
   whileHover: { y: -2 },
   transition: ease.springGentle,
+};
+
+/* ─── Premium blur-reveal variant (page entrance) ──────────────── */
+
+export const blurReveal = {
+  hidden: { opacity: 0, y: 12, filter: 'blur(8px)' },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: 'blur(0px)',
+    transition: { duration: duration.slow, ease: ease.out },
+  },
+};
+
+/* ─── Scale bounce (modals, overlays, success states) ──────────── */
+
+export const scaleBounce = {
+  hidden: { opacity: 0, scale: 0.92, filter: 'blur(4px)' },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    filter: 'blur(0px)',
+    transition: ease.spring,
+  },
+};
+
+/* ─── Slide-up fade (bottom sheets, toasts) ────────────────────── */
+
+export const slideUp = {
+  hidden: { opacity: 0, y: 24 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: duration.normal, ease: ease.out },
+  },
+  exit: {
+    opacity: 0,
+    y: 12,
+    transition: { duration: duration.fast, ease: ease.out },
+  },
+};
+
+/* ─── Glass card hover (premium card interaction) ──────────────── */
+
+export const hoverGlass = {
+  whileHover: { y: -4, scale: 1.012 },
+  whileTap: { scale: 0.99 },
+  transition: ease.springGentle,
+};
+
+/* ─── Premium stagger (blur + y) ───────────────────────────────── */
+
+export const staggerItemBlur: { hidden: Variant; visible: Variant } = {
+  hidden: { opacity: 0, y: 16, filter: 'blur(6px)' },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: 'blur(0px)',
+    transition: { duration: duration.normal, ease: ease.out },
+  },
 };

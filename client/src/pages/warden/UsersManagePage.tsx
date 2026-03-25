@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { showError, showSuccess } from '@/utils/toast';
 import { Reveal } from '@/components/motion/Reveal';
 import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
 import { motion, AnimatePresence } from 'motion/react';
@@ -41,7 +42,7 @@ export default function UsersManagePage() {
   const fetchUsers = () => {
     apiFetch<{ users: UserItem[] }>('/admin/users')
       .then((res) => setUsers(res.data.users))
-      .catch(() => {})
+      .catch((err: unknown) => showError(err, 'Failed to load data'))
       .finally(() => setLoading(false));
   };
 
@@ -72,8 +73,19 @@ export default function UsersManagePage() {
     try {
       await apiFetch(`/admin/users/${id}/disable`, { method: 'PATCH' });
       setUsers((prev) => prev.map((u) => (u._id === id ? { ...u, isActive: false } : u)));
-    } catch {
-      // silently fail
+      showSuccess('User disabled');
+    } catch (err) {
+      showError(err);
+    }
+  };
+
+  const handleEnable = async (id: string) => {
+    try {
+      await apiFetch(`/admin/users/${id}/enable`, { method: 'PATCH' });
+      setUsers((prev) => prev.map((u) => (u._id === id ? { ...u, isActive: true } : u)));
+      showSuccess('User enabled');
+    } catch (err) {
+      showError(err);
     }
   };
 
@@ -94,12 +106,12 @@ export default function UsersManagePage() {
       <AnimatePresence>
         {showForm && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
+            initial={{ opacity: 0, height: 0, filter: 'blur(6px)' }}
+            animate={{ opacity: 1, height: 'auto', filter: 'blur(0px)' }}
+            exit={{ opacity: 0, height: 0, filter: 'blur(6px)' }}
             transition={{ duration: 0.2 }}
           >
-            <form onSubmit={handleCreate} className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl p-4 space-y-3">
+            <form onSubmit={handleCreate} className="card-glow bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl p-4 space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Name</label>
@@ -148,7 +160,7 @@ export default function UsersManagePage() {
         <StaggerContainer stagger={0.04} className="space-y-2">
           {users.map((u) => (
             <StaggerItem key={u._id}>
-            <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl p-3 flex justify-between items-center hover:shadow-sm transition-shadow">
+            <div className="card-glow bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl p-3 flex justify-between items-center hover:shadow-sm transition-shadow">
               <div>
                 <p className="font-medium text-[hsl(var(--foreground))]">{u.name}</p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))]">
@@ -161,12 +173,19 @@ export default function UsersManagePage() {
                 <StatusBadge variant={u.isActive ? 'success' : 'error'}>
                   {u.isActive ? 'Active' : 'Disabled'}
                 </StatusBadge>
-                {u.isActive && (
+                {u.isActive ? (
                   <button
                     onClick={() => handleDisable(u._id)}
                     className="px-2 py-1 rounded bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-xs hover:bg-red-200 dark:hover:bg-red-900/50"
                   >
                     Disable
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleEnable(u._id)}
+                    className="px-2 py-1 rounded bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs hover:bg-green-200 dark:hover:bg-green-900/50"
+                  >
+                    Enable
                   </button>
                 )}
               </div>

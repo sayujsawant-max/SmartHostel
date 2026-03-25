@@ -36,6 +36,17 @@ export async function createUser(req: Request, res: Response) {
   });
 }
 
+export async function enableUser(req: Request<{ id: string }>, res: Response) {
+  const { id } = req.params;
+  await adminService.enableUser(id, req.correlationId);
+
+  res.json({
+    success: true,
+    data: { message: 'User account enabled' },
+    correlationId: req.correlationId,
+  });
+}
+
 export async function disableUser(req: Request<{ id: string }>, res: Response) {
   const { id } = req.params;
   await adminService.disableUser(id, req.user!._id, req.correlationId);

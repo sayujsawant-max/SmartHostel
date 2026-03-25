@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { showError, showSuccess } from '@/utils/toast';
 import { Reveal } from '@/components/motion/Reveal';
 import { motion, AnimatePresence } from 'motion/react';
 import PageHeader from '@components/ui/PageHeader';
@@ -41,7 +42,7 @@ export default function RoomsManagePage() {
   const fetchRooms = () => {
     apiFetch<{ rooms: Room[] }>('/rooms')
       .then((res) => setRooms(res.data.rooms))
-      .catch(() => {})
+      .catch((err: unknown) => showError(err, 'Failed to load data'))
       .finally(() => setLoading(false));
   };
 
@@ -77,8 +78,9 @@ export default function RoomsManagePage() {
       setRooms((prev) =>
         prev.map((r) => (r._id === roomId ? { ...r, occupiedBeds: newVal } : r)),
       );
-    } catch {
-      // silently fail
+      showSuccess('Occupancy updated');
+    } catch (err) {
+      showError(err);
     }
   };
 
@@ -104,8 +106,8 @@ export default function RoomsManagePage() {
       {/* Add Room Form */}
       <AnimatePresence>
       {showForm && (
-        <motion.div key="room-form" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }} style={{ overflow: 'hidden' }}>
-        <form onSubmit={handleSubmit} className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl p-4 space-y-3">
+        <motion.div key="room-form" initial={{ opacity: 0, height: 0, filter: 'blur(6px)' }} animate={{ opacity: 1, height: 'auto', filter: 'blur(0px)' }} exit={{ opacity: 0, height: 0, filter: 'blur(6px)' }} transition={{ duration: 0.2 }} style={{ overflow: 'hidden' }}>
+        <form onSubmit={handleSubmit} className="card-glow bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl p-4 space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-[hsl(var(--foreground))] mb-1">Block</label>
@@ -170,7 +172,7 @@ export default function RoomsManagePage() {
             return (
               <div
                 key={room._id}
-                className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl p-4 hover:border-[hsl(var(--accent))]/40 transition-colors"
+                className="card-glow bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl p-4 hover:border-[hsl(var(--accent))]/40 transition-colors"
               >
                 <div className="flex justify-between items-start">
                   <div>

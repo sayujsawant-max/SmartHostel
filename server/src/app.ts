@@ -31,6 +31,19 @@ import laundryRoutes from '@/routes/laundry.routes.js';
 import visitorRoutes from '@/routes/visitor.routes.js';
 import roomChangeRoutes from '@/routes/room-change.routes.js';
 import lostFoundRoutes from '@/routes/lost-found.routes.js';
+import gamificationRoutes from '@/routes/gamification.routes.js';
+import roomMatchingRoutes from '@/routes/room-matching.routes.js';
+import feedbackRoutes from '@/routes/feedback.routes.js';
+import chatRoutes from '@/routes/chat.routes.js';
+import assetRoutes from '@/routes/asset.routes.js';
+import wellnessRoutes from '@/routes/wellness.routes.js';
+import emergencyAlertRoutes from '@/routes/emergency-alert.routes.js';
+import pushRoutes from '@/routes/push.routes.js';
+import complaintAnalyticsRoutes from '@/routes/complaint-analytics.routes.js';
+import occupancyRoutes from '@/routes/occupancy.routes.js';
+import reportBuilderRoutes from '@/routes/report-builder.routes.js';
+import dashboardWidgetRoutes from '@/routes/dashboard-widget.routes.js';
+import fileUploadRoutes from '@/routes/file-upload.routes.js';
 
 const app = express();
 
@@ -96,6 +109,19 @@ app.use('/api/laundry', laundryRoutes);
 app.use('/api/visitors', visitorRoutes);
 app.use('/api/room-changes', roomChangeRoutes);
 app.use('/api/lost-found', lostFoundRoutes);
+app.use('/api/gamification', gamificationRoutes);
+app.use('/api/room-matching', roomMatchingRoutes);
+app.use('/api/feedback', feedbackRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/assets', assetRoutes);
+app.use('/api/admin/wellness', wellnessRoutes);
+app.use('/api/admin/emergency-alerts', emergencyAlertRoutes);
+app.use('/api/push', pushRoutes);
+app.use('/api/admin/complaint-analytics', complaintAnalyticsRoutes);
+app.use('/api/admin/occupancy', occupancyRoutes);
+app.use('/api/admin/report-builder', reportBuilderRoutes);
+app.use('/api/admin/dashboard-widgets', dashboardWidgetRoutes);
+app.use('/api/files', fileUploadRoutes);
 
 // Test-only routes for RBAC integration testing (static import, only registered in test)
 if (env.NODE_ENV === 'test') {

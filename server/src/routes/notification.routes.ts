@@ -51,4 +51,8 @@ router.patch('/read-all', notificationController.markAllAsRead);
  */
 router.patch('/:id/read', notificationController.markAsRead);
 
+/** Notification preferences */
+router.get('/preferences', notificationController.getPreferences);
+router.patch('/preferences', notificationController.updatePreferences);
+
 export default router;

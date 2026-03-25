@@ -5,6 +5,7 @@ import { env } from '@config/env.js';
 import { User } from '@models/user.model.js';
 import { AppError } from '@utils/app-error.js';
 import { logger } from '@utils/logger.js';
+import { sendWelcomeEmail, sendPasswordResetEmail } from './email.service.js';
 
 interface TokenPair {
   accessToken: string;
@@ -293,6 +294,26 @@ export async function resetPassword(token: string, newPassword: string, correlat
   logger.info(
     { eventType: 'AUTH_RESET_PASSWORD', correlationId, userId: user._id.toString() },
     'Password reset successfully',
+  );
+}
+
+export async function changePassword(userId: string, currentPassword: string, newPassword: string, correlationId?: string) {
+  const user = await User.findById(userId).select('+passwordHash');
+  if (!user || !user.isActive) {
+    throw new AppError('UNAUTHORIZED', 'User not found or inactive', 401);
+  }
+
+  const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!isMatch) {
+    throw new AppError('UNAUTHORIZED', 'Current password is incorrect', 401);
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+  await User.updateOne({ _id: user._id }, { $set: { passwordHash } });
+
+  logger.info(
+    { eventType: 'AUTH_CHANGE_PASSWORD', correlationId, userId },
+    'Password changed successfully',
   );
 }
 

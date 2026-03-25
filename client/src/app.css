@@ -112,6 +112,160 @@ textarea:focus {
   background: hsl(var(--muted-foreground));
 }
 
+/* ─── Premium Keyframe Animations ─────────────────────────────── */
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes border-glow {
+  0%, 100% { border-color: hsl(var(--border)); }
+  50% { border-color: hsl(var(--accent) / 0.4); }
+}
+
+/* ─── Premium Utility Classes ─────────────────────────────────── */
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 0%,
+    hsl(var(--muted-foreground) / 0.08) 50%,
+    hsl(var(--muted)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, hsl(var(--accent)), hsl(222 47% 55%), hsl(var(--accent)));
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease-in-out infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass {
+  background: hsl(var(--card) / 0.7);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid hsl(var(--border) / 0.5);
+}
+
+.glass-strong {
+  background: hsl(var(--card) / 0.85);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid hsl(var(--border) / 0.6);
+}
+
+.card-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--accent) / 0.15),
+    transparent 40%,
+    transparent 60%,
+    hsl(var(--accent) / 0.15)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+
+.card-glow:hover::before {
+  opacity: 1;
+}
+
+.accent-line {
+  position: relative;
+  overflow: hidden;
+}
+
+.accent-line::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, hsl(var(--accent) / 0.5), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+
+.accent-line:hover::after {
+  opacity: 1;
+}
+
+/* Premium skeleton shimmer */
+.skeleton-premium {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--muted-foreground) / 0.06) 50%,
+    hsl(var(--muted)) 75%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* Focus ring upgrade */
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px hsl(var(--background)),
+    0 0 0 4px hsl(var(--accent) / 0.5);
+}
+
+/* Noise texture overlay for depth */
+.noise {
+  position: relative;
+}
+
+.noise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.dark .noise::after {
+  opacity: 0.03;
+}
+
 /* GlowingEffect glow element */
 .glow {
   position: absolute;

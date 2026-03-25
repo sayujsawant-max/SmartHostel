@@ -3,7 +3,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { selfResetPasswordSchema, type SelfResetPasswordInput } from '@smarthostel/shared';
 import { Link, useSearchParams } from 'react-router-dom';
-import { apiFetch, ApiError } from '@services/api';
+import { apiFetch } from '@services/api';
+import { showError } from '@/utils/toast';
 import AuthSplitLayout from '@components/ui/AuthSplitLayout';
 import FormField from '@components/ui/FormField';
 import Spinner from '@components/ui/Spinner';
@@ -20,7 +21,6 @@ export default function ResetPasswordPage() {
   const token = searchParams.get('token') ?? '';
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
   const {
@@ -34,7 +34,6 @@ export default function ResetPasswordPage() {
   });
 
   async function onSubmit(data: SelfResetPasswordInput) {
-    setServerError(null);
     setIsSubmitting(true);
     try {
       await apiFetch('/auth/reset-password', {
@@ -43,11 +42,7 @@ export default function ResetPasswordPage() {
       });
       setSuccess(true);
     } catch (err) {
-      if (err instanceof ApiError) {
-        setServerError(err.message);
-      } else {
-        setServerError('An unexpected error occurred');
-      }
+      showError(err, 'An unexpected error occurred');
     } finally {
       setIsSubmitting(false);
     }
@@ -58,7 +53,7 @@ export default function ResetPasswordPage() {
       <AuthSplitLayout icon={RESET_ICON} title="SmartHostel" subtitle="Reset your password">
         <div className="text-center space-y-4">
           <p className="text-sm text-red-600">Invalid or missing reset token.</p>
-          <Link to="/forgot-password" className="inline-block text-sm text-teal-600 hover:underline font-medium">
+          <Link to="/forgot-password" className="inline-block text-sm text-[hsl(var(--accent))] hover:underline font-medium">
             Request a new reset link
           </Link>
         </div>
@@ -70,8 +65,8 @@ export default function ResetPasswordPage() {
     <AuthSplitLayout icon={RESET_ICON} title="SmartHostel" subtitle="Set a new password">
       {success ? (
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 10, filter: 'blur(6px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           className="text-center space-y-4"
         >
           <div className="w-14 h-14 rounded-full bg-green-100 dark:bg-green-900/30 mx-auto flex items-center justify-center">
@@ -82,7 +77,7 @@ export default function ResetPasswordPage() {
           <p className="text-sm text-gray-700">
             Your password has been reset successfully.
           </p>
-          <Link to="/login" className="inline-block text-sm text-teal-600 hover:underline font-medium">
+          <Link to="/login" className="inline-block text-sm text-[hsl(var(--accent))] hover:underline font-medium">
             Sign in with your new password
           </Link>
         </motion.div>
@@ -98,16 +93,6 @@ export default function ResetPasswordPage() {
             inputProps={{ ...register('password'), type: 'password', autoComplete: 'new-password', placeholder: 'At least 8 characters' }}
           />
 
-          {serverError && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              className="mb-4 text-sm text-red-600 text-center"
-            >
-              <p>{serverError}</p>
-            </motion.div>
-          )}
-
           <button
             type="submit"
             disabled={isSubmitting}
@@ -117,7 +102,7 @@ export default function ResetPasswordPage() {
           </button>
 
           <p className="text-sm text-center text-gray-600 mt-4">
-            <Link to="/login" className="text-teal-600 hover:underline font-medium">
+            <Link to="/login" className="text-[hsl(var(--accent))] hover:underline font-medium">
               Back to Sign In
             </Link>
           </p>

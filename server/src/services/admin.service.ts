@@ -46,6 +46,20 @@ export async function createUser(data: CreateUserInput, correlationId?: string) 
   return user;
 }
 
+export async function enableUser(userId: string, correlationId?: string) {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError('NOT_FOUND', 'User not found', 404);
+  }
+
+  await User.updateOne({ _id: userId }, { $set: { isActive: true } });
+
+  logger.info(
+    { eventType: 'ADMIN_USER_ENABLED', correlationId, userId },
+    'User account enabled',
+  );
+}
+
 export async function disableUser(userId: string, actorId: string, correlationId?: string) {
   if (String(userId) === String(actorId)) {
     throw new AppError('VALIDATION_ERROR', 'Cannot disable your own account', 400);

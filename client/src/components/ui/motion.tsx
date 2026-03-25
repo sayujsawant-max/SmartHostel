@@ -32,19 +32,19 @@ export function FadeIn({
   const isInView = useInView(ref, { once, margin: '-40px' });
 
   const dirs = {
-    up: { y: 40 },
-    down: { y: -40 },
-    left: { x: 40 },
-    right: { x: -40 },
+    up: { y: 32 },
+    down: { y: -32 },
+    left: { x: 32 },
+    right: { x: -32 },
     none: {},
   };
 
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, ...dirs[direction] }}
-      animate={isInView ? { opacity: 1, x: 0, y: 0 } : { opacity: 0, ...dirs[direction] }}
-      transition={{ duration, delay, ease: 'easeOut' }}
+      initial={{ opacity: 0, filter: 'blur(6px)', ...dirs[direction] }}
+      animate={isInView ? { opacity: 1, x: 0, y: 0, filter: 'blur(0px)' } : { opacity: 0, filter: 'blur(6px)', ...dirs[direction] }}
+      transition={{ duration, delay, ease: [0.22, 1, 0.36, 1] }}
       className={className}
     >
       {children}
@@ -92,8 +92,8 @@ export function StaggerItem({
   return (
     <motion.div
       variants={{
-        hidden: { opacity: 0, y: 30 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
+        hidden: { opacity: 0, y: 24, filter: 'blur(6px)' },
+        visible: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
       }}
       className={className}
     >
@@ -135,16 +135,21 @@ export function PageTransition({
   children: ReactNode;
   className?: string;
 }) {
+  const key = typeof window !== 'undefined' ? window.location.pathname : '';
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -12 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
-      className={className}
-    >
-      {children}
-    </motion.div>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={key}
+        initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
+        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+        exit={{ opacity: 0, y: -8, filter: 'blur(2px)' }}
+        transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+        className={className}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
   );
 }
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '@services/api';
+import { showError, showSuccess } from '@/utils/toast';
 import { Reveal } from '@/components/motion/Reveal';
 import { MotionCard } from '@/components/motion/MotionCard';
 import PageHeader from '@components/ui/PageHeader';
@@ -71,8 +72,10 @@ export default function RequestLeavePage() {
         }),
       });
       setSuccess(true);
+      showSuccess('Leave request submitted successfully');
+      void import('@/utils/confetti').then(m => m.celebrateMini());
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit leave request');
+      showError(err, 'Failed to submit leave request');
     } finally {
       setSubmitting(false);
     }
@@ -119,7 +122,7 @@ export default function RequestLeavePage() {
       </Reveal>
 
       <Reveal direction="none" delay={0.1}>
-      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
+      <form onSubmit={(e) => void handleSubmit(e)} className="relative overflow-hidden space-y-4 p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] card-glow">
         <div>
           <label className="block text-sm font-medium text-[hsl(var(--foreground))] mb-1">Leave Type</label>
           <select

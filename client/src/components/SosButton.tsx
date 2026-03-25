@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { apiFetch } from '@services/api';
 import { motion, AnimatePresence } from 'motion/react';
+import { showError, showSuccess } from '@/utils/toast';
 
 export default function SosButton() {
   const [showModal, setShowModal] = useState(false);
@@ -18,9 +19,10 @@ export default function SosButton() {
       setSent(true);
       setShowModal(false);
       setMessage('');
+      showSuccess('SOS alert sent');
       setTimeout(() => setSent(false), 30_000);
     } catch (err) {
-      console.error('[SosButton] Failed to send SOS', err);
+      showError(err, 'Failed to send SOS alert');
     } finally {
       setSending(false);
     }
@@ -106,10 +108,10 @@ export default function SosButton() {
             onClick={() => setShowModal(false)}
           >
             <motion.div
-              initial={{ scale: 0.85, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.85, opacity: 0, y: 20 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              initial={{ scale: 0.85, opacity: 0, y: 20, filter: 'blur(8px)' }}
+              animate={{ scale: 1, opacity: 1, y: 0, filter: 'blur(0px)' }}
+              exit={{ scale: 0.85, opacity: 0, y: 20, filter: 'blur(8px)' }}
+              transition={{ type: 'spring', stiffness: 400, damping: 28 }}
               onClick={(e) => e.stopPropagation()}
               style={{
                 width: '90%',

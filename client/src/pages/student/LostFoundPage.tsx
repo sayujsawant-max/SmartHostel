@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { showError, showSuccess } from '@/utils/toast';
 import { useAuth } from '@hooks/useAuth';
 import { Reveal } from '@/components/motion/Reveal';
 import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
@@ -116,8 +117,8 @@ export default function LostFoundPage() {
         const res = await apiFetch<LostFoundPost[]>(`/lost-found${query ? `?${query}` : ''}`);
         setPosts(res.data);
       }
-    } catch {
-      // silently fail
+    } catch (err) {
+      showError(err, 'Failed to load posts');
     } finally {
       setLoading(false);
     }
@@ -169,6 +170,7 @@ export default function LostFoundPage() {
         }),
       });
       setModalOpen(false);
+      showSuccess('Post created successfully');
       void fetchPosts();
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Failed to create post');
@@ -180,27 +182,30 @@ export default function LostFoundPage() {
   const handleClaim = async (postId: string) => {
     try {
       await apiFetch(`/lost-found/${postId}/claim`, { method: 'PATCH' });
+      showSuccess('Item claimed successfully');
       void fetchPosts();
-    } catch {
-      // silently fail
+    } catch (err) {
+      showError(err, 'Failed to claim item');
     }
   };
 
   const handleReturn = async (postId: string) => {
     try {
       await apiFetch(`/lost-found/${postId}/return`, { method: 'PATCH' });
+      showSuccess('Item marked as returned');
       void fetchPosts();
-    } catch {
-      // silently fail
+    } catch (err) {
+      showError(err, 'Failed to mark as returned');
     }
   };
 
   const handleDelete = async (postId: string) => {
     try {
       await apiFetch(`/lost-found/${postId}`, { method: 'DELETE' });
+      showSuccess('Post deleted');
       void fetchPosts();
-    } catch {
-      // silently fail
+    } catch (err) {
+      showError(err, 'Failed to delete post');
     }
   };
 
@@ -318,7 +323,7 @@ export default function LostFoundPage() {
           {posts.map((post) => (
             <StaggerItem key={post._id}>
             <div
-              className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-3"
+              className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-3 card-glow"
             >
               {/* Top row: type badge + status badge */}
               <div className="flex justify-between items-start">
@@ -412,7 +417,7 @@ export default function LostFoundPage() {
       <AnimatePresence>
       {modalOpen && (
         <motion.div key="modal-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} transition={{ type: 'spring', stiffness: 300, damping: 25 }} className="w-full max-w-lg mx-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+          <motion.div initial={{ scale: 0.9, opacity: 0, y: 20, filter: 'blur(6px)' }} animate={{ scale: 1, opacity: 1, y: 0, filter: 'blur(0px)' }} exit={{ scale: 0.9, opacity: 0, y: 20 }} transition={{ type: 'spring', stiffness: 300, damping: 25 }} className="w-full max-w-lg mx-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 space-y-4 max-h-[90vh] overflow-y-auto card-glow">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-bold text-[hsl(var(--foreground))]">
                 Report {modalType === 'LOST' ? 'Lost' : 'Found'} Item

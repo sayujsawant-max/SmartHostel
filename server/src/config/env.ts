@@ -76,6 +76,19 @@ const envSchema = z.object({
     }),
   ALLOWED_ORIGINS: z.string().default('http://localhost:5173'),
   GOOGLE_CLIENT_ID: z.string().optional().default(''),
+  OPENAI_API_KEY: z.string().optional().default(''),
+
+  // Email (optional — SMTP)
+  SMTP_HOST: z.string().optional().default(''),
+  SMTP_PORT: z.coerce.number().optional().default(587),
+  SMTP_USER: z.string().optional().default(''),
+  SMTP_PASS: z.string().optional().default(''),
+  EMAIL_FROM: z.string().optional().default('noreply@smarthostel.com'),
+
+  // Push notifications (optional — VAPID)
+  VAPID_PUBLIC_KEY: z.string().optional().default(''),
+  VAPID_PRIVATE_KEY: z.string().optional().default(''),
+  VAPID_SUBJECT: z.string().optional().default('mailto:admin@smarthostel.com'),
 });
 
 // Validate on import — crashes server immediately if invalid

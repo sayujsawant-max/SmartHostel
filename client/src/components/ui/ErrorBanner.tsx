@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { AlertTriangle } from 'lucide-react';
+import { motion } from 'motion/react';
 
 type ErrorVariant = 'inline' | 'block';
 
@@ -50,7 +51,10 @@ export default function ErrorBanner({
   }
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, x: 0 }}
+      animate={{ opacity: 1, x: [0, -6, 6, -4, 4, 0] }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
       className={`flex items-center gap-3 p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 dark:bg-red-950/30 dark:border-red-800/40 dark:text-red-300 text-sm ${className}`}
     >
       <AlertTriangle className="w-4 h-4 shrink-0" />
@@ -63,6 +67,6 @@ export default function ErrorBanner({
           Retry
         </button>
       )}
-    </div>
+    </motion.div>
   );
 }

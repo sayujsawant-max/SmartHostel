@@ -7,15 +7,8 @@ on:
     branches: [master, main]
 
 jobs:
-  build-and-test:
+  lint-and-type-check:
     runs-on: ubuntu-latest
-
-    env:
-      NODE_ENV: test
-      JWT_SECRET: ci-test-secret-that-is-at-least-32-chars!!
-      QR_SECRET: ci-test-qr-secret-at-least-32-chars!!
-      ALLOWED_ORIGINS: http://localhost:5173
-
     steps:
       - uses: actions/checkout@v4
 
@@ -26,14 +19,75 @@ jobs:
 
       - run: npm ci
 
-      - name: Lint
-        run: npm run lint
+      - name: Lint client
+        run: npm run lint -w client
+
+      - name: Lint server
+        run: npm run lint -w server
+
+      - name: Type-check shared
+        run: npx tsc --noEmit -p shared/tsconfig.json
+
+      - name: Type-check client
+        run: npx tsc -b -p client/tsconfig.json --noEmit
+
+      - name: Type-check server
+        run: npx tsc --noEmit -p server/tsconfig.json
+
+  test:
+    runs-on: ubuntu-latest
+    needs: lint-and-type-check
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+    env:
+      NODE_ENV: test
+      MONGODB_URI: mongodb://localhost:27017/smarthostel-test
+      JWT_SECRET: ci-test-secret-that-is-at-least-32-chars!!
+      QR_SECRET: ci-test-qr-secret-at-least-32-chars!!
+      ALLOWED_ORIGINS: http://localhost:5173
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build shared (needed by tests)
+        run: npm run build -w shared
+
+      - name: Server tests
+        run: npm test -w server
+
+      - name: Client tests
+        run: npm test -w client
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
 
       - name: Build all workspaces
         run: npm run build
 
-      - name: Server tests
-        run: npm -w server test
+  docker:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Client tests
-        run: npm -w client test
+      - name: Build Docker image
+        run: docker build -t smarthostel:ci .

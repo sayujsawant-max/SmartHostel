@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { apiFetch } from '@services/api';
+import { showError } from '@/utils/toast';
 import { Reveal } from '@/components/motion/Reveal';
 import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
 import PageHeader from '@components/ui/PageHeader';
@@ -72,7 +73,7 @@ export default function ComplaintDetailPage() {
         setComplaint(cRes.data.complaint);
         setTimeline(tRes.data.events);
       })
-      .catch(() => {})
+      .catch((err: unknown) => showError(err, 'Failed to load data'))
       .finally(() => setLoading(false));
   }, [complaintId]);
 
@@ -102,7 +103,7 @@ export default function ComplaintDetailPage() {
       </Reveal>
 
       <Reveal delay={0.1}>
-      <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2">
+      <div className="relative overflow-hidden p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 card-glow">
         <div className="flex justify-between items-start">
           <h2 className="text-lg font-bold text-[hsl(var(--foreground))]">
             {complaint.category.replace(/_/g, ' ')}
@@ -130,7 +131,7 @@ export default function ComplaintDetailPage() {
 
       {/* Timeline */}
       <Reveal delay={0.2}>
-      <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
+      <div className="relative overflow-hidden p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] card-glow">
         <h3 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Timeline</h3>
         <StaggerContainer stagger={0.06} className="space-y-3">
           {timeline.map((event, i) => (

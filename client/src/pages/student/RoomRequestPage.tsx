@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '@services/api';
+import { showError, showSuccess } from '@/utils/toast';
 import { useAuth } from '@hooks/useAuth';
 import { Reveal } from '@/components/motion/Reveal';
 import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
@@ -13,6 +14,7 @@ import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
 import { motion, AnimatePresence } from 'motion/react';
 import { prefersReducedMotion } from '@/utils/motion';
+import SmartRoomMatcher from '@components/SmartRoomMatcher';
 
 interface Room {
   _id: string;
@@ -36,6 +38,7 @@ export default function RoomRequestPage() {
   const [error, setError] = useState('');
   const [requesting, setRequesting] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [activeTab, setActiveTab] = useState<'browse' | 'smart'>('smart');
 
   const hostelGender = user?.gender === 'MALE' ? 'BOYS' : 'GIRLS';
 
@@ -58,10 +61,12 @@ export default function RoomRequestPage() {
         body: JSON.stringify({ roomId }),
       });
       setSuccess(true);
+      showSuccess('Room assigned successfully!');
+      void import('@/utils/confetti').then(m => m.celebrate());
       await refreshUser();
       setTimeout(() => navigate('/student/status'), 1500);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to request room');
+      showError(err, 'Failed to request room');
     } finally {
       setRequesting(null);
     }
@@ -122,9 +127,30 @@ export default function RoomRequestPage() {
   return (
     <div className="space-y-4">
       <Reveal>
-        <PageHeader title="Request a Room" description="Browse available rooms and pick one to request." />
+        <PageHeader title="Request a Room" description="Find your perfect room with AI matching or browse manually." />
       </Reveal>
 
+      {/* Tab Toggle */}
+      <div className="flex gap-1 p-1 rounded-xl bg-[hsl(var(--muted))]">
+        {(['smart', 'browse'] as const).map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === tab
+                ? 'bg-[hsl(var(--card))] text-[hsl(var(--foreground))] shadow-sm'
+                : 'text-[hsl(var(--muted-foreground))]'
+            }`}
+          >
+            {tab === 'smart' ? '✨ Smart Match' : '📋 Browse All'}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'smart' ? (
+        <SmartRoomMatcher onSelectRoom={(roomId) => handleRequest(roomId)} />
+      ) : (
+      <>
       <AnimatePresence>
         {error && (
           <motion.div
@@ -151,7 +177,7 @@ export default function RoomRequestPage() {
             return (
               <StaggerItem key={room._id}>
               <div
-                className="p-4 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] space-y-2 hover:border-[hsl(var(--accent))]/40 transition-colors"
+                className="relative overflow-hidden p-4 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] space-y-2 hover:border-[hsl(var(--accent))]/40 transition-colors card-glow"
               >
                 <div className="flex items-center justify-between">
                   <p className="font-semibold text-[hsl(var(--foreground))]">
@@ -181,6 +207,8 @@ export default function RoomRequestPage() {
             );
           })}
         </StaggerContainer>
+      )}
+      </>
       )}
     </div>
   );

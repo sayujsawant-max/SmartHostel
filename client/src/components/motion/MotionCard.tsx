@@ -7,16 +7,19 @@ interface MotionCardProps {
   className?: string;
   /** Lift distance in px (default 4) */
   lift?: number;
+  /** Enable gradient border glow on hover (default false) */
+  glow?: boolean;
 }
 
 /**
- * Card wrapper with subtle hover lift + shadow.
- * Intentionally restrained: small y-shift, tiny scale, no dramatic motion.
+ * Premium card wrapper with hover lift, scale, and optional glow border.
+ * Restrained: small y-shift, tiny scale, smooth spring physics.
  */
 export function MotionCard({
   children,
   className,
   lift = 4,
+  glow = false,
 }: MotionCardProps) {
   if (prefersReducedMotion()) {
     return <div className={className}>{children}</div>;
@@ -24,10 +27,10 @@ export function MotionCard({
 
   return (
     <motion.div
-      whileHover={{ y: -lift, scale: 1.01 }}
+      whileHover={{ y: -lift, scale: 1.012 }}
       whileTap={{ scale: 0.985 }}
       transition={ease.springGentle}
-      className={className}
+      className={`${glow ? 'card-glow' : ''} ${className ?? ''}`}
     >
       {children}
     </motion.div>

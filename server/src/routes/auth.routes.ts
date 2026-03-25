@@ -87,6 +87,7 @@ router.post('/refresh', refreshRateLimiter, authController.refresh);
  */
 router.post('/logout', authController.logout);
 
+router.post('/change-password', authMiddleware, authController.changePassword);
 router.post('/forgot-password', loginRateLimiter, authController.forgotPassword);
 router.post('/reset-password', authController.resetPassword);
 router.post('/google', loginRateLimiter, authController.googleAuth);

@@ -1,224 +1,486 @@
-import { useState, useRef, useEffect } from 'react';
-import { apiFetch } from '@services/api';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import ReactMarkdown from 'react-markdown';
+import { useAuth } from '@hooks/useAuth';
 
-interface FaqItem {
-  _id: string;
-  question: string;
-  answer: string;
-  category: string;
-  keywords: string[];
-}
+/* ── Types ────────────────────────────────────────────────────── */
 
 interface ChatMessage {
   id: string;
-  role: 'user' | 'bot';
-  text: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
 }
 
-const GREETINGS = ['hi', 'hello', 'hey', 'help'];
-const GREETING_RESPONSE = "Hi! I'm the SmartHostel assistant. Ask me about leaves, complaints, fees, rooms, laundry, mess menu, visitors, or anything else!";
+/* ── Suggested prompts ────────────────────────────────────────── */
 
-const FALLBACK_FAQS: FaqItem[] = [
-  { _id: 'f1', question: 'How do I apply for leave?', answer: 'Go to Actions > Request Leave. Select the leave type (day outing or overnight), pick your dates, and submit. Your warden will approve or reject it.', category: 'Leaves', keywords: ['leave', 'outing', 'permission', 'apply', 'request', 'absent', 'go home'] },
-  { _id: 'f2', question: 'How do I file a complaint?', answer: 'Go to Actions > Report Issue. Select a category (electrical, plumbing, furniture, etc.), describe the issue, and submit. You can track the status on the Status page.', category: 'Complaints', keywords: ['complaint', 'issue', 'report', 'problem', 'maintenance', 'broken', 'fix', 'repair'] },
-  { _id: 'f3', question: 'How do I check my gate pass?', answer: 'Once your leave is approved, go to Actions > Show QR to view your gate pass QR code. The guard will scan it when you exit and return.', category: 'Gate Pass', keywords: ['gate', 'pass', 'qr', 'scan', 'exit', 'entry', 'guard', 'show'] },
-  { _id: 'f4', question: 'How do I book a laundry slot?', answer: 'Go to the Laundry tab. Select a date, find an available slot on the machine grid, and click "Book". You can have up to 2 active bookings at a time.', category: 'Laundry', keywords: ['laundry', 'wash', 'washing', 'machine', 'clothes', 'book', 'slot', 'booking'] },
-  { _id: 'f5', question: 'Where can I see the mess menu?', answer: 'Go to the Menu tab to see today\'s menu and the full weekly schedule. You can rate each meal with thumbs up/down.', category: 'Mess', keywords: ['mess', 'menu', 'food', 'breakfast', 'lunch', 'dinner', 'snacks', 'meal', 'eat', 'canteen'] },
-  { _id: 'f6', question: 'How do I request a room change?', answer: 'Go to Actions > Room Change. Browse available rooms filtered by your gender, select one, provide a reason, and submit your request. The warden will review it.', category: 'Rooms', keywords: ['room', 'change', 'transfer', 'shift', 'swap', 'roommate', 'move'] },
-  { _id: 'f7', question: 'How do I register a visitor?', answer: 'Go to Actions > Register Visitor. Enter your visitor\'s name, phone number, relationship, and expected visit date. The warden will approve or reject the visit.', category: 'Visitors', keywords: ['visitor', 'visit', 'guest', 'parent', 'friend', 'register', 'coming'] },
-  { _id: 'f8', question: 'What are the hostel timings?', answer: 'General hostel timings: In-time is 9:00 PM on weekdays and 10:00 PM on weekends. Day outings must return by 7:00 PM. Late entry requires warden approval.', category: 'Rules', keywords: ['timing', 'time', 'curfew', 'late', 'rule', 'entry', 'in-time', 'when', 'close'] },
-  { _id: 'f9', question: 'How do I check my fee status?', answer: 'Your room fee details are visible on your profile. Hostel fees are charged per semester and vary by room type (Deluxe/Normal) and AC/Non-AC.', category: 'Fees', keywords: ['fee', 'fees', 'payment', 'pay', 'charge', 'cost', 'price', 'money', 'amount', 'semester'] },
-  { _id: 'f10', question: 'How do I report a lost item?', answer: 'Go to Actions > Lost & Found. Click "New Post", select "Lost", describe your item with category and location, and post it. Other students can see it and help you find it.', category: 'Lost & Found', keywords: ['lost', 'found', 'missing', 'item', 'find', 'search', 'stolen', 'misplace'] },
-  { _id: 'f11', question: 'How do I contact the warden?', answer: 'You can reach your warden through the hostel office during office hours (9 AM - 5 PM). For emergencies, use the SOS feature on the Status page.', category: 'General', keywords: ['warden', 'contact', 'reach', 'call', 'office', 'emergency', 'sos'] },
-  { _id: 'f12', question: 'Can I change my room?', answer: 'Yes! Go to Actions > Room Change to request a transfer. Rooms are allocated based on gender and you\'ll be matched with students of the same academic year.', category: 'Rooms', keywords: ['room', 'allocation', 'allot', 'assign', 'bed', 'hostel', 'accommodation'] },
+const SUGGESTIONS = [
+  { label: '📋 My Leaves', prompt: 'What is the status of my recent leave requests?' },
+  { label: '🔧 My Complaints', prompt: 'Show me the status of my recent complaints' },
+  { label: '💰 Fee Status', prompt: 'What are my pending fees?' },
+  { label: '👕 Laundry', prompt: 'How do I book a laundry slot?' },
+  { label: '🍽️ Mess Menu', prompt: "Where can I see today's mess menu?" },
+  { label: '🏠 Room Change', prompt: 'How do I request a room change?' },
 ];
 
-function findBestMatch(query: string, faqs: FaqItem[]): string | null {
-  const lower = query.toLowerCase();
+/* ── Streaming fetch helper ───────────────────────────────────── */
 
-  if (GREETINGS.some((g) => lower.includes(g)) && lower.length < 20) {
-    return GREETING_RESPONSE;
-  }
+async function streamChat(
+  message: string,
+  history: { role: 'user' | 'assistant'; content: string }[],
+  onChunk: (text: string) => void,
+  onDone: () => void,
+  onError: (err: string) => void,
+) {
+  try {
+    const res = await fetch('/api/assistant/chat/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ message, history }),
+    });
 
-  const allFaqs = [...faqs, ...FALLBACK_FAQS];
+    if (!res.ok || !res.body) {
+      onError('Failed to connect to AI assistant');
+      return;
+    }
 
-  let bestScore = 0;
-  let bestAnswer = '';
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
 
-  for (const faq of allFaqs) {
-    let score = 0;
-    const words = lower.split(/\s+/);
-    const faqText = `${faq.question} ${faq.keywords.join(' ')}`.toLowerCase();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-    for (const word of words) {
-      if (word.length > 2 && faqText.includes(word)) {
-        score += 1;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+
+        if (data === '[DONE]') {
+          onDone();
+          return;
+        }
+
+        try {
+          const parsed = JSON.parse(data) as { content?: string; error?: string };
+          if (parsed.error) {
+            onError(parsed.error);
+            return;
+          }
+          if (parsed.content) {
+            onChunk(parsed.content);
+          }
+        } catch {
+          // skip malformed chunks
+        }
       }
     }
 
-    if (faq.question.toLowerCase().includes(lower)) {
-      score += 3;
-    }
-
-    if (score > bestScore) {
-      bestScore = score;
-      bestAnswer = faq.answer;
-    }
+    onDone();
+  } catch {
+    onError('Connection lost. Please try again.');
   }
-
-  if (bestScore >= 1) return bestAnswer;
-  return null;
 }
 
-export default function Chatbot() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: '0', role: 'bot', text: GREETING_RESPONSE },
-  ]);
-  const [input, setInput] = useState('');
-  const [faqs, setFaqs] = useState<FaqItem[]>([]);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+/* ── Typing indicator ─────────────────────────────────────────── */
+
+const THINKING_PHASES = [
+  'Searching your data...',
+  'Analyzing context...',
+  'Crafting response...',
+];
+
+function TypingIndicator() {
+  const [phase, setPhase] = useState(0);
 
   useEffect(() => {
-    apiFetch<{ faqs: FaqItem[] }>('/assistant/faq')
-      .then((res) => setFaqs(res.data.faqs))
-      .catch(() => {});
+    const id = setInterval(() => {
+      setPhase((p) => (p + 1) % THINKING_PHASES.length);
+    }, 2200);
+    return () => clearInterval(id);
   }, []);
 
+  return (
+    <div className="flex flex-col gap-2 px-4 py-3.5">
+      <div className="flex items-center gap-2.5">
+        {/* Animated sparkle icon with pulse */}
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], rotate: [0, 180, 360] }}
+          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+          className="relative"
+        >
+          <svg
+            className="w-4 h-4 text-[hsl(var(--accent))]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+          </svg>
+          <motion.div
+            className="absolute inset-0 rounded-full bg-[hsl(var(--accent))]"
+            animate={{ opacity: [0, 0.2, 0], scale: [0.8, 1.5, 0.8] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+        </motion.div>
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={phase}
+            initial={{ opacity: 0, y: 8, filter: 'blur(4px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: -8, filter: 'blur(4px)' }}
+            transition={{ duration: 0.25 }}
+            className="text-[11px] text-[hsl(var(--muted-foreground))] font-medium tracking-wide"
+          >
+            {THINKING_PHASES[phase]}
+          </motion.span>
+        </AnimatePresence>
+      </div>
+      <div className="flex items-center gap-1.5 pl-0.5">
+        {[0, 1, 2].map((i) => (
+          <motion.span
+            key={i}
+            className="w-[7px] h-[7px] rounded-full bg-[hsl(var(--accent))]"
+            animate={{
+              y: [0, -8, 0],
+              opacity: [0.3, 1, 0.3],
+              scale: [0.85, 1.1, 0.85],
+            }}
+            transition={{ duration: 0.7, repeat: Infinity, delay: i * 0.12, ease: 'easeInOut' }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Message bubble ───────────────────────────────────────────── */
+
+function MessageBubble({ msg, isStreaming }: { msg: ChatMessage; isStreaming?: boolean }) {
+  const isUser = msg.role === 'user';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
+      className={`flex gap-3 ${isUser ? 'flex-row-reverse' : ''}`}
+    >
+      {/* Avatar */}
+      <div
+        className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+          isUser
+            ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]'
+            : 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]'
+        }`}
+      >
+        {isUser ? 'You' : 'AI'}
+      </div>
+
+      {/* Content */}
+      <div className={`flex-1 min-w-0 ${isUser ? 'flex flex-col items-end' : ''}`}>
+        <div
+          className={`inline-block px-4 py-2.5 rounded-2xl text-sm leading-relaxed max-w-[90%] ${
+            isUser
+              ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-br-md'
+              : 'bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] rounded-bl-md'
+          }`}
+        >
+          {isUser ? (
+            <span>{msg.content}</span>
+          ) : (
+            <div className="prose prose-sm dark:prose-invert max-w-none [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0.5 [&_strong]:text-inherit [&_a]:text-[hsl(var(--accent))]">
+              <ReactMarkdown>{msg.content || ' '}</ReactMarkdown>
+              {isStreaming && (
+                <motion.span
+                  animate={{ opacity: [1, 0] }}
+                  transition={{ duration: 0.5, repeat: Infinity }}
+                  className="inline-block w-0.5 h-4 bg-current ml-0.5 align-text-bottom"
+                />
+              )}
+            </div>
+          )}
+        </div>
+        <span className="text-[10px] text-[hsl(var(--muted-foreground))] mt-1 px-1">
+          {msg.timestamp.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+        </span>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ── Main Chatbot ─────────────────────────────────────────────── */
+
+export default function Chatbot() {
+  const { user } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState('');
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingId, setStreamingId] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-scroll on new content
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, isStreaming]);
 
-  function handleSend() {
-    const text = input.trim();
-    if (!text) return;
+  // Focus input when opened
+  useEffect(() => {
+    if (isOpen) setTimeout(() => inputRef.current?.focus(), 300);
+  }, [isOpen]);
 
-    const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', text };
-    setMessages((prev) => [...prev, userMsg]);
-    setInput('');
+  const greeting = user?.name ? `Hey ${user.name.split(' ')[0]}! ` : 'Hey! ';
 
-    const answer = findBestMatch(text, faqs);
-    const botMsg: ChatMessage = {
-      id: (Date.now() + 1).toString(),
-      role: 'bot',
-      text: answer || "I'm not sure about that. Try asking about leaves, complaints, fees, or hostel rules. You can also contact your warden for help.",
+  const sendMessage = useCallback(async (text: string) => {
+    if (!text.trim() || isStreaming) return;
+
+    const userMsg: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: text.trim(),
+      timestamp: new Date(),
     };
 
-    setTimeout(() => {
-      setMessages((prev) => [...prev, botMsg]);
-    }, 300);
-  }
+    const botId = (Date.now() + 1).toString();
+    const botMsg: ChatMessage = {
+      id: botId,
+      role: 'assistant',
+      content: '',
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMsg, botMsg]);
+    setInput('');
+    setIsStreaming(true);
+    setStreamingId(botId);
+
+    // Build history for context
+    const history = messages.map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+    await streamChat(
+      text.trim(),
+      history,
+      (chunk) => {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === botId ? { ...m, content: m.content + chunk } : m,
+          ),
+        );
+      },
+      () => {
+        setIsStreaming(false);
+        setStreamingId(null);
+      },
+      (err) => {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === botId
+              ? { ...m, content: err || 'Sorry, something went wrong. Please try again.' }
+              : m,
+          ),
+        );
+        setIsStreaming(false);
+        setStreamingId(null);
+      },
+    );
+  }, [isStreaming, messages]);
+
+  const handleSend = () => void sendMessage(input);
+
+  const handleSuggestion = (prompt: string) => void sendMessage(prompt);
+
+  const handleClear = () => {
+    setMessages([]);
+    setIsStreaming(false);
+    setStreamingId(null);
+  };
 
   return (
     <>
-      {/* Chat Toggle Button */}
+      {/* ── Floating Toggle Button ──────────────────────────────── */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        className="fixed bottom-20 right-4 z-50 w-14 h-14 rounded-full bg-teal-600 text-white shadow-lg hover:bg-teal-700 flex items-center justify-center"
+        className="fixed bottom-20 right-4 z-50 w-14 h-14 rounded-full bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] shadow-lg flex items-center justify-center"
         aria-label="Toggle chatbot"
       >
         <AnimatePresence mode="wait">
           {isOpen ? (
-            <motion.svg
-              key="close"
-              initial={{ rotate: -90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: 90, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="w-6 h-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
+            <motion.svg key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }} className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </motion.svg>
           ) : (
-            <motion.svg
-              key="chat"
-              initial={{ rotate: 90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: -90, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="w-6 h-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
+            <motion.svg key="chat" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }} className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </motion.svg>
           )}
         </AnimatePresence>
+
+        {/* Unread indicator when closed */}
+        {!isOpen && messages.length === 0 && (
+          <motion.span
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-[hsl(var(--background))]"
+          />
+        )}
       </motion.button>
 
-      {/* Chat Window */}
+      {/* ── Chat Panel ──────────────────────────────────────────── */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            className="fixed bottom-36 right-4 z-50 w-80 h-96 bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
+            initial={{ opacity: 0, y: 20, scale: 0.92, filter: 'blur(8px)' }}
+            animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: 20, scale: 0.92, filter: 'blur(8px)' }}
+            transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+            className="fixed bottom-36 right-4 z-50 w-[360px] h-[32rem] sm:w-[400px] sm:h-[36rem] glass-strong rounded-2xl shadow-2xl flex flex-col overflow-hidden card-glow"
           >
-            {/* Header */}
-            <div className="bg-teal-600 text-white px-4 py-3 flex items-center gap-2">
-              <motion.div
-                animate={{ scale: [1, 1.3, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="w-2 h-2 bg-green-400 rounded-full"
-              />
-              <span className="font-medium text-sm">SmartHostel Assistant</span>
+            {/* ── Header ────────────────────────────────────────── */}
+            <div className="bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] px-4 py-3 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-sm">SmartHostel AI</span>
+                  <span className="text-[9px] bg-white/20 px-1.5 py-0.5 rounded-full font-medium">GPT-4o</span>
+                </div>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
+                  <span className="text-[10px] opacity-80">Online &middot; Knows your hostel data</span>
+                </div>
+              </div>
+              {messages.length > 0 && (
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handleClear}
+                  className="p-1.5 rounded-lg hover:bg-white/20 transition-colors"
+                  title="New conversation"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
+                  </svg>
+                </motion.button>
+              )}
             </div>
 
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-2">
-              {messages.map((msg) => (
+            {/* ── Messages ──────────────────────────────────────── */}
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 scroll-smooth">
+              {messages.length === 0 ? (
+                /* ── Welcome screen ─────────────────────────────── */
                 <motion.div
-                  key={msg.id}
-                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ duration: 0.2 }}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="flex flex-col items-center justify-center h-full text-center px-2"
                 >
-                  <div
-                    className={`max-w-[80%] px-3 py-2 rounded-xl text-sm ${
-                      msg.role === 'user'
-                        ? 'bg-teal-600 text-white rounded-br-sm'
-                        : 'bg-gray-100 text-gray-800 rounded-bl-sm'
-                    }`}
+                  <motion.div
+                    animate={{ y: [0, -6, 0] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                    className="w-16 h-16 rounded-2xl bg-[hsl(var(--accent))] flex items-center justify-center mb-4 shadow-lg"
                   >
-                    {msg.text}
+                    <svg className="w-8 h-8 text-[hsl(var(--accent-foreground))]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                    </svg>
+                  </motion.div>
+
+                  <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-1">
+                    {greeting}How can I help?
+                  </h3>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))] mb-5 max-w-[250px]">
+                    I know about your leaves, complaints, fees, and everything in SmartHostel.
+                  </p>
+
+                  {/* Suggestion chips */}
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    {SUGGESTIONS.map((s) => (
+                      <motion.button
+                        key={s.label}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleSuggestion(s.prompt)}
+                        className="px-3 py-1.5 rounded-full text-xs font-medium border border-[hsl(var(--border))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))] transition-colors"
+                      >
+                        {s.label}
+                      </motion.button>
+                    ))}
                   </div>
                 </motion.div>
-              ))}
+              ) : (
+                /* ── Message list ───────────────────────────────── */
+                messages.map((msg) => (
+                  <MessageBubble
+                    key={msg.id}
+                    msg={msg}
+                    isStreaming={msg.id === streamingId}
+                  />
+                ))
+              )}
+
+              {/* Typing indicator — only when waiting for first chunk */}
+              {isStreaming && streamingId && messages.find((m) => m.id === streamingId)?.content === '' && (
+                <div className="flex gap-3">
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-[hsl(var(--accent))] flex items-center justify-center text-xs font-bold text-[hsl(var(--accent-foreground))]">
+                    AI
+                  </div>
+                  <div className="bg-[hsl(var(--muted))] rounded-2xl rounded-bl-md">
+                    <TypingIndicator />
+                  </div>
+                </div>
+              )}
+
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
-            <div className="border-t p-2 flex gap-2">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                placeholder="Ask a question..."
-                className="flex-1 px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-shadow"
-              />
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={handleSend}
-                className="px-3 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
-              </motion.button>
+            {/* ── Input area ────────────────────────────────────── */}
+            <div className="border-t border-[hsl(var(--border))] p-3">
+              <div className="flex gap-2 items-end">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }}
+                  placeholder={isStreaming ? 'AI is responding...' : 'Message SmartHostel AI...'}
+                  disabled={isStreaming}
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]/50 focus:border-[hsl(var(--ring))] transition-all disabled:opacity-50 placeholder:text-[hsl(var(--muted-foreground))]"
+                />
+                <motion.button
+                  whileHover={isStreaming ? {} : { scale: 1.05 }}
+                  whileTap={isStreaming ? {} : { scale: 0.9 }}
+                  onClick={handleSend}
+                  disabled={isStreaming || !input.trim()}
+                  className="p-2.5 rounded-xl bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                  </svg>
+                </motion.button>
+              </div>
+              <p className="text-[9px] text-[hsl(var(--muted-foreground))] text-center mt-2 opacity-60">
+                AI can make mistakes. Verify important info with your warden.
+              </p>
             </div>
           </motion.div>
         )}

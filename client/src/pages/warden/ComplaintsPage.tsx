@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
+import { showError, showSuccess } from '@/utils/toast';
 import { Reveal } from '@/components/motion/Reveal';
 import PageHeader from '@components/ui/PageHeader';
 import StatusBadge from '@components/ui/StatusBadge';
@@ -58,8 +59,8 @@ export default function ComplaintsPage() {
       ]);
       setComplaints(complaintsRes.data.complaints);
       setStaff(staffRes.data.staff);
-    } catch {
-      // silently fail
+    } catch (err) {
+      showError(err, 'Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -78,9 +79,10 @@ export default function ComplaintsPage() {
       });
       setAssigningId(null);
       setSelectedStaff('');
+      showSuccess('Staff assigned successfully');
       void fetchData();
-    } catch {
-      // silently fail
+    } catch (err) {
+      showError(err);
     }
   };
 
@@ -90,9 +92,10 @@ export default function ComplaintsPage() {
         method: 'PATCH',
         body: JSON.stringify({ priority }),
       });
+      showSuccess('Priority updated');
       void fetchData();
-    } catch {
-      // silently fail
+    } catch (err) {
+      showError(err);
     }
   };
 
@@ -123,7 +126,7 @@ export default function ComplaintsPage() {
           {complaints.map((c) => (
             <div
               key={c._id}
-              className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:border-[hsl(var(--accent))]/40 transition-colors"
+              className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:border-[hsl(var(--accent))]/40 transition-colors card-glow"
             >
               <div className="flex justify-between items-start">
                 <div>

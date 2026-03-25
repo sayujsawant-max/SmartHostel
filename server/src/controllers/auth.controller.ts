@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import { loginSchema, registerSchema, forgotPasswordSchema, selfResetPasswordSchema, googleAuthSchema } from '@smarthostel/shared';
+import { loginSchema, registerSchema, forgotPasswordSchema, selfResetPasswordSchema, changePasswordSchema, googleAuthSchema } from '@smarthostel/shared';
 import { OAuth2Client } from 'google-auth-library';
 import { env } from '@config/env.js';
 import * as authService from '@services/auth.service.js';
@@ -182,6 +182,28 @@ export async function resetPassword(req: Request, res: Response) {
   res.json({
     success: true,
     data: { message: 'Password reset successfully. You can now sign in.' },
+    correlationId: req.correlationId,
+  });
+}
+
+export async function changePassword(req: Request, res: Response) {
+  const parsed = changePasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new AppError('VALIDATION_ERROR', 'Invalid input', 400, {
+      field: parsed.error.issues[0]?.path[0]?.toString(),
+    });
+  }
+
+  await authService.changePassword(
+    req.user!._id,
+    parsed.data.currentPassword,
+    parsed.data.newPassword,
+    req.correlationId,
+  );
+
+  res.json({
+    success: true,
+    data: { message: 'Password changed successfully' },
     correlationId: req.correlationId,
   });
 }

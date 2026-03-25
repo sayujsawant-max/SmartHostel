@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { motion } from 'motion/react';
 
 type EmptyVariant = 'default' | 'compact' | 'card';
 
@@ -74,12 +75,22 @@ export default function EmptyState({
   const styles = VARIANT_STYLES[variant];
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
+      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className={`flex flex-col items-center justify-center text-center ${styles.wrapper} ${className}`}
     >
-      <div className="text-[hsl(var(--muted-foreground))] mb-4">
-        {icon ?? styles.icon}
-      </div>
+      <motion.div
+        className="relative text-[hsl(var(--muted-foreground))] mb-4"
+        animate={{ y: [0, -6, 0] }}
+        transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        <div className="absolute inset-0 -m-3 rounded-full bg-gradient-to-br from-[hsl(var(--accent))]/10 to-transparent blur-xl" />
+        <div className="relative">
+          {icon ?? styles.icon}
+        </div>
+      </motion.div>
       <h3
         className={`font-semibold text-[hsl(var(--foreground))] ${
           variant === 'default' ? 'text-lg' : 'text-base'
@@ -93,6 +104,6 @@ export default function EmptyState({
         </p>
       )}
       {action && <div className="mt-4">{action}</div>}
-    </div>
+    </motion.div>
   );
 }

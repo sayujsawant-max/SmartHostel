@@ -1,14 +1,20 @@
 import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { changePasswordSchema, type ChangePasswordInput } from '@smarthostel/shared';
 import { Link } from 'react-router-dom';
-import { apiFetch } from '@services/api';
+import { apiFetch, ApiError } from '@services/api';
 import { useAuth } from '@hooks/useAuth';
 import { Reveal } from '@/components/motion/Reveal';
 import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
 import { MotionCard } from '@/components/motion/MotionCard';
 import { AnimatedCounter } from '@/components/motion/AnimatedCounter';
 import StatusBadge from '@components/ui/StatusBadge';
+import FormField from '@components/ui/FormField';
+import Spinner from '@components/ui/Spinner';
 import { PageSkeleton } from '@components/Skeleton';
 import ErrorBanner from '@components/ui/ErrorBanner';
+import NotificationPreferences from '@components/NotificationPreferences';
 
 interface FeeItem {
   _id: string;
@@ -28,6 +34,41 @@ interface Complaint {
 
 export default function ProfilePage() {
   const { user } = useAuth();
+  const [pwSubmitting, setPwSubmitting] = useState(false);
+  const [pwSuccess, setPwSuccess] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
+
+  const {
+    register: pwRegister,
+    handleSubmit: pwHandleSubmit,
+    reset: pwReset,
+    formState: { errors: pwErrors },
+  } = useForm<ChangePasswordInput>({
+    resolver: zodResolver(changePasswordSchema),
+    mode: 'onBlur',
+  });
+
+  async function onChangePassword(data: ChangePasswordInput) {
+    setPwError(null);
+    setPwSuccess(false);
+    setPwSubmitting(true);
+    try {
+      await apiFetch('/auth/change-password', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      setPwSuccess(true);
+      pwReset();
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setPwError(err.message);
+      } else {
+        setPwError('An unexpected error occurred');
+      }
+    } finally {
+      setPwSubmitting(false);
+    }
+  }
   const [fees, setFees] = useState<FeeItem[]>([]);
   const [leaves, setLeaves] = useState<Leave[]>([]);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
@@ -105,7 +146,7 @@ export default function ProfilePage() {
       {/* Room Info Card */}
       {user && (user.block || user.roomNumber) && (
         <Reveal delay={0.1}>
-          <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
+          <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] card-glow">
             <h2 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-2">Room Info</h2>
             <div className="grid grid-cols-3 gap-3 text-center">
               {user.block && (
@@ -135,7 +176,7 @@ export default function ProfilePage() {
         {/* Fee Summary */}
         <StaggerItem>
           <MotionCard>
-            <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
+            <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] card-glow">
               <h2 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Fee Summary</h2>
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div>
@@ -164,7 +205,7 @@ export default function ProfilePage() {
         {/* Leave Stats */}
         <StaggerItem>
           <MotionCard>
-            <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
+            <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] card-glow">
               <h2 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Leave Stats</h2>
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div>
@@ -193,7 +234,7 @@ export default function ProfilePage() {
         {/* Complaint Stats */}
         <StaggerItem>
           <MotionCard>
-            <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
+            <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] card-glow">
               <h2 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Complaints</h2>
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div>
@@ -219,6 +260,50 @@ export default function ProfilePage() {
           </MotionCard>
         </StaggerItem>
       </StaggerContainer>
+
+      {/* Change Password */}
+      <Reveal delay={0.25}>
+        <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] card-glow space-y-3">
+          <h2 className="text-sm font-semibold text-[hsl(var(--foreground))]">Change Password</h2>
+          <form onSubmit={pwHandleSubmit(onChangePassword)} className="space-y-3">
+            <FormField
+              label="Current Password"
+              id="currentPassword"
+              error={pwErrors.currentPassword?.message}
+              inputProps={{ ...pwRegister('currentPassword'), type: 'password', autoComplete: 'current-password' }}
+            />
+            <FormField
+              label="New Password"
+              id="newPassword"
+              error={pwErrors.newPassword?.message}
+              inputProps={{ ...pwRegister('newPassword'), type: 'password', autoComplete: 'new-password', placeholder: 'At least 8 characters' }}
+            />
+
+            {pwError && (
+              <p className="text-sm text-[hsl(var(--destructive))] text-center">{pwError}</p>
+            )}
+            {pwSuccess && (
+              <p className="text-sm text-green-600 dark:text-green-400 text-center">Password changed successfully!</p>
+            )}
+
+            <button
+              type="submit"
+              disabled={pwSubmitting}
+              className="w-full py-2.5 rounded-lg bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] text-sm font-medium hover:opacity-90 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center transition-all"
+            >
+              {pwSubmitting ? <Spinner /> : 'Update Password'}
+            </button>
+          </form>
+        </div>
+      </Reveal>
+
+      {/* Notification Preferences */}
+      <Reveal delay={0.25}>
+        <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] card-glow">
+          <h2 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Notification Preferences</h2>
+          <NotificationPreferences />
+        </div>
+      </Reveal>
 
       {/* Quick Links */}
       <Reveal delay={0.3}>
