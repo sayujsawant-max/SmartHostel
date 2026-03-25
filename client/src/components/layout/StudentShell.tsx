@@ -7,11 +7,11 @@ import { motion, PageTransition } from '@components/ui/motion';
 import { Home, Zap, UtensilsCrossed, Shirt, HelpCircle, LogOut, User } from 'lucide-react';
 
 const tabs = [
-  { label: 'Dashboard', to: '/student/status', icon: Home },
-  { label: 'Actions', to: '/student/actions', icon: Zap },
-  { label: 'Menu', to: '/student/mess-menu', icon: UtensilsCrossed },
-  { label: 'Laundry', to: '/student/laundry', icon: Shirt },
-  { label: 'Help', to: '/student/faq', icon: HelpCircle },
+  { label: 'Dashboard', to: '/student/status', icon: Home, prefetch: () => import('@pages/student/StatusPage') },
+  { label: 'Actions', to: '/student/actions', icon: Zap, prefetch: () => import('@pages/student/ActionsPage') },
+  { label: 'Menu', to: '/student/mess-menu', icon: UtensilsCrossed, prefetch: () => import('@pages/student/MessMenuPage') },
+  { label: 'Laundry', to: '/student/laundry', icon: Shirt, prefetch: () => import('@pages/student/LaundryBookingPage') },
+  { label: 'Help', to: '/student/faq', icon: HelpCircle, prefetch: () => import('@pages/student/FaqPage') },
 ] as const;
 
 const spring = { type: 'spring' as const, stiffness: 500, damping: 30 };
@@ -103,6 +103,8 @@ export default function StudentShell() {
             <NavLink
               key={tab.to}
               to={tab.to}
+              onMouseEnter={() => void tab.prefetch()}
+              onFocus={() => void tab.prefetch()}
               className="flex-1 relative flex flex-col items-center justify-center py-2.5 gap-0.5"
             >
               {isActive && (

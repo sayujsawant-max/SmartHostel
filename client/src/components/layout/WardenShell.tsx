@@ -33,6 +33,14 @@ import {
 
 const spring = { type: 'spring' as const, stiffness: 400, damping: 28 };
 
+const prefetchMap: Record<string, () => Promise<unknown>> = {
+  '/warden/dashboard': () => import('@pages/warden/DashboardPage'),
+  '/warden/students': () => import('@pages/warden/StudentsPage'),
+  '/warden/complaints': () => import('@pages/warden/ComplaintsPage'),
+  '/warden/notices': () => import('@pages/warden/NoticesPage'),
+  '/warden/rooms': () => import('@pages/warden/RoomsManagePage'),
+};
+
 const navLinks = [
   { label: 'Dashboard', to: '/warden/dashboard', icon: LayoutDashboard },
   { label: 'Students', to: '/warden/students', icon: Users },
@@ -95,6 +103,7 @@ function SidebarContent({ onLogout }: { onLogout: () => void }) {
             >
               <NavLink
                 to={link.to}
+                onMouseEnter={() => { const fn = prefetchMap[link.to]; if (fn) void fn(); }}
                 className="relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors"
               >
                 {isActive && (

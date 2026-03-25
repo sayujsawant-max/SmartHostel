@@ -55,8 +55,28 @@ app.set('trust proxy', 1);
 // Response compression (gzip/deflate)
 app.use(compression());
 
-// Security headers
-app.use(helmet());
+// Security headers with hardened CSP
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'blob:', 'https://res.cloudinary.com'],
+        connectSrc: ["'self'", 'https://accounts.google.com', 'wss:', 'ws:'],
+        fontSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        frameSrc: ["'self'", 'https://accounts.google.com'],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        frameAncestors: ["'none'"],
+        upgradeInsecureRequests: [],
+      },
+    },
+    crossOriginEmbedderPolicy: false, // Required for Google Sign-In
+  }),
+);
 
 // CORS — use validated env config
 const origins = env.ALLOWED_ORIGINS

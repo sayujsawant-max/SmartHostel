@@ -2,10 +2,11 @@ import type { Request, Response } from 'express';
 import { createUserSchema, resetPasswordSchema } from '@smarthostel/shared';
 import * as adminService from '@services/admin.service.js';
 import { AppError } from '@utils/app-error.js';
+import { parsePagination } from '@utils/paginate.js';
 
-export async function listUsers(_req: Request, res: Response) {
-  const users = await adminService.listUsers();
-  res.json({ success: true, data: { users } });
+export async function listUsers(req: Request, res: Response) {
+  const result = await adminService.listUsers(parsePagination(req.query));
+  res.json({ success: true, data: { users: result.items, pagination: { total: result.total, page: result.page, limit: result.limit, totalPages: result.totalPages } } });
 }
 
 export async function createUser(req: Request, res: Response) {

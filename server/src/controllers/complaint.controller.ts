@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import { createComplaintSchema, ComplaintPriority, ComplaintStatus, Role } from '@smarthostel/shared';
 import * as complaintService from '@services/complaint.service.js';
 import { AppError } from '@utils/app-error.js';
+import { parsePagination } from '@utils/paginate.js';
 
 export async function getMaintenanceStaff(_req: Request, res: Response) {
   const staff = await complaintService.getMaintenanceStaff();
@@ -36,18 +37,17 @@ export async function createComplaint(req: Request, res: Response) {
 export async function getComplaints(req: Request, res: Response) {
   const statusFilter = typeof req.query.status === 'string' ? req.query.status : undefined;
 
-  let complaints;
   if (req.user!.role === Role.STUDENT) {
-    complaints = await complaintService.getStudentComplaints(req.user!._id);
+    const complaints = await complaintService.getStudentComplaints(req.user!._id);
+    res.json({ success: true, data: { complaints }, correlationId: req.correlationId });
   } else {
-    complaints = await complaintService.getAllComplaints({ status: statusFilter });
+    const result = await complaintService.getAllComplaints({ status: statusFilter }, parsePagination(req.query));
+    res.json({
+      success: true,
+      data: { complaints: result.items, pagination: { total: result.total, page: result.page, limit: result.limit, totalPages: result.totalPages } },
+      correlationId: req.correlationId,
+    });
   }
-
-  res.json({
-    success: true,
-    data: { complaints },
-    correlationId: req.correlationId,
-  });
 }
 
 export async function getComplaintById(req: Request<{ id: string }>, res: Response) {

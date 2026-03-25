@@ -20,6 +20,7 @@ import { OfflineBanner } from '@utils/offline-queue';
 import { I18nProvider } from '@context/I18nContext';
 import PWAInstallPrompt from '@components/PWAInstallPrompt';
 import PushPermissionPrompt from '@components/PushPermissionPrompt';
+import RouteAnnouncer from '@components/RouteAnnouncer';
 
 // Lazy-loaded pages (route-level code splitting)
 const LoginPage = lazy(() => import('@pages/LoginPage'));
@@ -274,6 +275,7 @@ function App() {
       <AccessibilityPanel />
       <PWAInstallPrompt />
       <PushPermissionPrompt />
+      <RouteAnnouncer />
       <AppRoutes />
       <Toaster
         position="top-right"

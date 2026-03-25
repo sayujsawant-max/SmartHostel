@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import { createLeaveSchema, Role } from '@smarthostel/shared';
 import * as leaveService from '@services/leave.service.js';
 import { AppError } from '@utils/app-error.js';
+import { parsePagination } from '@utils/paginate.js';
 
 interface RejectBody {
   reason?: string;
@@ -28,18 +29,17 @@ export async function createLeave(req: Request, res: Response) {
 export async function getLeaves(req: Request, res: Response) {
   const statusFilter = typeof req.query.status === 'string' ? req.query.status : undefined;
 
-  let leaves;
   if (req.user!.role === Role.STUDENT) {
-    leaves = await leaveService.getStudentLeaves(req.user!._id);
+    const leaves = await leaveService.getStudentLeaves(req.user!._id);
+    res.json({ success: true, data: { leaves }, correlationId: req.correlationId });
   } else {
-    leaves = await leaveService.getAllLeaves({ status: statusFilter });
+    const result = await leaveService.getAllLeaves({ status: statusFilter }, parsePagination(req.query));
+    res.json({
+      success: true,
+      data: { leaves: result.items, pagination: { total: result.total, page: result.page, limit: result.limit, totalPages: result.totalPages } },
+      correlationId: req.correlationId,
+    });
   }
-
-  res.json({
-    success: true,
-    data: { leaves },
-    correlationId: req.correlationId,
-  });
 }
 
 export async function approveLeave(req: Request<{ id: string }>, res: Response) {

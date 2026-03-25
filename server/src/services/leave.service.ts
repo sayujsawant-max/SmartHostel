@@ -3,6 +3,7 @@ import type { CreateLeaveInput } from '@smarthostel/shared';
 import { Leave } from '@models/leave.model.js';
 import { Notification } from '@models/notification.model.js';
 import { AppError } from '@utils/app-error.js';
+import { paginate, type PaginationParams } from '@utils/paginate.js';
 import { logger } from '@utils/logger.js';
 import { createGatePass, invalidatePassByLeaveId } from '@services/gate-pass.service.js';
 import { AuditEvent } from '@models/audit-event.model.js';
@@ -58,12 +59,15 @@ export async function getStudentLeaves(studentId: string) {
   return Leave.find({ studentId }).sort({ createdAt: -1 });
 }
 
-export async function getAllLeaves(filters?: { status?: string }) {
+export async function getAllLeaves(filters?: { status?: string }, params: PaginationParams = {}) {
   const query: Record<string, unknown> = {};
   if (filters?.status) {
     query.status = filters.status;
   }
-  return Leave.find(query).populate('studentId', 'name email block floor roomNumber').sort({ createdAt: -1 });
+  return paginate(Leave, query, params, {
+    sort: { createdAt: -1 },
+    populate: [{ path: 'studentId', select: 'name email block floor roomNumber' }],
+  });
 }
 
 export async function approveLeave(leaveId: string, wardenId: string, correlationId?: string) {

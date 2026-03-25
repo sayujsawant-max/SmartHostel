@@ -8,6 +8,7 @@ import { Notification } from '@models/notification.model.js';
 import { withTransaction } from '@utils/with-transaction.js';
 import { AppError } from '@utils/app-error.js';
 import { logger } from '@utils/logger.js';
+import { paginate, type PaginationParams } from '@utils/paginate.js';
 
 export async function createComplaint(
   studentId: string,
@@ -110,16 +111,18 @@ export async function getComplaintTimeline(complaintId: string, userId: string, 
   return ComplaintEvent.find({ complaintId }).sort({ createdAt: 1 }).populate('actorId', 'name').lean();
 }
 
-export async function getAllComplaints(filter?: { status?: string }) {
+export async function getAllComplaints(filter?: { status?: string }, params: PaginationParams = {}) {
   const query: Record<string, unknown> = {};
   if (filter?.status) {
     query.status = filter.status;
   }
-  return Complaint.find(query)
-    .populate('studentId', 'name block roomNumber')
-    .populate('assigneeId', 'name')
-    .sort({ createdAt: -1 })
-    .lean();
+  return paginate(Complaint, query, params, {
+    sort: { createdAt: -1 },
+    populate: [
+      { path: 'studentId', select: 'name block roomNumber' },
+      { path: 'assigneeId', select: 'name' },
+    ],
+  });
 }
 
 export async function assignComplaint(
