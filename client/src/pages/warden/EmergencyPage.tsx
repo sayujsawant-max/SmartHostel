@@ -89,8 +89,8 @@ export default function EmergencyPage() {
   async function fetchActiveAlerts() {
     try {
       setLoading(true);
-      const res = await apiFetch('/admin/emergency-alerts?status=ACTIVE');
-      setActiveAlerts(res.data ?? []);
+      const res = await apiFetch<{ alerts: ActiveAlert[] }>('/admin/emergency-alerts?status=ACTIVE');
+      setActiveAlerts(Array.isArray(res.data) ? res.data : res.data?.alerts ?? []);
     } catch {
       showError('Failed to load active alerts');
     } finally {

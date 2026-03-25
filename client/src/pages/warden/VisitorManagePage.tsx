@@ -69,7 +69,7 @@ export default function VisitorManagePage() {
       else if (activeTab === 'TODAY') query = `?date=${todayStr}`;
 
       const res = await apiFetch<VisitorItem[]>(`/visitors${query}`);
-      setVisitors(res.data);
+      setVisitors(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       showError(err, 'Failed to load data');
     } finally {

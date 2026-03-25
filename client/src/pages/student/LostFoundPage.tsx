@@ -114,10 +114,10 @@ export default function LostFoundPage() {
 
       if (showMyPosts) {
         const res = await apiFetch<LostFoundPost[]>('/lost-found/my');
-        setPosts(res.data);
+        setPosts(Array.isArray(res.data) ? res.data : []);
       } else {
         const res = await apiFetch<LostFoundPost[]>(`/lost-found${query ? `?${query}` : ''}`);
-        setPosts(res.data);
+        setPosts(Array.isArray(res.data) ? res.data : []);
       }
     } catch (err) {
       showError(err, 'Failed to load posts');

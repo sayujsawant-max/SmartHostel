@@ -143,11 +143,11 @@ export default function DashboardPage() {
         apiFetch<SosAlert[]>('/sos').catch(() => ({ data: [] as SosAlert[] })),
       ]);
       setDashStats(statsRes.data);
-      setOverrides(overridesRes.data);
+      setOverrides(Array.isArray(overridesRes.data) ? overridesRes.data : []);
       setOverrideStats(overrideStatsRes.data);
       setAnalytics(analyticsRes.data);
-      setActivityFeed(activityRes.data);
-      setSosAlerts(sosRes.data);
+      setActivityFeed(Array.isArray(activityRes.data) ? activityRes.data : []);
+      setSosAlerts(Array.isArray(sosRes.data) ? sosRes.data : []);
     } catch (err) {
       showError(err, 'Failed to load dashboard');
     } finally {

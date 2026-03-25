@@ -47,8 +47,8 @@ export default function FeesPage() {
   const [filterStatus, setFilterStatus] = useState<string>('');
 
   useEffect(() => {
-    apiFetch<FeeItem[]>('/assistant/fees')
-      .then(res => setFees(res.data))
+    apiFetch<{ fees: FeeItem[] }>('/assistant/fees')
+      .then(res => setFees(res.data?.fees ?? []))
       .catch(err => showError(err, 'Failed to load fees'))
       .finally(() => setLoading(false));
   }, []);

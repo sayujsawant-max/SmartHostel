@@ -126,15 +126,16 @@ export default function WellnessDashboardPage() {
     (async () => {
       try {
         const res = await apiFetch('/admin/analytics');
-        if (res && typeof res === 'object') {
+        const d = res?.data ?? res;
+        if (d && typeof d === 'object') {
           setData({
-            totalStudents: res.totalStudents ?? MOCK_DATA.totalStudents,
-            atRiskCount: res.atRiskCount ?? MOCK_DATA.atRiskCount,
-            averageAttendance: res.averageAttendance ?? MOCK_DATA.averageAttendance,
-            activeFlags: res.activeFlags ?? MOCK_DATA.activeFlags,
-            riskDistribution: res.riskDistribution ?? MOCK_DATA.riskDistribution,
-            weeklyTrends: res.weeklyTrends ?? MOCK_DATA.weeklyTrends,
-            students: res.students ?? MOCK_DATA.students,
+            totalStudents: d.totalStudents ?? MOCK_DATA.totalStudents,
+            atRiskCount: d.atRiskCount ?? MOCK_DATA.atRiskCount,
+            averageAttendance: d.averageAttendance ?? MOCK_DATA.averageAttendance,
+            activeFlags: d.activeFlags ?? MOCK_DATA.activeFlags,
+            riskDistribution: d.riskDistribution ?? MOCK_DATA.riskDistribution,
+            weeklyTrends: d.weeklyTrends ?? MOCK_DATA.weeklyTrends,
+            students: d.students ?? MOCK_DATA.students,
           });
         } else {
           setData(MOCK_DATA);

@@ -44,7 +44,7 @@ export default function InventoryPage() {
 
   useEffect(() => {
     apiFetch<InventoryItem[]>('/maintenance/inventory')
-      .then(res => setItems(res.data))
+      .then(res => setItems(Array.isArray(res.data) ? res.data : []))
       .catch(err => showError(err, 'Failed to load inventory'))
       .finally(() => setLoading(false));
   }, []);
@@ -57,7 +57,7 @@ export default function InventoryPage() {
       setShowForm(false);
       setForm({ name: '', category: '', quantity: 0, minStock: 5, unit: 'pcs', location: '' });
       const res = await apiFetch<InventoryItem[]>('/maintenance/inventory');
-      setItems(res.data);
+      setItems(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       showError(err, 'Failed to add item');
     } finally {

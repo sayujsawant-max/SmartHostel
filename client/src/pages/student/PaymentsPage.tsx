@@ -55,8 +55,8 @@ export default function PaymentsPage() {
       apiFetch<PaymentHistory[]>('/assistant/payment-history'),
     ])
       .then(([payRes, histRes]) => {
-        setPayable(payRes.data);
-        setHistory(histRes.data);
+        setPayable(Array.isArray(payRes.data) ? payRes.data : []);
+        setHistory(Array.isArray(histRes.data) ? histRes.data : []);
       })
       .catch(err => showError(err, 'Failed to load payment data'))
       .finally(() => setLoading(false));

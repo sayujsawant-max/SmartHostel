@@ -23,6 +23,8 @@ import { ChatMessage } from '../models/chat-message.model.js';
 import { Asset } from '../models/asset.model.js';
 import { WellnessCheck } from '../models/wellness-check.model.js';
 import { EmergencyAlert } from '../models/emergency-alert.model.js';
+import { Sos } from '../models/sos.model.js';
+import { GateScan } from '../models/gate-scan.model.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -73,6 +75,18 @@ const seedUsers = [
     name: 'Diana Maintenance',
     email: 'maintenance@smarthostel.dev',
     role: 'MAINTENANCE',
+    hasConsented: true,
+    isActive: true,
+  },
+  {
+    name: 'Dev Student',
+    email: 'student2@smarthostel.dev',
+    role: 'STUDENT',
+    gender: 'MALE',
+    academicYear: 'THIRD',
+    block: 'A',
+    floor: '2',
+    roomNumber: 'A-202',
     hasConsented: true,
     isActive: true,
   },
@@ -818,6 +832,80 @@ async function seedNotifications(): Promise<{ created: number }> {
       isRead: false,
       createdAt: new Date(now.getTime() - 2 * HOUR),
     });
+  }
+
+  // Guard notifications
+  const guard = await User.findOne({ email: 'guard@smarthostel.dev' });
+  if (guard) {
+    await Notification.deleteMany({ recipientId: guard._id });
+    const pendingLeave = await Leave.findOne({ status: 'APPROVED' });
+    if (pendingLeave) {
+      notifications.push({
+        recipientId: guard._id,
+        type: 'LEAVE_APPROVED',
+        entityType: 'Leave',
+        entityId: pendingLeave._id,
+        title: 'Gate Pass Active',
+        body: 'A student has an approved leave starting soon. Please verify gate pass during exit.',
+        isRead: false,
+        createdAt: new Date(now.getTime() - 1 * HOUR),
+      });
+    }
+    const activeAlert = await EmergencyAlert.findOne({ status: 'ACTIVE' });
+    if (activeAlert) {
+      notifications.push({
+        recipientId: guard._id,
+        type: 'OVERRIDE_ALERT',
+        entityType: 'EmergencyAlert',
+        entityId: activeAlert._id,
+        title: 'Security Alert — Stay Vigilant',
+        body: 'An active security alert has been issued. Increase gate vigilance.',
+        isRead: false,
+        createdAt: new Date(now.getTime() - 2 * HOUR),
+      });
+    }
+    notifications.push({
+      recipientId: guard._id,
+      type: 'NOTICE_PUBLISHED',
+      entityType: 'Notice',
+      entityId: latestNotice?._id ?? warden._id,
+      title: 'Shift Reminder',
+      body: 'Your night shift starts at 10:00 PM today. Please report to the main gate 10 minutes early.',
+      isRead: true,
+      createdAt: new Date(now.getTime() - 8 * HOUR),
+    });
+  }
+
+  // Maintenance notifications
+  const maintenance = await User.findOne({ email: 'maintenance@smarthostel.dev' });
+  if (maintenance) {
+    await Notification.deleteMany({ recipientId: maintenance._id });
+    const assignedComplaints = await Complaint.find({ assigneeId: maintenance._id, status: { $in: ['ASSIGNED', 'IN_PROGRESS'] } }).limit(3);
+    for (const c of assignedComplaints) {
+      notifications.push({
+        recipientId: maintenance._id,
+        type: 'COMPLAINT_ASSIGNED',
+        entityType: 'Complaint',
+        entityId: c._id,
+        title: 'New Task Assigned',
+        body: `A ${c.category.toLowerCase()} complaint has been assigned to you. Priority: ${c.priority}.`,
+        isRead: false,
+        createdAt: new Date(now.getTime() - 3 * HOUR),
+      });
+    }
+    const slaComplaint = await Complaint.findOne({ assigneeId: maintenance._id, status: 'IN_PROGRESS' });
+    if (slaComplaint) {
+      notifications.push({
+        recipientId: maintenance._id,
+        type: 'SLA_REMINDER',
+        entityType: 'Complaint',
+        entityId: slaComplaint._id,
+        title: 'SLA Deadline Approaching',
+        body: 'A complaint you are working on is nearing its SLA deadline. Please update the status.',
+        isRead: false,
+        createdAt: new Date(now.getTime() - 1 * HOUR),
+      });
+    }
   }
 
   if (notifications.length > 0) {
@@ -1791,6 +1879,235 @@ async function seedEmergencyAlerts(): Promise<{ created: number }> {
 }
 
 // ---------------------------------------------------------------------------
+// Seed SOS Alerts
+// ---------------------------------------------------------------------------
+
+async function seedSosAlerts(): Promise<{ created: number }> {
+  const alice = await User.findOne({ email: 'student@smarthostel.dev' });
+  const sneha = await User.findOne({ email: 'sneha@smarthostel.dev' });
+  const guard = await User.findOne({ email: 'guard@smarthostel.dev' });
+  const warden = await User.findOne({ email: 'warden@smarthostel.dev' });
+  if (!alice || !guard || !warden) return { created: 0 };
+
+  const studentIds = [alice, sneha].filter(Boolean).map((s) => s!._id);
+  await Sos.deleteMany({ studentId: { $in: studentIds } });
+
+  const now = new Date();
+  const alerts = [
+    {
+      studentId: alice._id,
+      message: 'Feeling very sick, need medical help urgently. Room B-202.',
+      status: 'ACTIVE',
+      createdAt: new Date(now.getTime() - 30 * 60_000), // 30 min ago
+    },
+    ...(sneha
+      ? [
+          {
+            studentId: sneha._id,
+            message: 'Heard someone trying to break into the window on 3rd floor Block B. Please send security.',
+            status: 'RESOLVED' as const,
+            acknowledgedBy: guard._id,
+            acknowledgedAt: new Date(now.getTime() - 2 * DAY + 10 * 60_000),
+            resolvedAt: new Date(now.getTime() - 2 * DAY + 45 * 60_000),
+            createdAt: new Date(now.getTime() - 2 * DAY),
+          },
+        ]
+      : []),
+  ];
+
+  await Sos.insertMany(alerts);
+  return { created: alerts.length };
+}
+
+// ---------------------------------------------------------------------------
+// Seed Gate Scans (guard demo data)
+// ---------------------------------------------------------------------------
+
+async function seedGateScans(): Promise<{ created: number }> {
+  const guard = await User.findOne({ email: 'guard@smarthostel.dev' });
+  const alice = await User.findOne({ email: 'student@smarthostel.dev' });
+  const rahul = await User.findOne({ email: 'rahul@smarthostel.dev' });
+  const priya = await User.findOne({ email: 'priya@smarthostel.dev' });
+  const arjun = await User.findOne({ email: 'arjun@smarthostel.dev' });
+  const vikram = await User.findOne({ email: 'vikram@smarthostel.dev' });
+  if (!guard || !alice) return { created: 0 };
+
+  await GateScan.deleteMany({ guardId: guard._id });
+
+  const now = new Date();
+  const scans = [
+    // Today's scans
+    {
+      guardId: guard._id,
+      studentId: alice._id,
+      leaveId: null,
+      gatePassId: null,
+      verdict: 'ALLOW',
+      scanResult: 'Student verified — active hostel resident',
+      method: 'QR',
+      directionDetected: 'EXIT',
+      directionUsed: 'EXIT',
+      directionSource: 'AUTO',
+      lastGateStateBeforeScan: 'IN',
+      latencyMs: 120,
+      timeoutTriggered: false,
+      offlineStatus: null,
+      reconcileStatus: null,
+      reconcileErrorCode: null,
+      reconciledAt: null,
+      scanAttemptId: `SEED-SCAN-001-${Date.now()}`,
+      createdAt: new Date(now.getTime() - 3 * HOUR),
+    },
+    {
+      guardId: guard._id,
+      studentId: alice._id,
+      leaveId: null,
+      gatePassId: null,
+      verdict: 'ALLOW',
+      scanResult: 'Student verified — returning to hostel',
+      method: 'QR',
+      directionDetected: 'ENTRY',
+      directionUsed: 'ENTRY',
+      directionSource: 'AUTO',
+      lastGateStateBeforeScan: 'OUT',
+      latencyMs: 95,
+      timeoutTriggered: false,
+      offlineStatus: null,
+      reconcileStatus: null,
+      reconcileErrorCode: null,
+      reconciledAt: null,
+      scanAttemptId: `SEED-SCAN-002-${Date.now()}`,
+      createdAt: new Date(now.getTime() - 1 * HOUR),
+    },
+    ...(rahul
+      ? [
+          {
+            guardId: guard._id,
+            studentId: rahul._id,
+            leaveId: null,
+            gatePassId: null,
+            verdict: 'ALLOW' as const,
+            scanResult: 'Student verified — day outing approved',
+            method: 'PASSCODE' as const,
+            directionDetected: 'EXIT' as const,
+            directionUsed: 'EXIT' as const,
+            directionSource: 'AUTO' as const,
+            lastGateStateBeforeScan: 'IN' as const,
+            latencyMs: 200,
+            timeoutTriggered: false,
+            offlineStatus: null,
+            reconcileStatus: null,
+            reconcileErrorCode: null,
+            reconciledAt: null,
+            scanAttemptId: `SEED-SCAN-003-${Date.now()}`,
+            createdAt: new Date(now.getTime() - 5 * HOUR),
+          },
+        ]
+      : []),
+    ...(priya
+      ? [
+          {
+            guardId: guard._id,
+            studentId: priya._id,
+            leaveId: null,
+            gatePassId: null,
+            verdict: 'DENY' as const,
+            scanResult: 'No approved leave — denied exit after curfew',
+            method: 'QR' as const,
+            directionDetected: 'EXIT' as const,
+            directionUsed: 'EXIT' as const,
+            directionSource: 'AUTO' as const,
+            lastGateStateBeforeScan: 'IN' as const,
+            latencyMs: 150,
+            timeoutTriggered: false,
+            offlineStatus: null,
+            reconcileStatus: null,
+            reconcileErrorCode: null,
+            reconciledAt: null,
+            scanAttemptId: `SEED-SCAN-004-${Date.now()}`,
+            createdAt: new Date(now.getTime() - 14 * HOUR),
+          },
+        ]
+      : []),
+    // Yesterday's scans
+    ...(arjun
+      ? [
+          {
+            guardId: guard._id,
+            studentId: arjun._id,
+            leaveId: null,
+            gatePassId: null,
+            verdict: 'ALLOW' as const,
+            scanResult: 'Student verified — approved leave gate pass valid',
+            method: 'QR' as const,
+            directionDetected: 'EXIT' as const,
+            directionUsed: 'EXIT' as const,
+            directionSource: 'AUTO' as const,
+            lastGateStateBeforeScan: 'IN' as const,
+            latencyMs: 110,
+            timeoutTriggered: false,
+            offlineStatus: null,
+            reconcileStatus: null,
+            reconcileErrorCode: null,
+            reconciledAt: null,
+            scanAttemptId: `SEED-SCAN-005-${Date.now()}`,
+            createdAt: new Date(now.getTime() - 1 * DAY - 6 * HOUR),
+          },
+          {
+            guardId: guard._id,
+            studentId: arjun._id,
+            leaveId: null,
+            gatePassId: null,
+            verdict: 'ALLOW' as const,
+            scanResult: 'Student verified — returning from leave',
+            method: 'QR' as const,
+            directionDetected: 'ENTRY' as const,
+            directionUsed: 'ENTRY' as const,
+            directionSource: 'AUTO' as const,
+            lastGateStateBeforeScan: 'OUT' as const,
+            latencyMs: 130,
+            timeoutTriggered: false,
+            offlineStatus: null,
+            reconcileStatus: null,
+            reconcileErrorCode: null,
+            reconciledAt: null,
+            scanAttemptId: `SEED-SCAN-006-${Date.now()}`,
+            createdAt: new Date(now.getTime() - 1 * DAY - 1 * HOUR),
+          },
+        ]
+      : []),
+    ...(vikram
+      ? [
+          {
+            guardId: guard._id,
+            studentId: vikram._id,
+            leaveId: null,
+            gatePassId: null,
+            verdict: 'ALLOW' as const,
+            scanResult: 'Student verified — day outing',
+            method: 'PASSCODE' as const,
+            directionDetected: 'EXIT' as const,
+            directionUsed: 'EXIT' as const,
+            directionSource: 'MANUAL_ONE_SHOT' as const,
+            lastGateStateBeforeScan: 'IN' as const,
+            latencyMs: 300,
+            timeoutTriggered: false,
+            offlineStatus: null,
+            reconcileStatus: null,
+            reconcileErrorCode: null,
+            reconciledAt: null,
+            scanAttemptId: `SEED-SCAN-007-${Date.now()}`,
+            createdAt: new Date(now.getTime() - 2 * DAY - 4 * HOUR),
+          },
+        ]
+      : []),
+  ];
+
+  await GateScan.insertMany(scans);
+  return { created: scans.length };
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -1801,57 +2118,85 @@ async function seed() {
 
   const summary: Record<string, { created: number; updated?: number }> = {};
 
-  console.log('[1/13] Seeding users...');
+  console.log('[1/20] Seeding users...');
   summary.users = await seedUsersData();
   console.log(`  All users have password: ${DEV_PASSWORD}\n`);
 
-  console.log('[2/13] Seeding FAQ entries...');
+  console.log('[2/20] Seeding FAQ entries...');
   summary.faqEntries = await seedFaqEntries();
   console.log(`  FAQ entries: ${summary.faqEntries.created} created, ${summary.faqEntries.updated} updated\n`);
 
-  console.log('[3/13] Seeding category defaults...');
+  console.log('[3/20] Seeding category defaults...');
   summary.categoryDefaults = await seedCategoryDefaults();
   console.log(`  Categories: ${summary.categoryDefaults.created} created, ${summary.categoryDefaults.updated} updated\n`);
 
-  console.log('[4/13] Seeding fee records...');
+  console.log('[4/20] Seeding fee records...');
   summary.feeRecords = await seedFeeRecords();
   console.log(`  Fees: ${summary.feeRecords.created} created, ${summary.feeRecords.updated} updated\n`);
 
-  console.log('[5/13] Seeding rooms...');
+  console.log('[5/20] Seeding rooms...');
   summary.rooms = await seedRooms();
   console.log(`  Rooms: ${summary.rooms.created} created, ${summary.rooms.updated} updated\n`);
 
-  console.log('[6/13] Seeding leaves...');
+  console.log('[6/20] Seeding leaves...');
   summary.leaves = await seedLeaves();
   console.log(`  Leaves: ${summary.leaves.created} created\n`);
 
-  console.log('[7/13] Seeding notices...');
+  console.log('[7/20] Seeding notices...');
   summary.notices = await seedNotices();
   console.log(`  Notices: ${summary.notices.created} created\n`);
 
-  console.log('[8/13] Seeding complaints...');
+  console.log('[8/20] Seeding complaints...');
   summary.complaints = await seedComplaints();
   console.log(`  Complaints: ${summary.complaints.created} created\n`);
 
-  console.log('[9/13] Seeding notifications...');
+  console.log('[9/20] Seeding notifications...');
   summary.notifications = await seedNotifications();
   console.log(`  Notifications: ${summary.notifications.created} created\n`);
 
-  console.log('[10/13] Seeding mess menus...');
+  console.log('[10/20] Seeding mess menus...');
   summary.messMenus = await seedMessMenus();
   console.log(`  Mess menus: ${summary.messMenus.created} created, ${summary.messMenus.updated} updated\n`);
 
-  console.log('[11/13] Seeding visitors...');
+  console.log('[11/20] Seeding visitors...');
   summary.visitors = await seedVisitors();
   console.log(`  Visitors: ${summary.visitors.created} created\n`);
 
-  console.log('[12/13] Seeding laundry slots...');
+  console.log('[12/20] Seeding laundry slots...');
   summary.laundrySlots = await seedLaundrySlots();
   console.log(`  Laundry slots: ${summary.laundrySlots.created} created\n`);
 
-  console.log('[13/13] Seeding lost & found...');
+  console.log('[13/20] Seeding lost & found...');
   summary.lostFound = await seedLostFound();
   console.log(`  Lost & found items: ${summary.lostFound.created} created\n`);
+
+  console.log('[14/20] Seeding feedback...');
+  summary.feedback = await seedFeedback();
+  console.log(`  Feedback: ${summary.feedback.created} created\n`);
+
+  console.log('[15/20] Seeding chat messages...');
+  summary.chatMessages = await seedChatMessages();
+  console.log(`  Chat messages: ${summary.chatMessages.created} created\n`);
+
+  console.log('[16/20] Seeding assets...');
+  summary.assets = await seedAssets();
+  console.log(`  Assets: ${summary.assets.created} created\n`);
+
+  console.log('[17/20] Seeding wellness checks...');
+  summary.wellnessChecks = await seedWellnessChecks();
+  console.log(`  Wellness checks: ${summary.wellnessChecks.created} created\n`);
+
+  console.log('[18/20] Seeding emergency alerts...');
+  summary.emergencyAlerts = await seedEmergencyAlerts();
+  console.log(`  Emergency alerts: ${summary.emergencyAlerts.created} created\n`);
+
+  console.log('[19/20] Seeding SOS alerts...');
+  summary.sosAlerts = await seedSosAlerts();
+  console.log(`  SOS alerts: ${summary.sosAlerts.created} created\n`);
+
+  console.log('[20/20] Seeding gate scans...');
+  summary.gateScans = await seedGateScans();
+  console.log(`  Gate scans: ${summary.gateScans.created} created\n`);
 
   console.log('=== Seed Summary ===');
   for (const [name, counts] of Object.entries(summary)) {

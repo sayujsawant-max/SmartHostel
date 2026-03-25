@@ -51,7 +51,8 @@ export default function VisitorCheckPage() {
   const fetchVisitors = useCallback(async () => {
     try {
       const res = await apiFetch<VisitorItem[]>(`/visitors?date=${todayStr}`);
-      setVisitors(res.data.filter((v) => v.status === 'APPROVED' || v.status === 'CHECKED_IN'));
+      const list = Array.isArray(res.data) ? res.data : [];
+      setVisitors(list.filter((v) => v.status === 'APPROVED' || v.status === 'CHECKED_IN'));
     } catch (err) {
       showError(err, 'Failed to load visitors');
     } finally {

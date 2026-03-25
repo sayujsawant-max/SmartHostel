@@ -70,7 +70,7 @@ export default function VisitorRegistrationPage() {
   const fetchVisitors = useCallback(async () => {
     try {
       const res = await apiFetch<VisitorItem[]>('/visitors/my');
-      setVisitors(res.data);
+      setVisitors(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       showError(err, 'Failed to load visitors');
     } finally {

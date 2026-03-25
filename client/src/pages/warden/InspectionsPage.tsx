@@ -43,7 +43,7 @@ export default function InspectionsPage() {
 
   useEffect(() => {
     apiFetch<Inspection[]>('/admin/inspections')
-      .then(res => setInspections(res.data))
+      .then(res => setInspections(Array.isArray(res.data) ? res.data : []))
       .catch(err => showError(err, 'Failed to load inspections'))
       .finally(() => setLoading(false));
   }, []);
@@ -60,7 +60,7 @@ export default function InspectionsPage() {
       setShowForm(false);
       setForm({ roomNumber: '', block: '', score: 80, remarks: '', issues: '' });
       const res = await apiFetch<Inspection[]>('/admin/inspections');
-      setInspections(res.data);
+      setInspections(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       showError(err, 'Failed to save inspection');
     } finally {

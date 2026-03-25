@@ -147,10 +147,10 @@ export default function LaundryBookingPage() {
         apiFetch<SlotData[]>(`/laundry?date=${date}`),
         apiFetch<MyBooking[]>('/laundry/my-bookings'),
       ]);
-      setSlots(slotsRes.data);
-      setMyBookings(bookingsRes.data);
+      setSlots(Array.isArray(slotsRes.data) ? slotsRes.data : []);
+      setMyBookings(Array.isArray(bookingsRes.data) ? bookingsRes.data : []);
 
-      const mySlot = slotsRes.data.find(
+      const mySlot = (Array.isArray(slotsRes.data) ? slotsRes.data : []).find(
         (s) => s.bookedBy && bookingsRes.data.some((b) => b._id === s._id),
       );
       if (mySlot?.bookedBy) {

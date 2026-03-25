@@ -37,7 +37,7 @@ export default function LeaderboardPage() {
 
   useEffect(() => {
     apiFetch<LeaderboardEntry[]>('/gamification/leaderboard')
-      .then(res => setEntries(res.data))
+      .then(res => setEntries(Array.isArray(res.data) ? res.data : []))
       .catch(err => showError(err, 'Failed to load leaderboard'))
       .finally(() => setLoading(false));
   }, []);

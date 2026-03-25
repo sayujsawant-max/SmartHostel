@@ -41,7 +41,7 @@ export default function AuditTrailPage() {
 
   useEffect(() => {
     apiFetch<AuditEvent[]>('/admin/audit-trail')
-      .then(res => setEvents(res.data))
+      .then(res => setEvents(Array.isArray(res.data) ? res.data : []))
       .catch(err => showError(err, 'Failed to load audit trail'))
       .finally(() => setLoading(false));
   }, []);

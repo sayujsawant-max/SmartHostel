@@ -143,10 +143,11 @@ export default function ComplaintAnalyticsPage() {
     async function fetchData() {
       try {
         const res = await apiFetch('/admin/analytics');
-        if (res?.weeklyData) setWeeklyData(res.weeklyData);
-        if (res?.categoryData) setCategoryData(res.categoryData);
-        if (res?.resolutionData) setResolutionData(res.resolutionData);
-        if (res?.hotspots) setHotspots(res.hotspots);
+        const d = res?.data ?? res;
+        if (d?.weeklyData) setWeeklyData(d.weeklyData);
+        if (d?.categoryData) setCategoryData(d.categoryData);
+        if (d?.resolutionData) setResolutionData(d.resolutionData);
+        if (d?.hotspots) setHotspots(d.hotspots);
       } catch {
         // API may not exist yet - use mock data
       }
