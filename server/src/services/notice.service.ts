@@ -2,6 +2,7 @@ import { Notice } from '@models/notice.model.js';
 import { Notification } from '@models/notification.model.js';
 import { User } from '@models/user.model.js';
 import { Role, NotificationType } from '@smarthostel/shared';
+import { cacheGet, cacheSet, cacheDelPattern } from '@config/cache.js';
 import type mongoose from 'mongoose';
 
 interface CreateNoticeInput {
@@ -41,16 +42,24 @@ export async function createNotice(input: CreateNoticeInput) {
     await Notification.insertMany(notifications);
   }
 
+  await cacheDelPattern('notices:*');
   return notice;
 }
 
 export async function getNotices(activeOnly = true) {
+  const cacheKey = `notices:${activeOnly ? 'active' : 'all'}`;
+  const cached = await cacheGet(cacheKey);
+  if (cached) return cached;
+
   const filter: Record<string, unknown> = {};
   if (activeOnly) filter.isActive = true;
-  return Notice.find(filter)
+  const notices = await Notice.find(filter)
     .sort({ createdAt: -1 })
     .populate('authorId', 'name')
     .lean();
+
+  await cacheSet(cacheKey, notices, 60); // 1 minute TTL
+  return notices;
 }
 
 export async function getStudentNotices(block?: string, floor?: string) {
@@ -69,5 +78,7 @@ export async function getStudentNotices(block?: string, floor?: string) {
 }
 
 export async function deactivateNotice(noticeId: string) {
-  return Notice.findByIdAndUpdate(noticeId, { isActive: false }, { returnDocument: 'after' });
+  const result = await Notice.findByIdAndUpdate(noticeId, { isActive: false }, { returnDocument: 'after' });
+  await cacheDelPattern('notices:*');
+  return result;
 }

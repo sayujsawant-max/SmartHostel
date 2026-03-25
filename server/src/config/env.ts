@@ -85,6 +85,9 @@ const envSchema = z.object({
   SMTP_PASS: z.string().optional().default(''),
   EMAIL_FROM: z.string().optional().default('noreply@smarthostel.com'),
 
+  // Cache (optional — Redis)
+  REDIS_URL: z.string().optional().default(''),
+
   // Error monitoring (optional — Sentry)
   SENTRY_DSN: z.string().optional().default(''),
 

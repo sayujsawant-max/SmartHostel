@@ -1,10 +1,12 @@
 import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import compression from 'compression';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import pinoHttp from 'pino-http';
+import rateLimit from 'express-rate-limit';
 import { correlationIdMiddleware } from '@middleware/correlation-id.middleware.js';
 import { csrfMiddleware } from '@middleware/csrf.middleware.js';
 import { mongoSanitizeMiddleware } from '@middleware/mongo-sanitize.middleware.js';
@@ -50,6 +52,9 @@ const app = express();
 // Trust proxy (for rate limiting, secure cookies behind reverse proxy)
 app.set('trust proxy', 1);
 
+// Response compression (gzip/deflate)
+app.use(compression());
+
 // Security headers
 app.use(helmet());
 
@@ -79,6 +84,19 @@ app.use(
     }),
   }),
 );
+
+// General rate limiting — 200 requests per minute per IP
+if (env.NODE_ENV !== 'test') {
+  app.use(
+    '/api',
+    rateLimit({
+      windowMs: 60_000,
+      limit: 200,
+      standardHeaders: 'draft-7',
+      legacyHeaders: false,
+    }),
+  );
+}
 
 // CSRF protection — Origin/Referer allowlist on state-changing methods
 app.use(csrfMiddleware);

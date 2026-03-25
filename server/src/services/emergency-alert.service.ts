@@ -1,4 +1,5 @@
 import { EmergencyAlert, EmergencyAlertStatus, EmergencySeverity } from '@models/emergency-alert.model.js';
+import { cacheGet, cacheSet, cacheDel } from '@config/cache.js';
 import { AppError } from '@utils/app-error.js';
 import { logger } from '@utils/logger.js';
 
@@ -19,6 +20,7 @@ export async function createAlert(
     status: EmergencyAlertStatus.ACTIVE,
   });
 
+  await cacheDel('alerts:active');
   logger.info(
     { alertId: alert._id, type: data.type, severity: data.severity },
     'Emergency alert created',
@@ -82,12 +84,16 @@ export async function resolveAlert(alertId: string, userId: string) {
     throw new AppError('CONFLICT', 'Alert is not active or does not exist', 409);
   }
 
+  await cacheDel('alerts:active');
   logger.info({ alertId, resolvedBy: userId }, 'Emergency alert resolved');
 
   return alert;
 }
 
 export async function getActiveAlerts() {
+  const cached = await cacheGet('alerts:active');
+  if (cached) return cached;
+
   const severityOrder: Record<string, number> = {
     [EmergencySeverity.CRITICAL]: 0,
     [EmergencySeverity.HIGH]: 1,
@@ -107,5 +113,6 @@ export async function getActiveAlerts() {
     return aOrder - bOrder;
   });
 
+  await cacheSet('alerts:active', alerts, 30); // 30s TTL
   return alerts;
 }

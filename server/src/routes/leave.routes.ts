@@ -1,7 +1,8 @@
 import { Router } from 'express';
-import { Role } from '@smarthostel/shared';
+import { Role, createLeaveSchema } from '@smarthostel/shared';
 import { authMiddleware } from '@middleware/auth.middleware.js';
 import { requireRole } from '@middleware/rbac.middleware.js';
+import { validate } from '@middleware/validate.middleware.js';
 import * as leaveController from '@controllers/leave.controller.js';
 
 const router = Router();
@@ -33,7 +34,7 @@ router.use(authMiddleware);
  *       401: { description: Unauthorized }
  *       403: { description: Forbidden - STUDENT only }
  */
-router.post('/', requireRole(Role.STUDENT), leaveController.createLeave);
+router.post('/', requireRole(Role.STUDENT), validate(createLeaveSchema), leaveController.createLeave);
 
 /**
  * @openapi

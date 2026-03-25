@@ -1,7 +1,8 @@
 import { Router } from 'express';
-import { Role } from '@smarthostel/shared';
+import { Role, createUserSchema, resetPasswordSchema } from '@smarthostel/shared';
 import { authMiddleware } from '@middleware/auth.middleware.js';
 import { requireRole } from '@middleware/rbac.middleware.js';
+import { validate } from '@middleware/validate.middleware.js';
 import * as adminController from '@controllers/admin.controller.js';
 
 const router = Router();
@@ -50,7 +51,7 @@ router.get('/', adminController.listUsers);
  *       401: { description: Unauthorized }
  *       403: { description: Forbidden - WARDEN_ADMIN only }
  */
-router.post('/', adminController.createUser);
+router.post('/', validate(createUserSchema), adminController.createUser);
 
 /**
  * @openapi
@@ -100,6 +101,6 @@ router.patch('/:id/enable', adminController.enableUser);
  *       403: { description: Forbidden - WARDEN_ADMIN only }
  *       404: { description: User not found }
  */
-router.post('/:id/reset-password', adminController.resetPassword);
+router.post('/:id/reset-password', validate(resetPasswordSchema), adminController.resetPassword);
 
 export default router;

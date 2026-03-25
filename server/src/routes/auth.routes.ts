@@ -1,6 +1,15 @@
 import { Router } from 'express';
 import { authMiddleware } from '@middleware/auth.middleware.js';
 import { loginRateLimiter, registerRateLimiter, refreshRateLimiter } from '@middleware/auth-rate-limit.middleware.js';
+import { validate } from '@middleware/validate.middleware.js';
+import {
+  loginSchema,
+  registerSchema,
+  forgotPasswordSchema,
+  selfResetPasswordSchema,
+  changePasswordSchema,
+  googleAuthSchema,
+} from '@smarthostel/shared';
 import * as authController from '@controllers/auth.controller.js';
 
 const router = Router();
@@ -26,7 +35,7 @@ const router = Router();
  *       201: { description: User registered successfully }
  *       409: { description: Email already exists }
  */
-router.post('/register', registerRateLimiter, authController.register);
+router.post('/register', registerRateLimiter, validate(registerSchema), authController.register);
 
 /**
  * @openapi
@@ -49,7 +58,7 @@ router.post('/register', registerRateLimiter, authController.register);
  *       401: { description: Invalid credentials }
  *       429: { description: Too many login attempts }
  */
-router.post('/login', loginRateLimiter, authController.login);
+router.post('/login', loginRateLimiter, validate(loginSchema), authController.login);
 
 /**
  * @openapi
@@ -87,9 +96,9 @@ router.post('/refresh', refreshRateLimiter, authController.refresh);
  */
 router.post('/logout', authController.logout);
 
-router.post('/change-password', authMiddleware, authController.changePassword);
-router.post('/forgot-password', loginRateLimiter, authController.forgotPassword);
-router.post('/reset-password', authController.resetPassword);
-router.post('/google', loginRateLimiter, authController.googleAuth);
+router.post('/change-password', authMiddleware, validate(changePasswordSchema), authController.changePassword);
+router.post('/forgot-password', loginRateLimiter, validate(forgotPasswordSchema), authController.forgotPassword);
+router.post('/reset-password', validate(selfResetPasswordSchema), authController.resetPassword);
+router.post('/google', loginRateLimiter, validate(googleAuthSchema), authController.googleAuth);
 
 export default router;

@@ -5,6 +5,7 @@ import { User } from '@models/user.model.js';
 import { ComplaintEvent } from '@models/complaint-event.model.js';
 import { AuditEvent } from '@models/audit-event.model.js';
 import { Notification } from '@models/notification.model.js';
+import { withTransaction } from '@utils/with-transaction.js';
 import { AppError } from '@utils/app-error.js';
 import { logger } from '@utils/logger.js';
 
@@ -17,32 +18,51 @@ export async function createComplaint(
   const defaults = SLA_CATEGORY_DEFAULTS[input.category as keyof typeof SLA_CATEGORY_DEFAULTS];
   const dueAt = new Date(Date.now() + defaults.slaHours * 60 * 60 * 1000);
 
-  const complaint = await Complaint.create({
-    studentId,
-    category: input.category,
-    description: input.description,
-    photoUrl,
-    status: ComplaintStatus.OPEN,
-    priority: defaults.priority,
-    dueAt,
-  });
+  const complaint = await withTransaction(async (session) => {
+    const [created] = await Complaint.create(
+      [
+        {
+          studentId,
+          category: input.category,
+          description: input.description,
+          photoUrl,
+          status: ComplaintStatus.OPEN,
+          priority: defaults.priority,
+          dueAt,
+        },
+      ],
+      { session },
+    );
 
-  await ComplaintEvent.create({
-    complaintId: complaint._id,
-    eventType: 'COMPLAINT_CREATED',
-    actorId: studentId,
-    actorRole: Role.STUDENT,
-    note: null,
-  });
+    await ComplaintEvent.create(
+      [
+        {
+          complaintId: created._id,
+          eventType: 'COMPLAINT_CREATED',
+          actorId: studentId,
+          actorRole: Role.STUDENT,
+          note: null,
+        },
+      ],
+      { session },
+    );
 
-  await AuditEvent.create({
-    entityType: 'Complaint',
-    entityId: complaint._id,
-    eventType: 'COMPLAINT_CREATED',
-    actorId: studentId,
-    actorRole: Role.STUDENT,
-    metadata: { category: input.category, priority: defaults.priority },
-    correlationId,
+    await AuditEvent.create(
+      [
+        {
+          entityType: 'Complaint',
+          entityId: created._id,
+          eventType: 'COMPLAINT_CREATED',
+          actorId: studentId,
+          actorRole: Role.STUDENT,
+          metadata: { category: input.category, priority: defaults.priority },
+          correlationId,
+        },
+      ],
+      { session },
+    );
+
+    return created;
   });
 
   logger.info({ complaintId: complaint._id, correlationId }, 'Complaint created');
@@ -114,41 +134,60 @@ export async function assignComplaint(
     throw new AppError('VALIDATION_ERROR', 'Assignee must be an active maintenance staff member', 400, { field: 'assigneeId' });
   }
 
-  const complaint = await Complaint.findOneAndUpdate(
-    { _id: complaintId, status: ComplaintStatus.OPEN },
-    { status: ComplaintStatus.ASSIGNED, assigneeId },
-    { returnDocument: 'after' },
-  );
+  const complaint = await withTransaction(async (session) => {
+    const updated = await Complaint.findOneAndUpdate(
+      { _id: complaintId, status: ComplaintStatus.OPEN },
+      { status: ComplaintStatus.ASSIGNED, assigneeId },
+      { returnDocument: 'after', session },
+    );
 
-  if (!complaint) {
-    throw new AppError('CONFLICT', 'Complaint is not in OPEN status or does not exist', 409);
-  }
+    if (!updated) {
+      throw new AppError('CONFLICT', 'Complaint is not in OPEN status or does not exist', 409);
+    }
 
-  await ComplaintEvent.create({
-    complaintId: complaint._id,
-    eventType: 'COMPLAINT_ASSIGNED',
-    actorId,
-    actorRole: Role.WARDEN_ADMIN,
-    note: `Assigned to staff ${assigneeId}`,
-  });
+    await ComplaintEvent.create(
+      [
+        {
+          complaintId: updated._id,
+          eventType: 'COMPLAINT_ASSIGNED',
+          actorId,
+          actorRole: Role.WARDEN_ADMIN,
+          note: `Assigned to staff ${assigneeId}`,
+        },
+      ],
+      { session },
+    );
 
-  await AuditEvent.create({
-    entityType: 'Complaint',
-    entityId: complaint._id,
-    eventType: 'COMPLAINT_ASSIGNED',
-    actorId,
-    actorRole: Role.WARDEN_ADMIN,
-    metadata: { assigneeId },
-    correlationId,
-  });
+    await AuditEvent.create(
+      [
+        {
+          entityType: 'Complaint',
+          entityId: updated._id,
+          eventType: 'COMPLAINT_ASSIGNED',
+          actorId,
+          actorRole: Role.WARDEN_ADMIN,
+          metadata: { assigneeId },
+          correlationId,
+        },
+      ],
+      { session },
+    );
 
-  await Notification.create({
-    recipientId: assigneeId,
-    type: NotificationType.COMPLAINT_ASSIGNED,
-    entityType: 'Complaint',
-    entityId: complaint._id,
-    title: 'New Complaint Assigned',
-    body: `You have been assigned a ${complaint.category} complaint (${complaint.priority} priority).`,
+    await Notification.create(
+      [
+        {
+          recipientId: assigneeId,
+          type: NotificationType.COMPLAINT_ASSIGNED,
+          entityType: 'Complaint',
+          entityId: updated._id,
+          title: 'New Complaint Assigned',
+          body: `You have been assigned a ${updated.category} complaint (${updated.priority} priority).`,
+        },
+      ],
+      { session },
+    );
+
+    return updated;
   });
 
   logger.info({ complaintId, assigneeId, correlationId }, 'Complaint assigned');
