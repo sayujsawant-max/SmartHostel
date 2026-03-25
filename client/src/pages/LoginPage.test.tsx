@@ -24,7 +24,15 @@ vi.mock('@utils/role-home', () => ({
 }));
 
 vi.mock('@context/ThemeContext', () => ({
-  useTheme: () => ({ theme: 'light', setTheme: vi.fn() }),
+  useTheme: () => ({ theme: 'light', setTheme: vi.fn(), resolvedTheme: 'light' }),
+}));
+
+vi.mock('@components/ui/GoogleSignInButton', () => ({
+  default: () => <div data-testid="google-signin">Google Sign In</div>,
+}));
+
+vi.mock('@components/ThemeToggle', () => ({
+  default: () => <button type="button">Theme</button>,
 }));
 
 function makeUser(overrides: Partial<UserProfile> = {}): UserProfile {
@@ -46,16 +54,16 @@ describe('LoginPage', () => {
   it('renders email and password fields with sign in button', () => {
     render(<LoginPage />);
 
-    expect(screen.getByLabelText('Email')).toBeInTheDocument();
+    expect(screen.getByLabelText('Email Address')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Sign In/i })).toBeInTheDocument();
   });
 
   it('renders links to register and rooms pages', () => {
     render(<LoginPage />);
 
-    expect(screen.getByText('Sign up')).toBeInTheDocument();
-    expect(screen.getByText('Browse Rooms & Availability')).toBeInTheDocument();
+    expect(screen.getByText('Create an account')).toBeInTheDocument();
+    expect(screen.getByText(/Browse available rooms/i)).toBeInTheDocument();
   });
 
   it('submits form and navigates on successful login', async () => {
@@ -64,13 +72,13 @@ describe('LoginPage', () => {
 
     render(<LoginPage />);
 
-    fireEvent.change(screen.getByLabelText('Email'), {
+    fireEvent.change(screen.getByLabelText('Email Address'), {
       target: { value: 'test@example.com' },
     });
     fireEvent.change(screen.getByLabelText('Password'), {
       target: { value: 'ValidPass123!' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    fireEvent.click(screen.getByRole('button', { name: /Sign In/i }));
 
     await waitFor(() => {
       expect(mockLogin).toHaveBeenCalledWith('test@example.com', 'ValidPass123!');
@@ -92,13 +100,13 @@ describe('LoginPage', () => {
 
     render(<LoginPage />);
 
-    fireEvent.change(screen.getByLabelText('Email'), {
+    fireEvent.change(screen.getByLabelText('Email Address'), {
       target: { value: 'test@example.com' },
     });
     fireEvent.change(screen.getByLabelText('Password'), {
       target: { value: 'WrongPass123!' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    fireEvent.click(screen.getByRole('button', { name: /Sign In/i }));
 
     await waitFor(() => {
       expect(screen.getByText('Invalid email or password')).toBeInTheDocument();
@@ -120,19 +128,19 @@ describe('LoginPage', () => {
 
     render(<LoginPage />);
 
-    fireEvent.change(screen.getByLabelText('Email'), {
+    fireEvent.change(screen.getByLabelText('Email Address'), {
       target: { value: 'test@example.com' },
     });
     fireEvent.change(screen.getByLabelText('Password'), {
       target: { value: 'SomePass123!!' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    fireEvent.click(screen.getByRole('button', { name: /Sign In/i }));
 
     await waitFor(() => {
       expect(
         screen.getByText('Account temporarily locked due to too many failed attempts.'),
       ).toBeInTheDocument();
-      expect(screen.getByText(/Try again in 30 seconds/)).toBeInTheDocument();
+      expect(screen.getByText(/Try again in 30 second/)).toBeInTheDocument();
     });
   });
 
@@ -141,13 +149,13 @@ describe('LoginPage', () => {
 
     render(<LoginPage />);
 
-    fireEvent.change(screen.getByLabelText('Email'), {
+    fireEvent.change(screen.getByLabelText('Email Address'), {
       target: { value: 'test@example.com' },
     });
     fireEvent.change(screen.getByLabelText('Password'), {
       target: { value: 'SomePass123!!' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    fireEvent.click(screen.getByRole('button', { name: /Sign In/i }));
 
     await waitFor(() => {
       expect(screen.getByText('An unexpected error occurred')).toBeInTheDocument();
@@ -164,13 +172,13 @@ describe('LoginPage', () => {
 
     render(<LoginPage />);
 
-    fireEvent.change(screen.getByLabelText('Email'), {
+    fireEvent.change(screen.getByLabelText('Email Address'), {
       target: { value: 'test@example.com' },
     });
     fireEvent.change(screen.getByLabelText('Password'), {
       target: { value: 'ValidPass123!' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    fireEvent.click(screen.getByRole('button', { name: /Sign In/i }));
 
     await waitFor(() => {
       const buttons = screen.getAllByRole('button');

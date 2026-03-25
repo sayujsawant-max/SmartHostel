@@ -82,10 +82,12 @@ describe('emergencyAlertController', () => {
       });
       expect(emergencyAlertService.createAlert).toHaveBeenCalledWith(
         {
-          title: 'Fire Alert',
-          message: 'Fire in Block A',
+          type: 'EMERGENCY',
           severity: 'critical',
-          affectedBlocks: ['A'],
+          title: 'Fire Alert',
+          description: 'Fire in Block A',
+          targetScope: 'BLOCK',
+          targetValue: 'A',
         },
         'warden-123',
       );

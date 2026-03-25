@@ -44,7 +44,7 @@ describe('POST /api/auth/register', () => {
     const res = await request(app)
       .post('/api/auth/register')
       .set('Origin', VALID_ORIGIN)
-      .send({ name: 'New User', email: 'newuser@example.com', password: TEST_PASSWORD });
+      .send({ name: 'New User', email: 'newuser@example.com', password: TEST_PASSWORD, gender: 'MALE', academicYear: '1' });
 
     expect(res.status).toBe(201);
     expect(res.body.success).toBe(true);
@@ -66,7 +66,7 @@ describe('POST /api/auth/register', () => {
     const res = await request(app)
       .post('/api/auth/register')
       .set('Origin', VALID_ORIGIN)
-      .send({ name: 'Another User', email: 'duplicate@example.com', password: TEST_PASSWORD });
+      .send({ name: 'Another User', email: 'duplicate@example.com', password: TEST_PASSWORD, gender: 'FEMALE', academicYear: '2' });
 
     expect(res.status).toBe(409);
     expect(res.body.success).toBe(false);

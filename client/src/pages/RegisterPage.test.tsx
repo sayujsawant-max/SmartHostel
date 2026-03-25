@@ -24,7 +24,15 @@ vi.mock('@utils/role-home', () => ({
 }));
 
 vi.mock('@context/ThemeContext', () => ({
-  useTheme: () => ({ theme: 'light', setTheme: vi.fn() }),
+  useTheme: () => ({ theme: 'light', setTheme: vi.fn(), resolvedTheme: 'light' }),
+}));
+
+vi.mock('@components/ui/GoogleSignInButton', () => ({
+  default: () => <div data-testid="google-signin">Google Sign In</div>,
+}));
+
+vi.mock('@components/ThemeToggle', () => ({
+  default: () => <button type="button">Theme</button>,
 }));
 
 function makeUser(overrides: Partial<UserProfile> = {}): UserProfile {
@@ -38,18 +46,47 @@ function makeUser(overrides: Partial<UserProfile> = {}): UserProfile {
   };
 }
 
+/** Fill step 1 fields and advance to step 2 */
+async function fillStep1AndContinue() {
+  fireEvent.change(screen.getByLabelText('Full Name'), {
+    target: { value: 'New User' },
+  });
+  fireEvent.change(screen.getByLabelText('Email Address'), {
+    target: { value: 'new@example.com' },
+  });
+  fireEvent.change(screen.getByLabelText('Password'), {
+    target: { value: 'SecurePass123!' },
+  });
+  fireEvent.click(screen.getByRole('button', { name: /Continue/i }));
+
+  // Wait for step 2 to render
+  await waitFor(() => {
+    expect(screen.getByLabelText('Gender')).toBeInTheDocument();
+  });
+}
+
+/** Fill step 2 fields */
+function fillStep2() {
+  fireEvent.change(screen.getByLabelText('Gender'), {
+    target: { value: 'MALE' },
+  });
+  fireEvent.change(screen.getByLabelText('Academic Year'), {
+    target: { value: '1' },
+  });
+}
+
 describe('RegisterPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('renders name, email, and password fields', () => {
+  it('renders name, email, and password fields on step 1', () => {
     render(<RegisterPage />);
 
     expect(screen.getByLabelText('Full Name')).toBeInTheDocument();
-    expect(screen.getByLabelText('Email')).toBeInTheDocument();
+    expect(screen.getByLabelText('Email Address')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Create Account' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Continue/i })).toBeInTheDocument();
   });
 
   it('renders link to login page', () => {
@@ -64,19 +101,19 @@ describe('RegisterPage', () => {
 
     render(<RegisterPage />);
 
-    fireEvent.change(screen.getByLabelText('Full Name'), {
-      target: { value: 'New User' },
-    });
-    fireEvent.change(screen.getByLabelText('Email'), {
-      target: { value: 'new@example.com' },
-    });
-    fireEvent.change(screen.getByLabelText('Password'), {
-      target: { value: 'SecurePass123!' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Create Account' }));
+    await fillStep1AndContinue();
+    fillStep2();
+
+    fireEvent.click(screen.getByRole('button', { name: /Create Account/i }));
 
     await waitFor(() => {
-      expect(mockRegister).toHaveBeenCalledWith('New User', 'new@example.com', 'SecurePass123!');
+      expect(mockRegister).toHaveBeenCalledWith(
+        'New User',
+        'new@example.com',
+        'SecurePass123!',
+        'MALE',
+        '1',
+      );
       expect(mockNavigate).toHaveBeenCalledWith('/STUDENT/home', { replace: true });
     });
   });
@@ -95,16 +132,10 @@ describe('RegisterPage', () => {
 
     render(<RegisterPage />);
 
-    fireEvent.change(screen.getByLabelText('Full Name'), {
-      target: { value: 'New User' },
-    });
-    fireEvent.change(screen.getByLabelText('Email'), {
-      target: { value: 'existing@example.com' },
-    });
-    fireEvent.change(screen.getByLabelText('Password'), {
-      target: { value: 'SecurePass123!' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Create Account' }));
+    await fillStep1AndContinue();
+    fillStep2();
+
+    fireEvent.click(screen.getByRole('button', { name: /Create Account/i }));
 
     await waitFor(() => {
       expect(screen.getByText('Email already registered')).toBeInTheDocument();
@@ -116,16 +147,10 @@ describe('RegisterPage', () => {
 
     render(<RegisterPage />);
 
-    fireEvent.change(screen.getByLabelText('Full Name'), {
-      target: { value: 'New User' },
-    });
-    fireEvent.change(screen.getByLabelText('Email'), {
-      target: { value: 'new@example.com' },
-    });
-    fireEvent.change(screen.getByLabelText('Password'), {
-      target: { value: 'SecurePass123!' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Create Account' }));
+    await fillStep1AndContinue();
+    fillStep2();
+
+    fireEvent.click(screen.getByRole('button', { name: /Create Account/i }));
 
     await waitFor(() => {
       expect(screen.getByText('An unexpected error occurred')).toBeInTheDocument();
@@ -142,16 +167,10 @@ describe('RegisterPage', () => {
 
     render(<RegisterPage />);
 
-    fireEvent.change(screen.getByLabelText('Full Name'), {
-      target: { value: 'New User' },
-    });
-    fireEvent.change(screen.getByLabelText('Email'), {
-      target: { value: 'new@example.com' },
-    });
-    fireEvent.change(screen.getByLabelText('Password'), {
-      target: { value: 'SecurePass123!' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Create Account' }));
+    await fillStep1AndContinue();
+    fillStep2();
+
+    fireEvent.click(screen.getByRole('button', { name: /Create Account/i }));
 
     await waitFor(() => {
       const buttons = screen.getAllByRole('button');
