@@ -1,4 +1,4 @@
-import type { FilterQuery, Model, SortOrder } from 'mongoose';
+import mongoose from 'mongoose';
 
 export interface PaginationParams {
   page?: number;
@@ -18,11 +18,11 @@ export interface PaginatedResult<T> {
  * Defaults: page=1, limit=20, max limit=100.
  */
 export async function paginate<T>(
-  model: Model<T>,
-  filter: FilterQuery<T>,
+  model: mongoose.Model<T>,
+  filter: Record<string, unknown>,
   params: PaginationParams,
   options?: {
-    sort?: Record<string, SortOrder>;
+    sort?: Record<string, 1 | -1 | 'asc' | 'desc' | 'ascending' | 'descending'>;
     populate?: string | { path: string; select?: string }[];
     select?: string;
     lean?: boolean;

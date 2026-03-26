@@ -11,9 +11,9 @@ export async function getLayout(userId: string) {
       { widgetType: 'LEAVES', position: { x: 4, y: 4, w: 4, h: 3 }, isVisible: true },
       { widgetType: 'VISITORS', position: { x: 8, y: 4, w: 4, h: 3 }, isVisible: true },
     ];
-    widgets = await DashboardWidget.insertMany(
+    widgets = (await DashboardWidget.insertMany(
       defaults.map(d => ({ ...d, userId }))
-    );
+    )) as any;
   }
   return widgets;
 }

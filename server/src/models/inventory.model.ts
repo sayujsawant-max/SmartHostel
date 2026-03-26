@@ -67,7 +67,7 @@ inventoryItemSchema.index({ status: 1 });
 inventoryItemSchema.index({ category: 1 });
 
 /** Compute status from quantity and minStock before saving. */
-inventoryItemSchema.pre('save', function (next) {
+inventoryItemSchema.pre('save', function () {
   if (this.quantity === 0) {
     this.status = InventoryStatus.OUT_OF_STOCK;
   } else if (this.quantity <= this.minStock) {
@@ -75,7 +75,6 @@ inventoryItemSchema.pre('save', function (next) {
   } else {
     this.status = InventoryStatus.IN_STOCK;
   }
-  next();
 });
 
 export const InventoryItem = mongoose.model<IInventoryItem>('InventoryItem', inventoryItemSchema);

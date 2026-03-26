@@ -42,7 +42,9 @@ function getSocket(userId: string): Socket {
 export function useSocket(event: string, handler: EventHandler) {
   const { user } = useAuth();
   const handlerRef = useRef(handler);
-  handlerRef.current = handler;
+  useEffect(() => {
+    handlerRef.current = handler;
+  });
 
   const stableHandler = useCallback((data: unknown) => {
     handlerRef.current(data);

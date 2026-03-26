@@ -196,7 +196,7 @@ async function buildUserContext(userId: string): Promise<string> {
 
     if (recentNotices.length) {
       parts.push(`\n--- Recent Notices (${recentNotices.length}) ---\n${recentNotices.map((n) =>
-        `- ${n.title} [${n.category}] (${new Date(n.createdAt).toLocaleDateString('en-IN')})`
+        `- ${n.title} [${n.target}] (${new Date(n.createdAt).toLocaleDateString('en-IN')})`
       ).join('\n')}`);
     }
 
@@ -274,7 +274,7 @@ async function buildUserContext(userId: string): Promise<string> {
 
     if (recentDenials.length) {
       parts.push(`\n--- Recent Denials (${recentDenials.length}) ---\n${recentDenials.map((d) =>
-        `- ${d.scanResult?.replace(/_/g, ' ')}${d.reason ? `: ${d.reason}` : ''} (${new Date(d.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })})`
+        `- ${d.scanResult?.replace(/_/g, ' ')} (${new Date(d.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })})`
       ).join('\n')}`);
     }
 

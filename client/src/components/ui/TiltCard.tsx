@@ -34,10 +34,15 @@ export default function TiltCard({
   const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-maxTilt, maxTilt]), springConfig);
   const scale = useSpring(1, springConfig);
 
-  // Glare position
+  // Glare position — hooks must always execute (Rules of Hooks)
   const glareX = useTransform(x, [-0.5, 0.5], [0, 100]);
   const glareY = useTransform(y, [-0.5, 0.5], [0, 100]);
   const glareOpacity = useSpring(0, springConfig);
+  const glareBackground = useTransform(
+    [glareX, glareY],
+    ([gx, gy]) =>
+      `radial-gradient(circle at ${gx}% ${gy}%, rgba(255,255,255,0.5), transparent 60%)`,
+  );
 
   function handleMouseMove(e: React.MouseEvent) {
     const el = ref.current;
@@ -82,11 +87,7 @@ export default function TiltCard({
           className="pointer-events-none absolute inset-0 rounded-[inherit] z-10"
           style={{
             opacity: glareOpacity,
-            background: useTransform(
-              [glareX, glareY],
-              ([gx, gy]) =>
-                `radial-gradient(circle at ${gx}% ${gy}%, rgba(255,255,255,0.5), transparent 60%)`,
-            ),
+            background: glareBackground,
           }}
         />
       )}

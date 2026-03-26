@@ -58,16 +58,18 @@ describe('emergencyAlertController', () => {
         _id: 'alert-1',
         title: 'Fire Alert',
         severity: 'critical',
-        message: 'Fire in Block A',
+        description: 'Fire in Block A',
       };
       (emergencyAlertService.createAlert as ReturnType<typeof vi.fn>).mockResolvedValue(mockAlert);
 
       const req = mockRequest({
         body: {
           title: 'Fire Alert',
-          message: 'Fire in Block A',
+          description: 'Fire in Block A',
+          type: 'fire',
           severity: 'critical',
-          affectedBlocks: ['A'],
+          targetScope: 'block',
+          targetValue: 'A',
         },
       });
       const res = mockResponse();
@@ -82,8 +84,8 @@ describe('emergencyAlertController', () => {
       });
       expect(emergencyAlertService.createAlert).toHaveBeenCalledWith(
         {
-          type: 'EMERGENCY',
-          severity: 'critical',
+          type: 'FIRE',
+          severity: 'CRITICAL',
           title: 'Fire Alert',
           description: 'Fire in Block A',
           targetScope: 'BLOCK',
@@ -95,7 +97,7 @@ describe('emergencyAlertController', () => {
 
     it('throws validation error for missing title', async () => {
       const req = mockRequest({
-        body: { message: 'Some alert', severity: 'high' },
+        body: { description: 'Some alert', type: 'fire', severity: 'high' },
       });
       const res = mockResponse();
 
@@ -104,9 +106,9 @@ describe('emergencyAlertController', () => {
       ).rejects.toThrow();
     });
 
-    it('throws validation error for missing message', async () => {
+    it('throws validation error for missing type', async () => {
       const req = mockRequest({
-        body: { title: 'Alert Title', severity: 'high' },
+        body: { title: 'Alert Title', description: 'Body', severity: 'high' },
       });
       const res = mockResponse();
 
@@ -115,9 +117,9 @@ describe('emergencyAlertController', () => {
       ).rejects.toThrow();
     });
 
-    it('throws validation error for invalid severity', async () => {
+    it('throws validation error for missing severity', async () => {
       const req = mockRequest({
-        body: { title: 'Alert', message: 'Body', severity: 'INVALID' },
+        body: { title: 'Alert', description: 'Body', type: 'fire' },
       });
       const res = mockResponse();
 
@@ -132,7 +134,7 @@ describe('emergencyAlertController', () => {
 
       for (const severity of ['low', 'medium', 'high', 'critical']) {
         const req = mockRequest({
-          body: { title: 'Alert', message: 'Body text', severity },
+          body: { title: 'Alert', description: 'Body text', type: 'fire', severity },
         });
         const res = mockResponse();
 
@@ -141,12 +143,12 @@ describe('emergencyAlertController', () => {
       }
     });
 
-    it('accepts alert without affectedBlocks (optional)', async () => {
+    it('accepts alert without targetValue (optional)', async () => {
       const mockAlert = { _id: 'alert-3' };
       (emergencyAlertService.createAlert as ReturnType<typeof vi.fn>).mockResolvedValue(mockAlert);
 
       const req = mockRequest({
-        body: { title: 'Alert', message: 'Body text', severity: 'low' },
+        body: { title: 'Alert', description: 'Body text', type: 'fire', severity: 'low' },
       });
       const res = mockResponse();
 
@@ -161,7 +163,14 @@ describe('emergencyAlertController', () => {
         { _id: 'alert-1', title: 'Alert 1' },
         { _id: 'alert-2', title: 'Alert 2' },
       ];
-      (emergencyAlertService.getAlerts as ReturnType<typeof vi.fn>).mockResolvedValue(mockAlerts);
+      const mockResult = {
+        alerts: mockAlerts,
+        total: 2,
+        page: 1,
+        limit: 20,
+        totalPages: 1,
+      };
+      (emergencyAlertService.getAlerts as ReturnType<typeof vi.fn>).mockResolvedValue(mockResult);
 
       const req = mockRequest({ query: { status: 'ACTIVE' } });
       const res = mockResponse();
@@ -170,7 +179,7 @@ describe('emergencyAlertController', () => {
 
       expect(res._json).toEqual({
         success: true,
-        data: { alerts: mockAlerts },
+        data: mockResult,
         correlationId: 'test-corr-id',
       });
       expect(emergencyAlertService.getAlerts).toHaveBeenCalledWith({ status: 'ACTIVE' });

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
 import { showError, showSuccess } from '@/utils/toast';
 import { motion } from '@components/ui/motion';
-import { Reveal } from '@/components/motion';
 import PageHeader from '@components/ui/PageHeader';
 import StatusBadge from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';

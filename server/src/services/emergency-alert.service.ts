@@ -91,7 +91,7 @@ export async function resolveAlert(alertId: string, userId: string) {
 }
 
 export async function getActiveAlerts() {
-  const cached = await cacheGet('alerts:active');
+  const cached = await cacheGet<any[]>('alerts:active');
   if (cached) return cached;
 
   const severityOrder: Record<string, number> = {

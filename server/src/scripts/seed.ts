@@ -2600,7 +2600,7 @@ async function seedGateScans(): Promise<{ created: number }> {
     },
   ) {
     return {
-      guardId: guard._id,
+      guardId: guard!._id,
       studentId,
       leaveId: null,
       gatePassId: null,

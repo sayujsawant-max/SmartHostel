@@ -78,7 +78,6 @@ assetSchema.set('toJSON', {
   },
 });
 
-assetSchema.index({ assetTag: 1 });
 assetSchema.index({ status: 1 });
 
 export const Asset = mongoose.model<IAsset>('Asset', assetSchema);

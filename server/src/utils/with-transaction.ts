@@ -10,7 +10,7 @@ export async function withTransaction<T>(
   fn: (session: mongoose.ClientSession | null) => Promise<T>,
 ): Promise<T> {
   // Check if connected to a replica set
-  const topology = mongoose.connection.getClient().topology;
+  const topology = (mongoose.connection.getClient() as any).topology;
   const isReplicaSet = topology?.description?.type === 'ReplicaSetWithPrimary'
     || topology?.description?.type === 'Sharded';
 
