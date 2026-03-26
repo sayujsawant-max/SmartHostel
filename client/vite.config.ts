@@ -2,12 +2,23 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
+import path from 'path'
+
+// Resolve react from the monorepo root (hoisted node_modules)
+const rootModules = path.resolve(__dirname, '..', 'node_modules')
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss(), tsconfigPaths()],
+  resolve: {
+    alias: {
+      react: path.join(rootModules, 'react'),
+      'react-dom': path.join(rootModules, 'react-dom'),
+    },
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
+  },
   optimizeDeps: {
-    include: ['zod', '@smarthostel/shared'],
+    include: ['zod', '@smarthostel/shared', 'react', 'react-dom', 'motion', 'motion/react', 'framer-motion'],
   },
   build: {
     rollupOptions: {
@@ -23,10 +34,18 @@ export default defineConfig({
     },
   },
   server: {
+    headers: {
+      'Cache-Control': 'no-store',
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:5000',
         changeOrigin: true,
+      },
+      '/ws': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        ws: true,
       },
     },
   },

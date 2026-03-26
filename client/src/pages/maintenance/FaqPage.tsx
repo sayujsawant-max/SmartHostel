@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Fuse from 'fuse.js';
 import { apiFetch } from '@services/api';
 import { showError } from '@/utils/toast';
-import { motion, AnimatePresence } from '@components/ui/motion';
+import { motion, AnimatePresence } from 'motion/react';
+import { Reveal } from '@/components/motion';
 import PageHeader from '@components/ui/PageHeader';
 import Accordion, { type AccordionItem } from '@components/ui/Accordion';
 import EmptyState from '@components/EmptyState';
@@ -102,7 +103,7 @@ export default function FaqPage() {
         animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
         transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
       >
-        <PageHeader title="FAQ" description="Common questions for maintenance staff." />
+        <PageHeader title={<span className="gradient-heading">FAQ</span>} description="Common questions for maintenance staff." />
       </motion.div>
 
       {/* Search Bar */}
@@ -110,7 +111,7 @@ export default function FaqPage() {
         initial={{ opacity: 0, y: 12, filter: 'blur(6px)' }}
         animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        className={`relative rounded-2xl border bg-[hsl(var(--card))] transition-all duration-200 card-glow ${
+        className={`relative rounded-2xl border bg-[hsl(var(--card))] transition-all duration-200 card-glow card-shine ${
           searchFocused
             ? 'border-orange-400 ring-2 ring-orange-400/20 shadow-sm dark:border-orange-500 dark:ring-orange-500/20'
             : 'border-[hsl(var(--border))]'
@@ -186,8 +187,8 @@ export default function FaqPage() {
               }));
 
               return (
+                <Reveal key={category} delay={0.06 * catIdx}>
                 <motion.div
-                  key={category}
                   ref={(el) => {
                     if (el) categoryRefs.current.set(category, el);
                   }}
@@ -199,7 +200,7 @@ export default function FaqPage() {
                   <motion.div
                     whileHover={{ x: 3 }}
                     transition={spring}
-                    className={`flex items-center gap-3 p-3.5 rounded-2xl border ${style.border} ${style.headerBg}`}
+                    className={`flex items-center gap-3 p-3.5 rounded-2xl border card-shine magnetic-hover ${style.border} ${style.headerBg}`}
                   >
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${style.bg} ${style.text}`}>
                       <Icon className="w-5 h-5" />
@@ -216,6 +217,7 @@ export default function FaqPage() {
                     onToggle={setOpenId}
                   />
                 </motion.div>
+                </Reveal>
               );
             })}
           </motion.div>

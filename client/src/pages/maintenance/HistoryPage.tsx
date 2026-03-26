@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
 import { showError } from '@/utils/toast';
-import { motion } from '@components/ui/motion';
+import { motion } from 'motion/react';
+import { Reveal } from '@/components/motion';
 import PageHeader from '@components/ui/PageHeader';
 import StatusBadge from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';
@@ -36,8 +37,12 @@ export default function HistoryPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiFetch<{ complaints: ResolvedTask[] }>('/complaints/my-history')
-      .then((res) => setTasks(res.data.complaints))
+    apiFetch('/complaints/my-history')
+      .then((res) => {
+        const data = res.data as Record<string, unknown>;
+        const list = Array.isArray(data) ? data : Array.isArray(data?.complaints) ? data.complaints : [];
+        setTasks(list as ResolvedTask[]);
+      })
       .catch((err: unknown) => showError(err, 'Failed to load data'))
       .finally(() => setLoading(false));
   }, []);
@@ -49,7 +54,7 @@ export default function HistoryPage() {
         animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
         transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
       >
-        <PageHeader title="Completed Tasks" description="Your resolved maintenance history." />
+        <PageHeader title={<span className="gradient-heading">Completed Tasks</span>} description="Your resolved maintenance history." />
       </motion.div>
 
       {/* Stat */}
@@ -57,7 +62,7 @@ export default function HistoryPage() {
         initial={{ opacity: 0, y: 16, scale: 0.95, filter: 'blur(6px)' }}
         animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        className="flex items-center gap-3 p-3.5 rounded-2xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50/50 dark:bg-emerald-950/20 w-fit"
+        className="flex items-center gap-3 p-3.5 rounded-2xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50/50 dark:bg-emerald-950/20 w-fit card-shine"
       >
         <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
           <CheckCircle2 className="w-5 h-5" />
@@ -77,6 +82,7 @@ export default function HistoryPage() {
           <EmptyState variant="compact" title="No completed tasks yet" description="Resolved tasks will appear here." />
         </motion.div>
       ) : (
+        <Reveal>
         <div className="space-y-3">
           {tasks.map((t, i) => (
             <motion.div
@@ -88,7 +94,7 @@ export default function HistoryPage() {
               <motion.div
                 whileHover={{ y: -2, scale: 1.012 }}
                 transition={spring}
-                className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-3 transition-shadow hover:shadow-md card-glow"
+                className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-3 transition-shadow hover:shadow-md card-glow card-shine magnetic-hover"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
@@ -135,6 +141,7 @@ export default function HistoryPage() {
             </motion.div>
           ))}
         </div>
+        </Reveal>
       )}
     </div>
   );

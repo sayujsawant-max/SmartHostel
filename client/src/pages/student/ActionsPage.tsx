@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { apiFetch } from '@services/api';
 import { showError } from '@/utils/toast';
 import { motion } from '@components/ui/motion';
+import { Reveal } from '@/components/motion/Reveal';
+import { ShimmerText } from '@/components/motion/ShimmerText';
 import PageHeader from '@components/ui/PageHeader';
 import { usePageTitle } from '@hooks/usePageTitle';
 import {
@@ -100,13 +102,15 @@ export default function ActionsPage() {
 
   return (
     <div className="space-y-5">
-      <motion.div
-        initial={{ opacity: 0, y: -12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-      >
-        <PageHeader title="Actions" description="Quick actions for your hostel needs." />
-      </motion.div>
+      <Reveal>
+        <motion.div
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
+          <PageHeader title={<ShimmerText variant="heading">Actions</ShimmerText>} description="Quick actions for your hostel needs." />
+        </motion.div>
+      </Reveal>
 
       <div className="grid grid-cols-2 gap-3">
         {actions.map((action, i) => {
@@ -137,9 +141,9 @@ export default function ActionsPage() {
                   className={`group relative flex flex-col items-center text-center gap-3 p-5 rounded-2xl border transition-all duration-200 ${
                     isQR
                       ? hasActivePass
-                        ? `${action.activeColor} hover:shadow-md ring-0 hover:ring-2 ${action.ring}`
+                        ? `${action.activeColor} hover:shadow-md ring-0 hover:ring-2 ${action.ring} card-shine`
                         : 'bg-[hsl(var(--muted))] border-[hsl(var(--border))] opacity-50 pointer-events-none'
-                      : `border-[hsl(var(--border))] bg-[hsl(var(--card))] hover:shadow-md hover:border-transparent ring-0 hover:ring-2 ${action.ring} card-glow`
+                      : `border-[hsl(var(--border))] bg-[hsl(var(--card))] hover:shadow-md hover:border-transparent ring-0 hover:ring-2 ${action.ring} card-glow card-shine magnetic-hover`
                   }`}
                 >
                   <motion.div
@@ -163,6 +167,9 @@ export default function ActionsPage() {
                   </div>
                   {!disabled && (
                     <ChevronRight className="absolute top-3 right-3 w-4 h-4 text-[hsl(var(--muted-foreground))] opacity-0 group-hover:opacity-60 transition-opacity" />
+                  )}
+                  {isQR && hasActivePass && (
+                    <span className="absolute top-2 left-2 w-2 h-2 rounded-full bg-emerald-500 breathe-glow" />
                   )}
                 </Link>
               </motion.div>

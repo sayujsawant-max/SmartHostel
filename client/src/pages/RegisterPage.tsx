@@ -159,7 +159,7 @@ export default function RegisterPage() {
 
           {/* Heading */}
           <motion.div variants={itemVariants}>
-            <h1 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] tracking-tight">
+            <h1 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] tracking-tight gradient-heading">
               Create your account
             </h1>
             <p className="mt-2 text-[hsl(var(--muted-foreground))] text-sm">
@@ -397,7 +397,7 @@ export default function RegisterPage() {
                       <motion.button
                         type="submit"
                         disabled={isSubmitting}
-                        className="group flex-1 min-h-[48px] rounded-xl bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] font-semibold flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-[hsl(var(--accent))]/20"
+                        className="group flex-1 min-h-[48px] rounded-xl bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] font-semibold flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-[hsl(var(--accent))]/20 magnetic-hover"
                         whileHover={{ scale: 1.02, y: -1 }}
                         whileTap={{ scale: 0.98 }}
                         transition={spring}

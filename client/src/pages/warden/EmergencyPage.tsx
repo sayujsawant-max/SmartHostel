@@ -35,7 +35,7 @@ interface ActiveAlert {
   status: string;
 }
 
-const ALERT_TYPES: { value: AlertType; label: string; icon: React.ElementType; color: string }[] = [
+const ALERT_TYPES: { value: AlertType; label: string; icon: React.ComponentType<{ className?: string }>; color: string }[] = [
   { value: 'fire', label: 'Fire', icon: Flame, color: 'text-orange-500' },
   { value: 'medical', label: 'Medical', icon: HeartPulse, color: 'text-red-500' },
   { value: 'security', label: 'Security', icon: ShieldAlert, color: 'text-blue-500' },
@@ -64,7 +64,7 @@ function severityBadge(severity: Severity) {
 
 function alertTypeBadge(type: AlertType) {
   const a = ALERT_TYPES.find((at) => at.value === type);
-  return { color: a?.color ?? '', label: a?.label ?? type, Icon: a?.icon ?? AlertOctagon };
+  return { color: a?.color ?? '', label: a?.label ?? type, Icon: (a?.icon ?? AlertOctagon) as React.ComponentType<{ className?: string }> };
 }
 
 export default function EmergencyPage() {
@@ -89,8 +89,28 @@ export default function EmergencyPage() {
   async function fetchActiveAlerts() {
     try {
       setLoading(true);
-      const res = await apiFetch<{ alerts: ActiveAlert[] }>('/admin/emergency-alerts?status=ACTIVE');
-      setActiveAlerts(Array.isArray(res.data) ? res.data : res.data?.alerts ?? []);
+      const res = await apiFetch('/admin/emergency-alerts?status=ACTIVE');
+      const raw: any = res.data;
+      // Extract array from various possible response shapes
+      let list: ActiveAlert[] = [];
+      if (Array.isArray(raw)) {
+        list = raw;
+      } else if (Array.isArray(raw?.alerts)) {
+        list = raw.alerts;
+      }
+      // Normalize fields: API returns _id/UPPERCASE, frontend expects id/lowercase
+      setActiveAlerts(
+        list.map((a: any) => ({
+          id: a._id ?? a.id ?? '',
+          type: (a.type ?? '').toLowerCase() as AlertType,
+          title: a.title ?? '',
+          description: a.description ?? '',
+          severity: (a.severity ?? '').toLowerCase() as Severity,
+          target: a.targetValue ?? a.targetScope ?? 'all',
+          createdAt: a.createdAt ?? '',
+          status: a.status ?? '',
+        })),
+      );
     } catch {
       showError('Failed to load active alerts');
     } finally {
@@ -226,7 +246,7 @@ export default function EmergencyPage() {
               transition={spring}
               onClick={handleSendAlert}
               disabled={!canSend || sending}
-              className="relative px-12 py-5 rounded-2xl bg-red-600 text-white font-bold text-lg disabled:opacity-40 disabled:cursor-not-allowed"
+              className="relative px-12 py-5 rounded-2xl bg-red-600 text-white font-bold text-lg disabled:opacity-40 disabled:cursor-not-allowed breathe-glow"
             >
               {/* Pulsing glow */}
               <motion.span
@@ -325,7 +345,7 @@ export default function EmergencyPage() {
 
         {/* Message Input */}
         <Reveal>
-          <div className="card-glow rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 space-y-4">
+          <div className="card-glow glass-card rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 space-y-4">
             <h3 className="text-sm font-semibold text-[hsl(var(--foreground))] uppercase tracking-wider">
               Alert Message
             </h3>
@@ -414,7 +434,7 @@ export default function EmergencyPage() {
                 Active Alerts
               </h3>
               {activeAlerts.length > 0 && (
-                <span className="px-2.5 py-0.5 rounded-full bg-red-500/10 text-red-500 text-xs font-bold">
+                <span className="px-2.5 py-0.5 rounded-full bg-red-500/10 text-red-500 text-xs font-bold breathe-glow">
                   {activeAlerts.length} active
                 </span>
               )}
@@ -447,7 +467,7 @@ export default function EmergencyPage() {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, x: -100 }}
                           transition={spring}
-                          className="card-glow rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 flex items-center gap-4"
+                          className="card-glow card-shine rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 flex items-center gap-4"
                         >
                           <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${
                             alert.severity === 'critical'

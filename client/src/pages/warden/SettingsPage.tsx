@@ -5,7 +5,8 @@ import { changePasswordSchema, type ChangePasswordInput } from '@smarthostel/sha
 import { useAuth } from '@hooks/useAuth';
 import { apiFetch, ApiError } from '@services/api';
 import { motion, AnimatePresence } from '@components/ui/motion';
-import PageHeader from '@components/ui/PageHeader';
+import { Reveal } from '@/components/motion';
+
 import FormField from '@components/ui/FormField';
 import Spinner from '@components/ui/Spinner';
 import StatusBadge from '@components/ui/StatusBadge';
@@ -268,7 +269,7 @@ export default function SettingsPage() {
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-600/10 via-[hsl(var(--card))] to-blue-600/10 border border-[hsl(var(--border))] p-6"
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-600/10 via-[hsl(var(--card))] to-blue-600/10 border border-[hsl(var(--border))] p-6 morph-gradient"
       >
         <div className="absolute top-4 right-4 opacity-10">
           <motion.div
@@ -287,13 +288,14 @@ export default function SettingsPage() {
             <Settings className="w-6 h-6 text-slate-600 dark:text-slate-400" />
           </motion.div>
           <div>
-            <h1 className="text-2xl font-bold text-[hsl(var(--foreground))]">Settings</h1>
+            <h1 className="text-2xl font-bold text-[hsl(var(--foreground))] gradient-heading">Settings</h1>
             <p className="text-sm text-[hsl(var(--muted-foreground))]">Account info and hostel preferences</p>
           </div>
         </div>
       </motion.div>
 
       {/* Settings Sections */}
+      <Reveal>
       <div className="space-y-4">
         {sectionItems.map((section, i) => {
           const SectionIcon = section.icon;
@@ -307,7 +309,7 @@ export default function SettingsPage() {
               <motion.div
                 whileHover={{ y: -2, scale: 1.003 }}
                 transition={spring}
-                className="card-glow p-5 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-4 hover:shadow-md hover:border-[hsl(var(--accent))]/30 transition-all"
+                className="card-glow card-shine p-5 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-4 hover:shadow-md hover:border-[hsl(var(--accent))]/30 transition-all"
               >
                 <div className="flex items-center gap-3">
                   <motion.div
@@ -325,6 +327,7 @@ export default function SettingsPage() {
           );
         })}
       </div>
+      </Reveal>
     </div>
   );
 }

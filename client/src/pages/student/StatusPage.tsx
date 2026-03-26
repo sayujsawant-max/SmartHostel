@@ -5,6 +5,8 @@ import { useAuth } from '@hooks/useAuth';
 import { Reveal } from '@/components/motion/Reveal';
 import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
 import { AnimatedCounter } from '@/components/motion/AnimatedCounter';
+import { ShimmerText } from '@/components/motion/ShimmerText';
+import { FloatingElement } from '@/components/motion/FloatingElement';
 import { motion, AnimatePresence } from 'motion/react';
 import StatusBadge from '@components/ui/StatusBadge';
 import ErrorBanner from '@components/ui/ErrorBanner';
@@ -22,6 +24,10 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import StreakBanner from '@components/StreakBanner';
+import PassCountdown from '@components/student/PassCountdown';
+import SmartInsights from '@components/student/SmartInsights';
+import DigitalIdCard from '@components/student/DigitalIdCard';
+import AttendanceHeatmap from '@components/student/AttendanceHeatmap';
 import { usePageTitle } from '@hooks/usePageTitle';
 
 /* ─── Types ─────────────────────────────────────────────────────── */
@@ -191,6 +197,7 @@ export default function StatusPage() {
   const [notices, setNotices] = useState<NoticeItem[]>([]);
   const [fees, setFees] = useState<FeeItem[]>([]);
   const [showFees, setShowFees] = useState(false);
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -234,7 +241,7 @@ export default function StatusPage() {
         initial={{ opacity: 0, y: 20, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="relative overflow-hidden rounded-2xl p-6 text-white"
+        className="relative overflow-hidden rounded-2xl p-6 text-white morph-gradient"
         style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #a855f7 100%)' }}
       >
         {/* Animated gradient shimmer */}
@@ -249,13 +256,14 @@ export default function StatusPage() {
         />
 
         {/* Floating hero icon */}
-        <motion.div
+        <FloatingElement
           className="absolute top-4 right-4 w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center"
-          animate={{ y: [0, -6, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          amplitude={6}
+          duration={4}
+          rotate={3}
         >
           <Home className="w-8 h-8 text-white/80" />
-        </motion.div>
+        </FloatingElement>
 
         <div className="relative z-10">
           <motion.h2
@@ -264,7 +272,7 @@ export default function StatusPage() {
             transition={{ delay: 0.2, duration: 0.4 }}
             className="text-2xl sm:text-3xl font-bold"
           >
-            Welcome back, {firstName}!
+            <ShimmerText variant="shimmer">Welcome back, {firstName}!</ShimmerText>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, x: -20 }}
@@ -311,23 +319,46 @@ export default function StatusPage() {
         <StreakBanner />
       </Reveal>
 
+      {/* ── Active Pass Countdown ────────────────────────────── */}
+      {activeLeave && <PassCountdown leave={activeLeave} />}
+
+      {/* ── Digital ID Card ──────────────────────────────────── */}
+      <Reveal delay={0.1}>
+        <DigitalIdCard />
+      </Reveal>
+
+      {/* ── Smart Insights ───────────────────────────────────── */}
+      <Reveal delay={0.15}>
+        <SmartInsights complaints={complaints} leaves={leaves} fees={fees} />
+      </Reveal>
+
       {/* ── Stats cards ───────────────────────────────────────── */}
       <StaggerContainer className="grid grid-cols-2 sm:grid-cols-4 gap-3" stagger={0.08}>
         {[
-          { value: activeComplaints, label: 'Active Complaints', icon: AlertTriangle, color: 'bg-amber-100 dark:bg-amber-950/50', iconColor: 'text-amber-600 dark:text-amber-400', trend: activeComplaints > 0 ? `${activeComplaints} open` : undefined, trendColor: 'text-amber-600 dark:text-amber-400' },
-          { value: activeLeaves, label: 'Pending Leaves', icon: Calendar, color: 'bg-blue-100 dark:bg-blue-950/50', iconColor: 'text-blue-600 dark:text-blue-400' },
-          { value: approvedLeaves, label: 'Approved Leaves', icon: CheckCircle2, color: 'bg-emerald-100 dark:bg-emerald-950/50', iconColor: 'text-emerald-600 dark:text-emerald-400' },
-          { value: pendingFees > 0 ? outstandingAmount : 0, label: 'Outstanding Fees', icon: CreditCard, color: 'bg-red-100 dark:bg-red-950/50', iconColor: 'text-red-600 dark:text-red-400', isFee: true },
+          { value: activeComplaints, label: 'Active Complaints', sectionKey: 'complaints', icon: AlertTriangle, color: 'bg-amber-100 dark:bg-amber-950/50', iconColor: 'text-amber-600 dark:text-amber-400', trend: activeComplaints > 0 ? `${activeComplaints} open` : undefined, trendColor: 'text-amber-600 dark:text-amber-400' },
+          { value: activeLeaves, label: 'Pending Leaves', sectionKey: 'pending-leaves', icon: Calendar, color: 'bg-blue-100 dark:bg-blue-950/50', iconColor: 'text-blue-600 dark:text-blue-400' },
+          { value: approvedLeaves, label: 'Approved Leaves', sectionKey: 'approved-leaves', icon: CheckCircle2, color: 'bg-emerald-100 dark:bg-emerald-950/50', iconColor: 'text-emerald-600 dark:text-emerald-400' },
+          { value: pendingFees > 0 ? outstandingAmount : 0, label: 'Outstanding Fees', sectionKey: 'fees', icon: CreditCard, color: 'bg-red-100 dark:bg-red-950/50', iconColor: 'text-red-600 dark:text-red-400', isFee: true },
         ].map((stat) => {
           const Icon = stat.icon;
+          const isExpanded = expandedSection === stat.sectionKey;
           return (
             <StaggerItem key={stat.label}>
               <motion.div
-                className="rounded-xl p-4 bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:shadow-md transition-shadow cursor-pointer card-glow"
+                className={`rounded-xl p-4 bg-[hsl(var(--card))] border hover:shadow-md transition-all cursor-pointer card-glow card-shine magnetic-hover ${
+                  isExpanded ? 'border-[hsl(var(--accent))] ring-2 ring-[hsl(var(--accent))]/20' : 'border-[hsl(var(--border))]'
+                }`}
                 whileHover={{ scale: 1.03, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 transition={spring}
-                onClick={stat.label === 'Outstanding Fees' ? () => setShowFees(!showFees) : undefined}
+                onClick={() => {
+                  if (stat.sectionKey === 'fees') {
+                    setShowFees(!showFees);
+                    setExpandedSection(isExpanded ? null : stat.sectionKey);
+                  } else {
+                    setExpandedSection(isExpanded ? null : stat.sectionKey);
+                  }
+                }}
               >
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs font-medium text-[hsl(var(--muted-foreground))] leading-tight">{stat.label}</p>
@@ -342,16 +373,140 @@ export default function StatusPage() {
                     <AnimatedCounter to={stat.value} duration={1} />
                   )}
                 </p>
-                {'trend' in stat && stat.trend && (
-                  <p className={`text-[10px] font-medium mt-1 ${'trendColor' in stat ? stat.trendColor : ''}`}>
-                    &#8595; {stat.trend}
+                <div className="flex items-center justify-between mt-1">
+                  {'trend' in stat && stat.trend && (
+                    <p className={`text-[10px] font-medium ${'trendColor' in stat ? stat.trendColor : ''}`}>
+                      &#8595; {stat.trend}
+                    </p>
+                  )}
+                  <p className="text-[10px] text-[hsl(var(--accent))] font-medium ml-auto">
+                    {isExpanded ? 'Hide ▲' : 'View ▼'}
                   </p>
-                )}
+                </div>
               </motion.div>
             </StaggerItem>
           );
         })}
       </StaggerContainer>
+
+      {/* ── Expanded section: Active Complaints ─────────────────── */}
+      <AnimatePresence>
+        {expandedSection === 'complaints' && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden space-y-2"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-[hsl(var(--foreground))]">Active Complaints ({activeComplaints})</h3>
+              <Link to="/student/actions/report-issue" className="text-xs text-[hsl(var(--accent))] font-medium hover:underline flex items-center gap-1">
+                Report Issue <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+            {complaints.filter((c) => c.status !== 'CLOSED' && c.status !== 'RESOLVED').length === 0 ? (
+              <p className="text-sm text-[hsl(var(--muted-foreground))] p-3 rounded-xl bg-[hsl(var(--muted))]/30 text-center">No active complaints</p>
+            ) : (
+              complaints.filter((c) => c.status !== 'CLOSED' && c.status !== 'RESOLVED').map((c) => (
+                <motion.div key={c._id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} whileHover={{ x: 2 }} transition={spring}>
+                  <Link to={`/student/status/complaint/${c._id}`} className="block border border-[hsl(var(--border))] rounded-xl p-3 bg-[hsl(var(--card))] hover:shadow-sm transition-shadow">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-sm text-[hsl(var(--foreground))]">{c.category.replace(/_/g, ' ')}</span>
+                      <div className="flex gap-1.5">
+                        <StatusBadge variant={COMPLAINT_STATUS[c.status] ?? 'neutral'}>{c.status.replace(/_/g, ' ')}</StatusBadge>
+                        <StatusBadge variant={PRIORITY_VARIANT[c.priority] ?? 'neutral'}>{c.priority}</StatusBadge>
+                      </div>
+                    </div>
+                    <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 truncate">{c.description}</p>
+                    <div className="flex items-center gap-3 mt-1 text-xs text-[hsl(var(--muted-foreground))]">
+                      <SLABadge dueAt={c.dueAt} />
+                      {getComplaintHint(c.status) && <span className="text-indigo-500 dark:text-indigo-400">{getComplaintHint(c.status)}</span>}
+                    </div>
+                  </Link>
+                </motion.div>
+              ))
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Expanded section: Pending Leaves ────────────────────── */}
+      <AnimatePresence>
+        {expandedSection === 'pending-leaves' && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden space-y-2"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-[hsl(var(--foreground))]">Pending Leaves ({activeLeaves})</h3>
+              <Link to="/student/actions/request-leave" className="text-xs text-[hsl(var(--accent))] font-medium hover:underline flex items-center gap-1">
+                New Leave <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+            {leaves.filter((l) => l.status === 'PENDING' || l.status === 'SCANNED_OUT').length === 0 ? (
+              <p className="text-sm text-[hsl(var(--muted-foreground))] p-3 rounded-xl bg-[hsl(var(--muted))]/30 text-center">No pending leaves</p>
+            ) : (
+              leaves.filter((l) => l.status === 'PENDING' || l.status === 'SCANNED_OUT').map((leave) => {
+                const hint = getLeaveHint(leave.status);
+                return (
+                  <motion.div key={leave._id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={spring}
+                    className="border border-[hsl(var(--border))] rounded-xl p-3 bg-[hsl(var(--card))]"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium text-sm text-[hsl(var(--foreground))]">{leave.type === 'DAY_OUTING' ? 'Day Outing' : 'Overnight'}</span>
+                      <StatusBadge variant={LEAVE_STATUS[leave.status] ?? 'neutral'}>{leave.status.replace(/_/g, ' ')}</StatusBadge>
+                    </div>
+                    <p className="text-xs text-[hsl(var(--muted-foreground))]">{formatDate(leave.startDate)} — {formatDate(leave.endDate)}</p>
+                    <p className="text-xs text-[hsl(var(--muted-foreground))] mt-0.5 truncate">{leave.reason}</p>
+                    {hint && <p className="text-xs text-indigo-500 dark:text-indigo-400 mt-1">{hint.text}{hint.link && <Link to={hint.link.to} className="ml-1 underline">{hint.link.label}</Link>}</p>}
+                  </motion.div>
+                );
+              })
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Expanded section: Approved Leaves ───────────────────── */}
+      <AnimatePresence>
+        {expandedSection === 'approved-leaves' && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden space-y-2"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-[hsl(var(--foreground))]">Approved Leaves ({approvedLeaves})</h3>
+            </div>
+            {leaves.filter((l) => l.status === 'APPROVED' || l.status === 'COMPLETED').length === 0 ? (
+              <p className="text-sm text-[hsl(var(--muted-foreground))] p-3 rounded-xl bg-[hsl(var(--muted))]/30 text-center">No approved leaves</p>
+            ) : (
+              leaves.filter((l) => l.status === 'APPROVED' || l.status === 'COMPLETED').map((leave) => {
+                const hint = getLeaveHint(leave.status);
+                return (
+                  <motion.div key={leave._id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={spring}
+                    className="border border-[hsl(var(--border))] rounded-xl p-3 bg-[hsl(var(--card))]"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium text-sm text-[hsl(var(--foreground))]">{leave.type === 'DAY_OUTING' ? 'Day Outing' : 'Overnight'}</span>
+                      <StatusBadge variant={LEAVE_STATUS[leave.status] ?? 'neutral'}>{leave.status.replace(/_/g, ' ')}</StatusBadge>
+                    </div>
+                    <p className="text-xs text-[hsl(var(--muted-foreground))]">{formatDate(leave.startDate)} — {formatDate(leave.endDate)}</p>
+                    <p className="text-xs text-[hsl(var(--muted-foreground))] mt-0.5 truncate">{leave.reason}</p>
+                    {hint && <p className="text-xs text-indigo-500 dark:text-indigo-400 mt-1">{hint.text}{hint.link && <Link to={hint.link.to} className="ml-1 underline">{hint.link.label}</Link>}</p>}
+                  </motion.div>
+                );
+              })
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Quick Actions ─────────────────────────────────────── */}
       <section>
@@ -370,7 +525,7 @@ export default function StatusPage() {
                 >
                   <Link
                     to={action.to}
-                    className="block p-4 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] hover:border-indigo-500/30 hover:shadow-md transition-all"
+                    className="block p-4 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] hover:border-indigo-500/30 hover:shadow-md transition-all card-shine"
                   >
                     <motion.div
                       className={`w-11 h-11 rounded-xl flex items-center justify-center mb-3 ${action.color}`}
@@ -436,6 +591,11 @@ export default function StatusPage() {
         )}
       </AnimatePresence>
 
+      {/* ── Attendance Heatmap ─────────────────────────────────── */}
+      <Reveal delay={0.1}>
+        <AttendanceHeatmap />
+      </Reveal>
+
       {/* ── Recent Notices ────────────────────────────────────── */}
       {notices.length > 0 && (
         <section className="space-y-3">
@@ -451,14 +611,14 @@ export default function StatusPage() {
               return (
                 <StaggerItem key={n._id}>
                   <motion.div
-                    className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-1.5 hover:shadow-sm transition-shadow"
+                    className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-1.5 hover:shadow-sm transition-shadow glass-card"
                     whileHover={{ x: 2 }}
                     transition={spring}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <p className="font-semibold text-sm text-[hsl(var(--foreground))]">{n.title}</p>
                       {isHighPriority && (
-                        <StatusBadge variant="warning">High Priority</StatusBadge>
+                        <span className="breathe-glow"><StatusBadge variant="warning">High Priority</StatusBadge></span>
                       )}
                     </div>
                     <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">{n.content}</p>
@@ -480,20 +640,6 @@ export default function StatusPage() {
         <Reveal>
           <h2 id="leaves" className="text-lg font-bold text-[hsl(var(--foreground))]">My Leaves</h2>
         </Reveal>
-
-        {activeLeave && (
-          <Reveal delay={0.05}>
-            <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} transition={spring}>
-              <Link
-                to="/student/actions/show-qr"
-                className="block p-4 bg-green-50 border border-green-200 dark:bg-green-950/20 dark:border-green-800/40 rounded-xl text-center"
-              >
-                <p className="text-green-800 dark:text-green-200 font-semibold">You have an active pass</p>
-                <p className="text-green-600 dark:text-green-400 text-sm mt-1">Tap to show QR code</p>
-              </Link>
-            </motion.div>
-          </Reveal>
-        )}
 
         {leaves.length === 0 ? (
           <EmptyState

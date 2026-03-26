@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
 import { showError, showSuccess } from '@/utils/toast';
-import { AnimatePresence, motion } from '@components/ui/motion';
+import { AnimatePresence, motion } from 'motion/react';
+import { Reveal } from '@/components/motion';
 import PageHeader from '@components/ui/PageHeader';
 import StatusBadge from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';
@@ -53,7 +54,7 @@ function SLABadge({ dueAt }: { dueAt: string }) {
       <motion.span
         animate={{ opacity: [0.7, 1, 0.7] }}
         transition={{ duration: 2, repeat: Infinity }}
-        className="text-xs font-medium text-red-700 bg-red-100 dark:bg-red-900/30 dark:text-red-300 px-2 py-0.5 rounded-full"
+        className="text-xs font-medium text-red-700 bg-red-100 dark:bg-red-900/30 dark:text-red-300 px-2 py-0.5 rounded-full breathe-glow"
       >
         Overdue {overdue}h
       </motion.span>
@@ -75,8 +76,10 @@ export default function TasksPage() {
 
   const fetchTasks = useCallback(async () => {
     try {
-      const res = await apiFetch<{ complaints: TaskItem[] }>('/complaints/my-tasks');
-      setTasks(res.data.complaints);
+      const res = await apiFetch('/complaints/my-tasks');
+      const data = res.data as Record<string, unknown>;
+      const list = Array.isArray(data) ? data : Array.isArray(data?.complaints) ? data.complaints : [];
+      setTasks(list as TaskItem[]);
     } catch (err) {
       showError(err, 'Failed to load tasks');
     } finally {
@@ -134,10 +137,11 @@ export default function TasksPage() {
         animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
         transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
       >
-        <PageHeader title="My Tasks" description="Assigned complaints sorted by urgency." />
+        <PageHeader title={<span className="gradient-heading">My Tasks</span>} description="Assigned complaints sorted by urgency." />
       </motion.div>
 
       {/* Stats */}
+      <Reveal>
       <div className="grid grid-cols-3 gap-2.5">
         {[
           { label: 'Assigned', value: assignedCount, icon: Clock, bg: 'bg-blue-100 dark:bg-blue-950/40', text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-200 dark:border-blue-800/40', cardBg: 'bg-blue-50/50 dark:bg-blue-950/20' },
@@ -151,7 +155,7 @@ export default function TasksPage() {
               initial={{ opacity: 0, y: 16, scale: 0.95, filter: 'blur(6px)' }}
               animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
               transition={{ duration: 0.4, delay: 0.08 * i }}
-              className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border ${stat.border} ${stat.cardBg}`}
+              className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border card-shine ${stat.border} ${stat.cardBg}`}
             >
               <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${stat.bg} ${stat.text}`}>
                 <Icon className="w-4.5 h-4.5" />
@@ -164,6 +168,7 @@ export default function TasksPage() {
           );
         })}
       </div>
+      </Reveal>
 
       {loading ? (
         <PageSkeleton />
@@ -172,6 +177,7 @@ export default function TasksPage() {
           <EmptyState variant="compact" title="No tasks assigned" description="You're all caught up!" />
         </motion.div>
       ) : (
+        <Reveal>
         <div className="space-y-3">
           {tasks.map((t, i) => (
             <motion.div
@@ -183,7 +189,7 @@ export default function TasksPage() {
               <motion.div
                 whileHover={{ y: -2, scale: 1.012 }}
                 transition={spring}
-                className={`p-4 rounded-2xl border space-y-3 transition-shadow hover:shadow-md ${
+                className={`p-4 rounded-2xl border space-y-3 transition-shadow hover:shadow-md card-shine magnetic-hover ${
                   t.priority === 'CRITICAL'
                     ? 'border-red-300 bg-red-50/30 dark:border-red-800 dark:bg-red-950/20'
                     : 'border-[hsl(var(--border))] bg-[hsl(var(--card))] card-glow'
@@ -307,6 +313,7 @@ export default function TasksPage() {
             </motion.div>
           ))}
         </div>
+        </Reveal>
       )}
     </div>
   );

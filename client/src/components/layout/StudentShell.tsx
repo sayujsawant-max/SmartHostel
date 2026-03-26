@@ -3,7 +3,8 @@ import { useAuth } from '@hooks/useAuth';
 import NotificationBell from '@components/NotificationBell';
 import ThemeToggle from '@components/ThemeToggle';
 import SosButton from '@components/SosButton';
-import { motion, PageTransition } from '@components/ui/motion';
+import { motion } from '@components/ui/motion';
+import { pageTransition } from '@/utils/motion';
 import { Home, Zap, UtensilsCrossed, Shirt, HelpCircle, LogOut, User } from 'lucide-react';
 
 const tabs = [
@@ -82,9 +83,9 @@ export default function StudentShell() {
 
       {/* Main content with page transition */}
       <main className="flex-1 overflow-y-auto p-4 pb-24">
-        <PageTransition>
+        <motion.div key={location.pathname} {...pageTransition}>
           <Outlet />
-        </PageTransition>
+        </motion.div>
       </main>
 
       <SosButton />

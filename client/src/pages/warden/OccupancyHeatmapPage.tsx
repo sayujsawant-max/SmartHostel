@@ -73,8 +73,9 @@ export default function OccupancyHeatmapPage() {
   useEffect(() => {
     async function fetchRooms() {
       try {
-        const res = await apiFetch('/admin/rooms');
-        const data = Array.isArray(res) ? res : res.rooms ?? res.data ?? [];
+        const res = await apiFetch<{ rooms: Room[] }>('/admin/occupancy/rooms');
+        const raw = res.data;
+        const data = Array.isArray(raw) ? raw : (raw as any)?.rooms ?? [];
         setRooms(data);
       } catch (err: any) {
         showError(err?.message ?? 'Failed to load room data');
@@ -137,11 +138,10 @@ export default function OccupancyHeatmapPage() {
     {
       label: 'Vacancy Rate',
       value: vacancyRate,
-      suffix: '%',
-      decimals: 1,
       icon: TrendingDown,
       color: 'text-emerald-600 dark:text-emerald-400',
       bg: 'bg-emerald-100 dark:bg-emerald-950/40',
+      suffix: '%',
     },
   ];
 
@@ -150,6 +150,7 @@ export default function OccupancyHeatmapPage() {
       <PageHeader
         title="Occupancy Heatmap"
         subtitle="Live room occupancy overview across all blocks"
+        className="gradient-heading"
       />
 
       {/* Summary Stats */}
@@ -158,7 +159,7 @@ export default function OccupancyHeatmapPage() {
           <StaggerItem key={card.label}>
             <Reveal>
               <motion.div
-                className="card-glow relative overflow-hidden rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5"
+                className="card-glow card-shine relative overflow-hidden rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5"
                 whileHover={{ y: -2 }}
                 transition={spring}
               >
@@ -173,8 +174,7 @@ export default function OccupancyHeatmapPage() {
                 </div>
                 <div className="text-2xl font-bold text-[hsl(var(--foreground))]">
                   <AnimatedCounter
-                    value={card.value}
-                    decimals={card.decimals ?? 0}
+                    to={Math.round(card.value)}
                   />
                   {card.suffix ?? ''}
                 </div>
@@ -325,7 +325,7 @@ export default function OccupancyHeatmapPage() {
 
       {/* Color Legend */}
       <Reveal>
-        <div className="card-glow rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4">
+        <div className="card-glow glass-card rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4">
           <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
             Occupancy Legend
           </p>

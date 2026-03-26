@@ -3,7 +3,8 @@ import { apiFetch } from '@services/api';
 import { showError, showSuccess } from '@/utils/toast';
 import { motion, AnimatePresence } from '@components/ui/motion';
 import { AnimatedCounter } from '@/components/motion/AnimatedCounter';
-import PageHeader from '@components/ui/PageHeader';
+import { Reveal } from '@/components/motion';
+
 import StatusBadge from '@components/ui/StatusBadge';
 import Spinner from '@components/ui/Spinner';
 import EmptyState from '@components/EmptyState';
@@ -103,7 +104,7 @@ export default function NoticesPage() {
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600/10 via-[hsl(var(--card))] to-indigo-600/10 border border-[hsl(var(--border))] p-6"
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600/10 via-[hsl(var(--card))] to-indigo-600/10 border border-[hsl(var(--border))] p-6 morph-gradient"
       >
         <div className="absolute top-4 right-4 opacity-10">
           <motion.div
@@ -124,7 +125,7 @@ export default function NoticesPage() {
                 <Bell className="w-6 h-6 text-violet-600 dark:text-violet-400" />
               </motion.div>
               <div>
-                <h1 className="text-2xl font-bold text-[hsl(var(--foreground))]">Notices</h1>
+                <h1 className="text-2xl font-bold text-[hsl(var(--foreground))] gradient-heading">Notices</h1>
                 <p className="text-sm text-[hsl(var(--muted-foreground))]">Broadcast notices to students</p>
               </div>
             </div>
@@ -160,7 +161,7 @@ export default function NoticesPage() {
               <motion.div
                 whileHover={{ y: -3, scale: 1.02 }}
                 transition={spring}
-                className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:shadow-md transition-shadow card-glow"
+                className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:shadow-md transition-shadow card-glow card-shine"
               >
                 <div className="flex items-start justify-between">
                   <div>
@@ -279,6 +280,7 @@ export default function NoticesPage() {
           <EmptyState title="No notices published yet" description="Create your first notice to broadcast to students." />
         </motion.div>
       ) : (
+        <Reveal>
         <div className="space-y-3">
           {notices.map((n, i) => (
             <motion.div
@@ -290,7 +292,7 @@ export default function NoticesPage() {
               <motion.div
                 whileHover={{ y: -2, scale: 1.005 }}
                 transition={spring}
-                className={`card-glow p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:shadow-md hover:border-[hsl(var(--accent))]/40 transition-all ${!n.isActive ? 'opacity-50' : ''}`}
+                className={`card-glow card-shine p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-2 hover:shadow-md hover:border-[hsl(var(--accent))]/40 transition-all ${!n.isActive ? 'opacity-50' : ''}`}
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-start gap-3">
@@ -335,6 +337,7 @@ export default function NoticesPage() {
             </motion.div>
           ))}
         </div>
+        </Reveal>
       )}
     </div>
   );

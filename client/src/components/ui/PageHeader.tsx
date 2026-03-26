@@ -1,9 +1,13 @@
 import type { ReactNode } from 'react';
 
-interface PageHeaderProps {
-  title: string;
+export interface PageHeaderProps {
+  title: ReactNode;
   /** Subtitle / description line below the title */
   description?: string;
+  /** Alias for description */
+  subtitle?: string;
+  /** Optional icon rendered before the title */
+  icon?: ReactNode;
   /** Right-aligned action slot (button, link, filter, etc.) */
   action?: ReactNode;
   className?: string;
@@ -27,18 +31,22 @@ interface PageHeaderProps {
 export default function PageHeader({
   title,
   description,
+  subtitle,
+  icon,
   action,
   className = '',
 }: PageHeaderProps) {
+  const desc = description ?? subtitle;
   return (
     <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 ${className}`}>
       <div>
-        <h2 className="text-2xl font-bold text-[hsl(var(--foreground))] tracking-tight">
+        <h2 className="text-2xl font-bold text-[hsl(var(--foreground))] tracking-tight flex items-center gap-2">
+          {icon && <span className="shrink-0">{icon}</span>}
           {title}
         </h2>
-        {description && (
+        {desc && (
           <p className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">
-            {description}
+            {desc}
           </p>
         )}
       </div>

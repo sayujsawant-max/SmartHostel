@@ -4,6 +4,7 @@ import { apiFetch } from '@services/api';
 import { showError } from '@/utils/toast';
 import { motion, AnimatePresence } from '@components/ui/motion';
 import { AnimatedCounter } from '@/components/motion/AnimatedCounter';
+import { Reveal } from '@/components/motion';
 import PageHeader from '@components/ui/PageHeader';
 import StatCard from '@components/ui/StatCard';
 import StatusBadge from '@components/ui/StatusBadge';
@@ -16,22 +17,17 @@ import {
   Building2,
   TriangleAlert,
   ShieldAlert,
-  Eye,
   CheckCircle2,
-  XCircle,
-  Clock,
   Activity,
   RefreshCw,
   BarChart3,
   CreditCard,
   BedDouble,
-  Download,
 } from 'lucide-react';
 import { usePageTitle } from '@hooks/usePageTitle';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  AreaChart, Area,
 } from 'recharts';
 
 const spring = { type: 'spring' as const, stiffness: 400, damping: 25 };
@@ -210,6 +206,7 @@ export default function DashboardPage() {
         <PageHeader
           title="Warden Dashboard"
           description="Manage your hostel operations"
+          className="gradient-heading"
         />
       </motion.div>
 
@@ -266,7 +263,7 @@ export default function DashboardPage() {
                 <motion.div
                   whileHover={{ y: -3, scale: 1.02 }}
                   transition={spring}
-                  className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:shadow-md transition-shadow card-glow"
+                  className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:shadow-md transition-shadow card-glow card-shine"
                 >
                   <div className="flex items-start justify-between">
                     <div>
@@ -310,7 +307,7 @@ export default function DashboardPage() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="rounded-2xl border-2 border-red-500 bg-red-50 dark:bg-red-950/20 p-4"
+            className="rounded-2xl border-2 border-red-500 bg-red-50 dark:bg-red-950/20 p-4 breathe-glow"
           >
             <style>{`
               @keyframes sosBorderPulse {
@@ -518,11 +515,12 @@ export default function DashboardPage() {
       )}
 
       {/* Overrides Pending Review */}
+      <Reveal>
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.4 }}
-        className="bg-[hsl(var(--card))] rounded-2xl border border-[hsl(var(--border))] p-4"
+        className="bg-[hsl(var(--card))] rounded-2xl border border-[hsl(var(--border))] p-4 glass-card"
       >
         <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3 flex items-center gap-2">
           <ShieldAlert className="w-5 h-5 text-orange-500" />
@@ -585,6 +583,7 @@ export default function DashboardPage() {
           </div>
         )}
       </motion.div>
+      </Reveal>
 
       {/* ===== Analytics Section ===== */}
       {analytics && (
@@ -686,11 +685,12 @@ export default function DashboardPage() {
           </div>
 
           {/* Occupancy by Block */}
+          <Reveal>
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.7 }}
-            className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]"
+            className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] glass-card"
           >
             <h4 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3 flex items-center gap-2">
               <BedDouble className="w-4 h-4 text-indigo-500" />
@@ -720,6 +720,7 @@ export default function DashboardPage() {
               ))}
             </div>
           </motion.div>
+          </Reveal>
 
           {/* Complaints by Status (Pie) + Category (Bar) — Interactive Recharts */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -899,11 +900,12 @@ export default function DashboardPage() {
       )}
 
       {/* ===== Live Activity Feed ===== */}
+      <Reveal>
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.95 }}
-        className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]"
+        className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] glass-card"
       >
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] flex items-center gap-2">
@@ -951,6 +953,7 @@ export default function DashboardPage() {
           </div>
         )}
       </motion.div>
+      </Reveal>
     </div>
   );
 }

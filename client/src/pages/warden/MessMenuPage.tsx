@@ -3,6 +3,7 @@ import { apiFetch } from '@services/api';
 import { showError } from '@/utils/toast';
 import { motion, AnimatePresence } from '@components/ui/motion';
 import { AnimatedCounter } from '@/components/motion/AnimatedCounter';
+import { Reveal } from '@/components/motion';
 import PageHeader from '@components/ui/PageHeader';
 import { PageSkeleton } from '@components/Skeleton';
 import { usePageTitle } from '@hooks/usePageTitle';
@@ -130,7 +131,7 @@ export default function MessMenuPage() {
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-600/10 via-[hsl(var(--card))] to-orange-600/10 border border-[hsl(var(--border))] p-6"
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-600/10 via-[hsl(var(--card))] to-orange-600/10 border border-[hsl(var(--border))] p-6 morph-gradient"
       >
         <div className="absolute top-4 right-4 opacity-10">
           <motion.div
@@ -149,7 +150,7 @@ export default function MessMenuPage() {
             <UtensilsCrossed className="w-6 h-6 text-amber-600 dark:text-amber-400" />
           </motion.div>
           <div>
-            <h1 className="text-2xl font-bold text-[hsl(var(--foreground))]">Mess Menu Management</h1>
+            <h1 className="text-2xl font-bold text-[hsl(var(--foreground))] gradient-heading">Mess Menu Management</h1>
             <p className="text-sm text-[hsl(var(--muted-foreground))]">Update the weekly mess menu for all hostels</p>
           </div>
         </div>
@@ -172,7 +173,7 @@ export default function MessMenuPage() {
               <motion.div
                 whileHover={{ y: -3, scale: 1.02 }}
                 transition={spring}
-                className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:shadow-md transition-shadow card-glow"
+                className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:shadow-md transition-shadow card-glow card-shine"
               >
                 <div className="flex items-start justify-between">
                   <div>
@@ -229,6 +230,7 @@ export default function MessMenuPage() {
       </motion.div>
 
       {/* Active Day Content */}
+      <Reveal>
       <AnimatePresence mode="wait">
         <motion.div
           key={activeDay}
@@ -236,7 +238,7 @@ export default function MessMenuPage() {
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           exit={{ opacity: 0, y: -8, filter: 'blur(2px)' }}
           transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="card-glow p-5 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-4 shadow-sm"
+          className="card-glow card-shine p-5 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-4 shadow-sm"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -320,6 +322,7 @@ export default function MessMenuPage() {
           </AnimatePresence>
         </motion.div>
       </AnimatePresence>
+      </Reveal>
     </div>
   );
 }

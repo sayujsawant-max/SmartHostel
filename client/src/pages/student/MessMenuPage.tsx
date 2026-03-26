@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
 import { showError } from '@/utils/toast';
 import { motion, AnimatePresence } from '@components/ui/motion';
+import { Reveal } from '@/components/motion/Reveal';
+import { ShimmerText } from '@/components/motion/ShimmerText';
+import { FloatingElement } from '@/components/motion/FloatingElement';
 import PageHeader from '@components/ui/PageHeader';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
@@ -151,16 +154,18 @@ export default function MessMenuPage() {
       {/* Today's Menu */}
       {todayMenu && (
         <section>
-          <motion.div
-            initial={{ opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-          >
-            <PageHeader
-              title={`Today's Menu — ${DAY_NAMES[today]}`}
-              description="Rate each meal to share your feedback."
-            />
-          </motion.div>
+          <Reveal>
+            <motion.div
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+            >
+              <PageHeader
+                title={<ShimmerText variant="heading">{`Today's Menu — ${DAY_NAMES[today]}`}</ShimmerText>}
+                description="Rate each meal to share your feedback."
+              />
+            </motion.div>
+          </Reveal>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
             {MEALS.map((meal, i) => {
@@ -185,7 +190,7 @@ export default function MessMenuPage() {
                     whileHover={{ y: -3, scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
                     transition={spring}
-                    className="group p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:shadow-md hover:border-transparent transition-shadow duration-200 space-y-3 card-glow"
+                    className="group p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:shadow-md hover:border-transparent transition-shadow duration-200 space-y-3 card-glow card-shine magnetic-hover"
                   >
                     {/* Header */}
                     <div className="flex items-center justify-between">
@@ -276,10 +281,14 @@ export default function MessMenuPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
       >
-        <h2 className="text-xl font-bold text-[hsl(var(--foreground))] mb-3 flex items-center gap-2">
-          <UtensilsCrossed className="w-5 h-5 text-indigo-500" />
-          Weekly Menu
-        </h2>
+        <Reveal>
+          <h2 className="text-xl font-bold text-[hsl(var(--foreground))] mb-3 flex items-center gap-2">
+            <FloatingElement amplitude={4} duration={3} className="inline-flex">
+              <UtensilsCrossed className="w-5 h-5 text-indigo-500" />
+            </FloatingElement>
+            <ShimmerText variant="heading">Weekly Menu</ShimmerText>
+          </h2>
+        </Reveal>
 
         {/* Day tabs */}
         <div className="flex gap-1.5 overflow-x-auto pb-2 mb-4 scrollbar-none">
@@ -308,7 +317,7 @@ export default function MessMenuPage() {
               )}
               {name.slice(0, 3)}
               {i === today && selectedDay !== i && (
-                <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-indigo-500 breathe-glow" />
               )}
             </motion.button>
           ))}
@@ -341,7 +350,7 @@ export default function MessMenuPage() {
                     <motion.div
                       whileHover={{ x: 3, scale: 1.005 }}
                       transition={spring}
-                      className="flex items-center justify-between p-3.5 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:shadow-sm transition-shadow duration-200"
+                      className="flex items-center justify-between p-3.5 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:shadow-sm transition-shadow duration-200 glass-card"
                     >
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${colors.bg} ${colors.text}`}>

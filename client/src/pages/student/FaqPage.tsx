@@ -4,6 +4,8 @@ import Fuse from 'fuse.js';
 import { apiFetch } from '@services/api';
 import { showError } from '@/utils/toast';
 import { motion, AnimatePresence } from '@components/ui/motion';
+import { Reveal } from '@/components/motion/Reveal';
+import { ShimmerText } from '@/components/motion/ShimmerText';
 import PageHeader from '@components/ui/PageHeader';
 import Accordion, { type AccordionItem } from '@components/ui/Accordion';
 import EmptyState from '@components/EmptyState';
@@ -162,7 +164,7 @@ export default function FaqPage() {
         transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
       >
         <PageHeader
-          title="Frequently Asked Questions"
+          title={<ShimmerText variant="heading">Frequently Asked Questions</ShimmerText>}
           description="Find answers to common questions about hostel services"
         />
       </motion.div>
@@ -172,7 +174,7 @@ export default function FaqPage() {
         initial={{ opacity: 0, y: 12, filter: 'blur(6px)' }}
         animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        className={`relative rounded-2xl border bg-[hsl(var(--card))] transition-all duration-200 card-glow ${
+        className={`relative rounded-2xl border bg-[hsl(var(--card))] transition-all duration-200 card-glow card-shine ${
           searchFocused
             ? 'border-indigo-400 ring-2 ring-indigo-400/20 shadow-sm dark:border-indigo-500 dark:ring-indigo-500/20'
             : 'border-[hsl(var(--border))]'
@@ -215,6 +217,7 @@ export default function FaqPage() {
 
       {/* Category Summary Cards */}
       {!query.trim() && categories.length > 0 && (
+        <Reveal>
         <div className="grid grid-cols-3 gap-2.5">
           {categories.map(([category, items], i) => {
             const style = getCategoryStyle(category);
@@ -228,7 +231,7 @@ export default function FaqPage() {
                 whileHover={{ y: -3, scale: 1.03 }}
                 whileTap={{ scale: 0.96 }}
                 onClick={() => scrollToCategory(category)}
-                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border ${style.border} ${style.cardBg} transition-shadow duration-200 hover:shadow-md`}
+                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border ${style.border} ${style.cardBg} transition-shadow duration-200 hover:shadow-md card-shine magnetic-hover`}
               >
                 <motion.div
                   className={`w-10 h-10 rounded-xl flex items-center justify-center ${style.bg} ${style.text}`}
@@ -247,6 +250,7 @@ export default function FaqPage() {
             );
           })}
         </div>
+        </Reveal>
       )}
 
       {/* FAQ Content */}
@@ -312,7 +316,7 @@ export default function FaqPage() {
                   <motion.div
                     whileHover={{ x: 3 }}
                     transition={spring}
-                    className={`flex items-center gap-3 p-3.5 rounded-2xl border ${style.border} ${style.headerBg}`}
+                    className={`flex items-center gap-3 p-3.5 rounded-2xl border ${style.border} ${style.headerBg} glass-card`}
                   >
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${style.bg} ${style.text}`}>
                       <Icon className="w-5 h-5" />

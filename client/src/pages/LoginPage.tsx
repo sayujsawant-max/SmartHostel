@@ -169,7 +169,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Heading */}
           <motion.div variants={itemVariants}>
-            <h1 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] tracking-tight">
+            <h1 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] tracking-tight gradient-heading">
               Welcome back
             </h1>
             <p className="mt-2 text-[hsl(var(--muted-foreground))] text-sm">
@@ -189,9 +189,9 @@ export default function LoginPage() {
                     key={role.key}
                     type="button"
                     onClick={() => setSelectedRole(role.key)}
-                    className={`relative flex flex-col items-center gap-2 rounded-xl border-2 px-4 py-4 transition-colors ${
+                    className={`relative flex flex-col items-center gap-2 rounded-xl border-2 px-4 py-4 transition-colors card-shine ${
                       isSelected
-                        ? 'border-[hsl(var(--accent))] bg-[hsl(var(--accent))]/5'
+                        ? 'border-[hsl(var(--accent))] bg-[hsl(var(--accent))]/5 breathe-glow'
                         : 'border-[hsl(var(--border))] bg-[hsl(var(--background))] hover:border-[hsl(var(--accent))]/40'
                     }`}
                     whileHover={{ scale: 1.03, y: -2 }}
@@ -323,7 +323,7 @@ export default function LoginPage() {
               <motion.button
                 type="submit"
                 disabled={isSubmitting || isLocked}
-                className="group w-full min-h-[48px] rounded-xl bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-all shadow-lg shadow-[hsl(var(--accent))]/20"
+                className="group w-full min-h-[48px] rounded-xl bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-all shadow-lg shadow-[hsl(var(--accent))]/20 magnetic-hover"
                 whileHover={{ scale: 1.02, y: -1 }}
                 whileTap={{ scale: 0.98 }}
                 transition={spring}
@@ -438,9 +438,9 @@ export default function LoginPage() {
             variants={rightItem}
             className="mt-12 rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-black/30"
           >
-            <div className="aspect-[16/10] bg-gradient-to-br from-indigo-900/50 to-purple-900/50 flex items-center justify-center">
+            <div className="aspect-[16/10] bg-gradient-to-br from-indigo-900/50 to-purple-900/50 morph-gradient flex items-center justify-center">
               <div className="text-center">
-                <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-sm mx-auto mb-3 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-sm mx-auto mb-3 flex items-center justify-center breathe-glow">
                   <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
                   </svg>

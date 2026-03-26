@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
 import { showError, showSuccess } from '@/utils/toast';
 import { motion } from '@components/ui/motion';
+import { Reveal } from '@/components/motion';
 import PageHeader from '@components/ui/PageHeader';
 import StatusBadge from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';
@@ -231,7 +232,7 @@ export default function LaundryBookingPage() {
         transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
       >
         <PageHeader
-          title="Laundry Booking"
+          title={<span className="gradient-heading">Laundry Booking</span>}
           description="Reserve your preferred washing machine slot"
         />
       </motion.div>
@@ -246,7 +247,7 @@ export default function LaundryBookingPage() {
               initial={{ opacity: 0, y: 16, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.4, delay: 0.08 * i, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className={`flex items-center gap-2.5 p-3 rounded-xl border ${stat.border} ${stat.cardBg}`}
+              className={`flex items-center gap-2.5 p-3 rounded-xl border card-shine ${stat.border} ${stat.cardBg}`}
             >
               <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${stat.bg} ${stat.text}`}>
                 <Icon className="w-4.5 h-4.5" />
@@ -522,7 +523,7 @@ export default function LaundryBookingPage() {
                     <motion.div
                       whileHover={{ x: 3, scale: 1.005 }}
                       transition={spring}
-                      className="flex items-center justify-between p-3.5 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:shadow-sm transition-shadow duration-200"
+                      className="flex items-center justify-between p-3.5 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:shadow-sm transition-shadow duration-200 card-shine"
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-lg bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center shrink-0">

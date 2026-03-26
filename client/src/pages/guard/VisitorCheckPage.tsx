@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
 import { showError, showSuccess } from '@/utils/toast';
 import { motion, AnimatePresence } from '@components/ui/motion';
+import { Reveal } from '@/components/motion';
 import PageHeader from '@components/ui/PageHeader';
 import StatusBadge from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';
@@ -101,12 +102,13 @@ export default function VisitorCheckPage() {
         transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
       >
         <PageHeader
-          title="Visitor Check-In/Out"
+          title={<span className="gradient-heading">Visitor Check-In/Out</span>}
           description="Manage today's approved visitors at the gate."
         />
       </motion.div>
 
       {/* Stats */}
+      <Reveal>
       <div className="grid grid-cols-2 gap-3">
         {[
           { label: 'Awaiting Check-In', value: approvedCount, icon: Users, bg: 'bg-blue-100 dark:bg-blue-950/40', text: 'text-blue-600 dark:text-blue-400', cardBg: 'bg-blue-50/50 dark:bg-blue-950/20', border: 'border-blue-200 dark:border-blue-800/40' },
@@ -119,7 +121,7 @@ export default function VisitorCheckPage() {
               initial={{ opacity: 0, y: 16, scale: 0.95, filter: 'blur(6px)' }}
               animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
               transition={{ duration: 0.4, delay: 0.08 * i }}
-              className={`flex items-center gap-3 p-3.5 rounded-2xl border ${stat.border} ${stat.cardBg}`}
+              className={`flex items-center gap-3 p-3.5 rounded-2xl border card-shine ${stat.border} ${stat.cardBg}`}
             >
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${stat.bg} ${stat.text}`}>
                 <Icon className="w-5 h-5" />
@@ -132,6 +134,7 @@ export default function VisitorCheckPage() {
           );
         })}
       </div>
+      </Reveal>
 
       {loading ? (
         <PageSkeleton />
@@ -140,6 +143,7 @@ export default function VisitorCheckPage() {
           <EmptyState variant="compact" title="No approved visitors for today" description="Approved visitors will appear here." />
         </motion.div>
       ) : (
+        <Reveal>
         <div className="space-y-3">
           <AnimatePresence>
             {visitors.map((v, i) => (
@@ -154,7 +158,7 @@ export default function VisitorCheckPage() {
                 <motion.div
                   whileHover={{ y: -2, scale: 1.012 }}
                   transition={spring}
-                  className={`p-4 rounded-2xl border space-y-3 transition-shadow hover:shadow-md ${
+                  className={`p-4 rounded-2xl border space-y-3 transition-shadow hover:shadow-md card-shine magnetic-hover ${
                     v.status === 'CHECKED_IN'
                       ? 'bg-emerald-50/30 border-emerald-200 dark:bg-emerald-950/10 dark:border-emerald-800/40'
                       : 'bg-[hsl(var(--card))] border-[hsl(var(--border))] card-glow'
@@ -244,6 +248,7 @@ export default function VisitorCheckPage() {
             ))}
           </AnimatePresence>
         </div>
+        </Reveal>
       )}
     </div>
   );

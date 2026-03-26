@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { apiFetch } from '@services/api';
 import { showError, showSuccess } from '@/utils/toast';
 import { Reveal } from '@/components/motion/Reveal';
-import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
-import { motion, AnimatePresence } from 'motion/react';
+import { ShimmerText } from '@/components/motion/ShimmerText';
+import { FloatingElement } from '@/components/motion/FloatingElement';
+import { motion } from 'motion/react';
 import PageHeader from '@components/ui/PageHeader';
 import StatusBadge from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
-import { FileText, Upload, Download, Eye, Trash2, File, Image, FileSpreadsheet, Clock } from 'lucide-react';
+import { FileText, Upload, Download, Eye, Trash2, File, FileSpreadsheet, Clock } from 'lucide-react';
 import { usePageTitle } from '@hooks/usePageTitle';
 
 interface Document {
@@ -52,7 +53,7 @@ export default function DocumentsPage() {
 
   useEffect(() => {
     apiFetch<Document[]>('/assistant/documents')
-      .then(res => setDocs(res.data))
+      .then(res => setDocs(Array.isArray(res.data) ? res.data : []))
       .catch(err => showError(err, 'Failed to load documents'))
       .finally(() => setLoading(false));
   }, []);
@@ -68,7 +69,7 @@ export default function DocumentsPage() {
       await apiFetch('/assistant/documents', { method: 'POST', body: formData });
       showSuccess('Document uploaded!');
       const res = await apiFetch<Document[]>('/assistant/documents');
-      setDocs(res.data);
+      setDocs(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       showError(err, 'Failed to upload document');
     } finally {
@@ -95,7 +96,7 @@ export default function DocumentsPage() {
     <div className="space-y-5">
       <Reveal>
         <div className="flex items-center justify-between">
-          <PageHeader title="Documents" description="Manage your uploaded documents and certificates" />
+          <PageHeader title={<ShimmerText variant="heading">Documents</ShimmerText>} description="Manage your uploaded documents and certificates" />
           <label className="cursor-pointer">
             <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} transition={spring} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] text-xs font-semibold shadow-sm">
               {uploading ? (
@@ -111,6 +112,7 @@ export default function DocumentsPage() {
       </Reveal>
 
       {/* Category Filter */}
+      <Reveal delay={0.05}>
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex gap-2">
         {['', 'ID_PROOF', 'FEE_RECEIPT', 'MEDICAL', 'OTHER'].map(cat => (
           <motion.button key={cat} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} transition={spring} onClick={() => setFilterCategory(cat)}
@@ -120,6 +122,7 @@ export default function DocumentsPage() {
           </motion.button>
         ))}
       </motion.div>
+      </Reveal>
 
       {/* Document List */}
       {filtered.length === 0 ? (
@@ -131,11 +134,11 @@ export default function DocumentsPage() {
             const Icon = catInfo.icon;
             return (
               <motion.div key={doc._id} initial={{ opacity: 0, y: 10, scale: 0.98, filter: 'blur(6px)' }} animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }} transition={{ delay: i * 0.04, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}>
-                <motion.div whileHover={{ y: -2, scale: 1.005 }} transition={spring} className="card-glow accent-line p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:border-[hsl(var(--accent))]/25 hover:shadow-sm transition-all duration-200">
+                <motion.div whileHover={{ y: -2, scale: 1.005 }} transition={spring} className="card-glow accent-line card-shine magnetic-hover p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:border-[hsl(var(--accent))]/25 hover:shadow-sm transition-all duration-200">
                   <div className="flex items-start gap-3">
-                    <div className={`w-10 h-10 rounded-xl ${catInfo.bg} flex items-center justify-center shrink-0`}>
+                    <FloatingElement amplitude={3} duration={5} className={`w-10 h-10 rounded-xl ${catInfo.bg} flex items-center justify-center shrink-0`}>
                       <Icon size={16} className={catInfo.color} />
-                    </div>
+                    </FloatingElement>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div>

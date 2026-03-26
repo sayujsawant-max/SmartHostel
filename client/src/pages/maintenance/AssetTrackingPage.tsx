@@ -32,14 +32,7 @@ import {
 
 const spring = { type: 'spring' as const, stiffness: 400, damping: 28 };
 
-type AssetStatus = 'HEALTHY' | 'NEEDS_REPAIR' | 'UNDER_REPAIR' | 'DECOMMISSIONED';
-
-interface HistoryEntry {
-  date: string;
-  action: string;
-  technician: string;
-  notes: string;
-}
+type AssetStatus = 'WORKING' | 'NEEDS_REPAIR' | 'UNDER_REPAIR' | 'DECOMMISSIONED';
 
 interface Asset {
   _id: string;
@@ -47,25 +40,32 @@ interface Asset {
   assetTag: string;
   category: string;
   location: { block: string; floor: string; room: string };
-  serialNumber: string;
   status: AssetStatus;
-  lastInspected: string;
-  history: HistoryEntry[];
+  lastMaintenanceDate: string | null;
 }
 
-const CATEGORIES = ['Furniture', 'Electrical', 'Plumbing', 'HVAC', 'IT Equipment', 'Other'] as const;
+const CATEGORIES = ['FURNITURE', 'ELECTRICAL', 'PLUMBING', 'HVAC', 'IT_EQUIPMENT', 'OTHER'] as const;
+
+const categoryLabels: Record<string, string> = {
+  FURNITURE: 'Furniture',
+  ELECTRICAL: 'Electrical',
+  PLUMBING: 'Plumbing',
+  HVAC: 'HVAC',
+  IT_EQUIPMENT: 'IT Equipment',
+  OTHER: 'Other',
+};
 
 const categoryIcons: Record<string, React.ReactNode> = {
-  Furniture: <Armchair className="h-4 w-4" />,
-  Electrical: <Zap className="h-4 w-4" />,
-  Plumbing: <Droplets className="h-4 w-4" />,
+  FURNITURE: <Armchair className="h-4 w-4" />,
+  ELECTRICAL: <Zap className="h-4 w-4" />,
+  PLUMBING: <Droplets className="h-4 w-4" />,
   HVAC: <Wind className="h-4 w-4" />,
-  'IT Equipment': <Monitor className="h-4 w-4" />,
-  Other: <Package className="h-4 w-4" />,
+  IT_EQUIPMENT: <Monitor className="h-4 w-4" />,
+  OTHER: <Package className="h-4 w-4" />,
 };
 
 const statusConfig: Record<AssetStatus, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
-  HEALTHY: {
+  WORKING: {
     label: 'Healthy',
     color: 'text-emerald-600 dark:text-emerald-400',
     bg: 'bg-emerald-100 dark:bg-emerald-900/40',
@@ -101,24 +101,22 @@ export default function AssetTrackingPage() {
   const [showScanner, setShowScanner] = useState(false);
   const [expandedAsset, setExpandedAsset] = useState<string | null>(null);
   const [qrOverlay, setQrOverlay] = useState<string | null>(null);
-  const [issueForm, setIssueForm] = useState<string | null>(null);
-  const [issueText, setIssueText] = useState('');
-  const [submittingIssue, setSubmittingIssue] = useState(false);
 
   const [newAsset, setNewAsset] = useState({
     name: '',
-    category: 'Furniture',
+    category: 'FURNITURE',
     block: '',
     floor: '',
     room: '',
-    serialNumber: '',
   });
   const [submitting, setSubmitting] = useState(false);
 
   const fetchAssets = useCallback(async () => {
     try {
-      const res = await apiFetch('/maintenance/assets');
-      setAssets(res.data ?? res);
+      const res = await apiFetch<Asset[] | { assets: Asset[] }>('/assets');
+      const d = res.data;
+      const list = Array.isArray(d) ? d : d?.assets ?? [];
+      setAssets(list);
     } catch {
       showError('Failed to load assets');
     } finally {
@@ -137,45 +135,25 @@ export default function AssetTrackingPage() {
     }
     setSubmitting(true);
     try {
-      await apiFetch('/maintenance/assets', {
+      const assetTag = 'AST-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+      await apiFetch('/assets', {
         method: 'POST',
         body: JSON.stringify({
           name: newAsset.name,
+          assetTag,
           category: newAsset.category,
-          location: { block: newAsset.block, floor: newAsset.floor, room: newAsset.room },
-          serialNumber: newAsset.serialNumber,
+          location: `${newAsset.block}-${newAsset.floor}-${newAsset.room}`,
+          status: 'WORKING',
         }),
       });
       showSuccess('Asset added successfully');
       setShowAddForm(false);
-      setNewAsset({ name: '', category: 'Furniture', block: '', floor: '', room: '', serialNumber: '' });
+      setNewAsset({ name: '', category: 'FURNITURE', block: '', floor: '', room: '' });
       fetchAssets();
     } catch {
       showError('Failed to add asset');
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleLogIssue = async (assetId: string) => {
-    if (!issueText.trim()) {
-      showError('Please describe the issue');
-      return;
-    }
-    setSubmittingIssue(true);
-    try {
-      await apiFetch(`/maintenance/assets/${assetId}/issue`, {
-        method: 'POST',
-        body: JSON.stringify({ description: issueText }),
-      });
-      showSuccess('Issue logged successfully');
-      setIssueForm(null);
-      setIssueText('');
-      fetchAssets();
-    } catch {
-      showError('Failed to log issue');
-    } finally {
-      setSubmittingIssue(false);
     }
   };
 
@@ -189,7 +167,7 @@ export default function AssetTrackingPage() {
 
   const counts = {
     total: assets.length,
-    healthy: assets.filter((a) => a.status === 'HEALTHY').length,
+    healthy: assets.filter((a) => a.status === 'WORKING').length,
     needsRepair: assets.filter((a) => a.status === 'NEEDS_REPAIR').length,
     decommissioned: assets.filter((a) => a.status === 'DECOMMISSIONED').length,
   };
@@ -198,10 +176,12 @@ export default function AssetTrackingPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-4 md:p-6">
+      <Reveal>
       <PageHeader
-        title="Asset Tracking"
+        title={<span className="gradient-heading">Asset Tracking</span>}
         subtitle="QR-based asset management and maintenance tracking"
       />
+      </Reveal>
 
       {/* Summary Cards */}
       <Reveal>
@@ -214,7 +194,7 @@ export default function AssetTrackingPage() {
           ].map((card) => (
             <motion.div
               key={card.label}
-              className="relative overflow-hidden rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 card-glow"
+              className="relative overflow-hidden rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 card-glow card-shine"
               whileHover={{ y: -2 }}
               transition={spring}
             >
@@ -264,7 +244,7 @@ export default function AssetTrackingPage() {
             transition={spring}
             className="overflow-hidden"
           >
-            <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6">
+            <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 glass-card">
               <div className="mx-auto flex max-w-xs flex-col items-center gap-4">
                 <div className="relative flex h-56 w-56 items-center justify-center rounded-2xl bg-black/90 dark:bg-black">
                   {/* Corner brackets */}
@@ -309,7 +289,7 @@ export default function AssetTrackingPage() {
             transition={spring}
             className="overflow-hidden"
           >
-            <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5">
+            <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 glass-card">
               <h3 className="mb-4 text-lg font-semibold text-[hsl(var(--foreground))]">Add New Asset</h3>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
@@ -333,22 +313,10 @@ export default function AssetTrackingPage() {
                   >
                     {CATEGORIES.map((c) => (
                       <option key={c} value={c}>
-                        {c}
+                        {categoryLabels[c] ?? c}
                       </option>
                     ))}
                   </select>
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">
-                    Serial Number
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2.5 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
-                    placeholder="e.g., SN-20240012"
-                    value={newAsset.serialNumber}
-                    onChange={(e) => setNewAsset((p) => ({ ...p, serialNumber: e.target.value }))}
-                  />
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">Block *</label>
@@ -448,7 +416,7 @@ export default function AssetTrackingPage() {
                 onClick={() => setCategoryFilter(categoryFilter === cat ? null : cat)}
               >
                 {categoryIcons[cat]}
-                {cat}
+                {categoryLabels[cat] ?? cat}
               </motion.button>
             ))}
           </div>
@@ -472,7 +440,7 @@ export default function AssetTrackingPage() {
               <StaggerItem key={asset._id}>
                 <motion.div
                   layout
-                  className="relative overflow-hidden rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 card-glow accent-line"
+                  className="relative overflow-hidden rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 card-glow accent-line card-shine magnetic-hover"
                   whileHover={{ y: -1 }}
                   transition={spring}
                 >
@@ -503,7 +471,7 @@ export default function AssetTrackingPage() {
                         </span>
                         <span className="flex items-center gap-1 text-xs text-[hsl(var(--muted-foreground))]">
                           <Clock className="h-3 w-3" />
-                          Inspected {asset.lastInspected ? new Date(asset.lastInspected).toLocaleDateString() : 'N/A'}
+                          Last maintained {asset.lastMaintenanceDate ? new Date(asset.lastMaintenanceDate).toLocaleDateString() : 'N/A'}
                         </span>
                       </div>
                     </div>
@@ -517,19 +485,6 @@ export default function AssetTrackingPage() {
                         title="Show QR Code"
                       >
                         <QrCode className="h-4 w-4" />
-                      </motion.button>
-                      <motion.button
-                        className="flex h-8 items-center gap-1 rounded-lg border border-amber-300 bg-amber-50 px-2 text-xs font-medium text-amber-700 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        transition={spring}
-                        onClick={() => {
-                          setIssueForm(issueForm === asset._id ? null : asset._id);
-                          setIssueText('');
-                        }}
-                      >
-                        <AlertTriangle className="h-3 w-3" />
-                        Log Issue
                       </motion.button>
                       <motion.button
                         className="flex h-8 w-8 items-center justify-center rounded-lg text-[hsl(var(--muted-foreground))]"
@@ -576,54 +531,7 @@ export default function AssetTrackingPage() {
                     )}
                   </AnimatePresence>
 
-                  {/* Log Issue Form */}
-                  <AnimatePresence>
-                    {issueForm === asset._id && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={spring}
-                        className="overflow-hidden"
-                      >
-                        <div className="mt-3 space-y-2 rounded-xl border border-amber-200 bg-amber-50/50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
-                          <textarea
-                            className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
-                            rows={2}
-                            placeholder="Describe the issue..."
-                            value={issueText}
-                            onChange={(e) => setIssueText(e.target.value)}
-                          />
-                          <div className="flex justify-end gap-2">
-                            <motion.button
-                              className="rounded-xl px-3 py-1.5 text-xs font-medium text-[hsl(var(--muted-foreground))]"
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              transition={spring}
-                              onClick={() => {
-                                setIssueForm(null);
-                                setIssueText('');
-                              }}
-                            >
-                              Cancel
-                            </motion.button>
-                            <motion.button
-                              className="rounded-xl bg-amber-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50 dark:bg-amber-700"
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              transition={spring}
-                              disabled={submittingIssue}
-                              onClick={() => handleLogIssue(asset._id)}
-                            >
-                              {submittingIssue ? 'Submitting...' : 'Submit Issue'}
-                            </motion.button>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* Expanded History */}
+                  {/* Expanded Details */}
                   <AnimatePresence>
                     {expandedAsset === asset._id && (
                       <motion.div
@@ -635,40 +543,32 @@ export default function AssetTrackingPage() {
                       >
                         <div className="mt-4 border-t border-[hsl(var(--border))] pt-3">
                           <h5 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
-                            Maintenance History
+                            Asset Details
                           </h5>
-                          {(!asset.history || asset.history.length === 0) ? (
-                            <p className="text-xs text-[hsl(var(--muted-foreground))]">No history records</p>
-                          ) : (
-                            <div className="relative space-y-3 pl-4">
-                              <div className="absolute bottom-2 left-[5px] top-2 w-px bg-[hsl(var(--border))]" />
-                              {asset.history.map((entry, i) => (
-                                <motion.div
-                                  key={i}
-                                  initial={{ opacity: 0, x: -10 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{ ...spring, delay: i * 0.05 }}
-                                  className="relative"
-                                >
-                                  <div className="absolute -left-4 top-1.5 h-2.5 w-2.5 rounded-full border-2 border-[hsl(var(--primary))] bg-[hsl(var(--card))]" />
-                                  <div className="rounded-lg bg-[hsl(var(--muted))] p-2.5">
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-xs font-semibold text-[hsl(var(--foreground))]">
-                                        {entry.action}
-                                      </span>
-                                      <span className="text-xs text-[hsl(var(--muted-foreground))]">
-                                        {new Date(entry.date).toLocaleDateString()}
-                                      </span>
-                                    </div>
-                                    <p className="mt-0.5 text-xs text-[hsl(var(--muted-foreground))]">
-                                      {entry.technician}
-                                      {entry.notes ? ` - ${entry.notes}` : ''}
-                                    </p>
-                                  </div>
-                                </motion.div>
-                              ))}
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            <div className="rounded-lg bg-[hsl(var(--muted))] p-2.5">
+                              <span className="text-xs text-[hsl(var(--muted-foreground))]">Category</span>
+                              <p className="text-sm font-medium text-[hsl(var(--foreground))]">{categoryLabels[asset.category] ?? asset.category}</p>
                             </div>
-                          )}
+                            <div className="rounded-lg bg-[hsl(var(--muted))] p-2.5">
+                              <span className="text-xs text-[hsl(var(--muted-foreground))]">Location</span>
+                              <p className="text-sm font-medium text-[hsl(var(--foreground))]">
+                                {asset.location.block}-{asset.location.floor}-{asset.location.room}
+                              </p>
+                            </div>
+                            <div className="rounded-lg bg-[hsl(var(--muted))] p-2.5">
+                              <span className="text-xs text-[hsl(var(--muted-foreground))]">Status</span>
+                              <p className="text-sm font-medium text-[hsl(var(--foreground))]">
+                                {statusConfig[asset.status].label}
+                              </p>
+                            </div>
+                            <div className="rounded-lg bg-[hsl(var(--muted))] p-2.5">
+                              <span className="text-xs text-[hsl(var(--muted-foreground))]">Last Maintenance</span>
+                              <p className="text-sm font-medium text-[hsl(var(--foreground))]">
+                                {asset.lastMaintenanceDate ? new Date(asset.lastMaintenanceDate).toLocaleDateString() : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       </motion.div>
                     )}

@@ -3,7 +3,8 @@ import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@hooks/useAuth';
 import NotificationBell from '@components/NotificationBell';
 import ThemeToggle from '@components/ThemeToggle';
-import { motion, AnimatePresence, PageTransition } from '@components/ui/motion';
+import { motion, AnimatePresence } from '@components/ui/motion';
+import { pageTransition } from '@/utils/motion';
 import {
   LayoutDashboard,
   Users,
@@ -173,6 +174,7 @@ function SidebarContent({ onLogout }: { onLogout: () => void }) {
 export default function WardenShell() {
   const { logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
 
   const handleLogout = () => void logout();
 
@@ -246,9 +248,9 @@ export default function WardenShell() {
         </motion.header>
 
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-          <PageTransition>
+          <motion.div key={location.pathname} {...pageTransition}>
             <Outlet />
-          </PageTransition>
+          </motion.div>
         </main>
       </div>
     </div>

@@ -179,3 +179,52 @@ export const staggerItemBlur: { hidden: Variant; visible: Variant } = {
     transition: { duration: duration.normal, ease: ease.out },
   },
 };
+
+/* ─── Page transition (route changes) ──────────────────────────── */
+
+export const pageTransition = {
+  initial: { opacity: 0, y: 16, filter: 'blur(6px)' },
+  animate: { opacity: 1, y: 0, filter: 'blur(0px)' },
+  transition: { duration: duration.normal, ease: ease.out },
+};
+
+/* ─── Elastic entrance (cards, modals) ─────────────────────────── */
+
+export const elasticEntrance = {
+  hidden: { opacity: 0, scale: 0.85, filter: 'blur(4px)' },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    filter: 'blur(0px)',
+    transition: { type: 'spring' as const, stiffness: 300, damping: 20 },
+  },
+};
+
+/* ─── Slide variants ───────────────────────────────────────────── */
+
+export const slideFromRight = {
+  hidden: { opacity: 0, x: 40, filter: 'blur(4px)' },
+  visible: {
+    opacity: 1,
+    x: 0,
+    filter: 'blur(0px)',
+    transition: { duration: duration.normal, ease: ease.out },
+  },
+};
+
+export const slideFromLeft = {
+  hidden: { opacity: 0, x: -40, filter: 'blur(4px)' },
+  visible: {
+    opacity: 1,
+    x: 0,
+    filter: 'blur(0px)',
+    transition: { duration: duration.normal, ease: ease.out },
+  },
+};
+
+/* ─── Pulse scale (notifications, badges) ──────────────────────── */
+
+export const pulseScale = {
+  animate: { scale: [1, 1.05, 1] },
+  transition: { duration: 2, repeat: Infinity, ease: 'easeInOut' as const },
+};

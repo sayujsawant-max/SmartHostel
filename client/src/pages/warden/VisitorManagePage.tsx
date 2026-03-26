@@ -3,7 +3,8 @@ import { apiFetch } from '@services/api';
 import { showError, showSuccess } from '@/utils/toast';
 import { motion, AnimatePresence } from '@components/ui/motion';
 import { AnimatedCounter } from '@/components/motion/AnimatedCounter';
-import PageHeader from '@components/ui/PageHeader';
+import { Reveal } from '@/components/motion';
+
 import StatusBadge, { type StatusVariant } from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
@@ -125,7 +126,7 @@ export default function VisitorManagePage() {
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-teal-600/10 via-[hsl(var(--card))] to-cyan-600/10 border border-[hsl(var(--border))] p-6"
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-teal-600/10 via-[hsl(var(--card))] to-cyan-600/10 border border-[hsl(var(--border))] p-6 morph-gradient"
       >
         <div className="absolute top-4 right-4 opacity-10">
           <motion.div
@@ -144,7 +145,7 @@ export default function VisitorManagePage() {
             <Shield className="w-6 h-6 text-teal-600 dark:text-teal-400" />
           </motion.div>
           <div>
-            <h1 className="text-2xl font-bold text-[hsl(var(--foreground))]">Visitor Management</h1>
+            <h1 className="text-2xl font-bold text-[hsl(var(--foreground))] gradient-heading">Visitor Management</h1>
             <p className="text-sm text-[hsl(var(--muted-foreground))]">Review and manage visitor registrations</p>
           </div>
         </div>
@@ -168,7 +169,7 @@ export default function VisitorManagePage() {
               <motion.div
                 whileHover={{ y: -3, scale: 1.02 }}
                 transition={spring}
-                className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:shadow-md transition-shadow card-glow"
+                className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:shadow-md transition-shadow card-glow card-shine"
               >
                 <div className="flex items-start justify-between">
                   <div>
@@ -230,6 +231,7 @@ export default function VisitorManagePage() {
           <EmptyState variant="compact" title="No visitors found" description="No visitor registrations match the current filter." />
         </motion.div>
       ) : (
+        <Reveal>
         <div className="space-y-3">
           {visitors.map((v, i) => (
             <motion.div
@@ -241,7 +243,7 @@ export default function VisitorManagePage() {
               <motion.div
                 whileHover={{ y: -2, scale: 1.005 }}
                 transition={spring}
-                className="card-glow p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-3 hover:shadow-md hover:border-[hsl(var(--accent))]/40 transition-all"
+                className="card-glow card-shine p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] space-y-3 hover:shadow-md hover:border-[hsl(var(--accent))]/40 transition-all"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-start gap-3">
@@ -393,6 +395,7 @@ export default function VisitorManagePage() {
             </motion.div>
           ))}
         </div>
+        </Reveal>
       )}
     </div>
   );

@@ -3,7 +3,8 @@ import { apiFetch } from '@services/api';
 import { showError, showSuccess } from '@/utils/toast';
 import { motion, AnimatePresence } from '@components/ui/motion';
 import { AnimatedCounter } from '@/components/motion/AnimatedCounter';
-import PageHeader from '@components/ui/PageHeader';
+import { Reveal } from '@/components/motion';
+
 import StatusBadge from '@components/ui/StatusBadge';
 import ErrorBanner from '@components/ui/ErrorBanner';
 import EmptyState from '@components/EmptyState';
@@ -138,7 +139,7 @@ export default function UsersManagePage() {
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600/10 via-[hsl(var(--card))] to-violet-600/10 border border-[hsl(var(--border))] p-6"
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600/10 via-[hsl(var(--card))] to-violet-600/10 border border-[hsl(var(--border))] p-6 morph-gradient"
       >
         <div className="absolute top-4 right-4 opacity-10">
           <motion.div
@@ -158,7 +159,7 @@ export default function UsersManagePage() {
               <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </motion.div>
             <div>
-              <h1 className="text-2xl font-bold text-[hsl(var(--foreground))]">User Management</h1>
+              <h1 className="text-2xl font-bold text-[hsl(var(--foreground))] gradient-heading">User Management</h1>
               <p className="text-sm text-[hsl(var(--muted-foreground))]">Create and manage hostel users</p>
             </div>
           </div>
@@ -199,7 +200,7 @@ export default function UsersManagePage() {
               <motion.div
                 whileHover={{ y: -3, scale: 1.02 }}
                 transition={spring}
-                className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:shadow-md transition-shadow card-glow"
+                className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:shadow-md transition-shadow card-glow card-shine"
               >
                 <div className="flex items-start justify-between">
                   <div>
@@ -399,6 +400,7 @@ export default function UsersManagePage() {
           <EmptyState title="No users found" description={searchQuery ? 'Try adjusting your search query.' : 'Create a new user to get started.'} />
         </motion.div>
       ) : (
+        <Reveal>
         <div className="space-y-2">
           {filteredUsers.map((u, i) => {
             const roleColor = ROLE_COLORS[u.role] ?? { bg: 'bg-gray-100 dark:bg-gray-950/40', text: 'text-gray-600 dark:text-gray-400' };
@@ -412,7 +414,7 @@ export default function UsersManagePage() {
                 <motion.div
                   whileHover={{ y: -2, scale: 1.005 }}
                   transition={spring}
-                  className="card-glow bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-4 flex justify-between items-center hover:shadow-md hover:border-[hsl(var(--accent))]/40 transition-all"
+                  className="card-glow card-shine bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-4 flex justify-between items-center hover:shadow-md hover:border-[hsl(var(--accent))]/40 transition-all"
                 >
                   <div className="flex items-center gap-3">
                     {/* Avatar Initials */}
@@ -473,6 +475,7 @@ export default function UsersManagePage() {
             );
           })}
         </div>
+        </Reveal>
       )}
     </div>
   );
