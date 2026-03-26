@@ -80,7 +80,7 @@ describe('AppError', () => {
     ];
 
     for (const { code, status } of cases) {
-      const err = new AppError(code as any, `Test ${code}`, status);
+      const err = new AppError(code as AppError['code'], `Test ${code}`, status);
       expect(err.code).toBe(code);
       expect(err.statusCode).toBe(status);
     }

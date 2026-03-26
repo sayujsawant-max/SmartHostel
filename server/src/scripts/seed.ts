@@ -556,8 +556,6 @@ async function seedLeaves(): Promise<{ created: number }> {
 
 async function seedGatePasses(): Promise<{ created: number }> {
   const alice = await User.findOne({ email: 'student@smarthostel.dev' });
-  const rahul = await User.findOne({ email: 'rahul@smarthostel.dev' });
-  const arjun = await User.findOne({ email: 'arjun@smarthostel.dev' });
   if (!alice) return { created: 0 };
 
   // Find approved leaves to link gate passes to

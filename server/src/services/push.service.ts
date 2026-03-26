@@ -88,7 +88,8 @@ async function sendToSubscriptions(
       // Remove expired/invalid subscriptions (410 Gone)
       const statusCode = (result.reason as { statusCode?: number })?.statusCode;
       if (statusCode === 410 || statusCode === 404) {
-        await PushSubscription.deleteOne({ _id: subscriptions[i]._id as any });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+await PushSubscription.deleteOne({ _id: subscriptions[i]._id as any });
         logger.info({ endpoint: subscriptions[i].endpoint }, 'Removed stale push subscription');
       } else {
         logger.error({ error: result.reason, endpoint: subscriptions[i].endpoint }, 'Push notification failed');

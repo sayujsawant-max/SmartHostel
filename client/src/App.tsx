@@ -6,21 +6,24 @@ import { useAuth } from '@hooks/useAuth';
 import { getRoleHomePath } from '@utils/role-home';
 import ProtectedRoute from '@components/layout/ProtectedRoute';
 import RoleRoute from '@components/layout/RoleRoute';
-import StudentShell from '@components/layout/StudentShell';
-import WardenShell from '@components/layout/WardenShell';
-import GuardShell from '@components/layout/GuardShell';
-import MaintenanceShell from '@components/layout/MaintenanceShell';
-import Chatbot from '@components/Chatbot';
-import { motion } from 'motion/react';
 import { useSmoothScroll } from '@hooks/useSmoothScroll';
 import ScrollProgress from '@components/ui/ScrollProgress';
-import CommandPalette from '@components/CommandPalette';
-import AccessibilityPanel from '@components/AccessibilityPanel';
 import { OfflineBanner } from '@utils/offline-queue';
 import { I18nProvider } from '@context/I18nContext';
 import PWAInstallPrompt from '@components/PWAInstallPrompt';
 import PushPermissionPrompt from '@components/PushPermissionPrompt';
 import RouteAnnouncer from '@components/RouteAnnouncer';
+
+// Lazy-loaded shell layouts (only needed after auth + role check)
+const StudentShell = lazy(() => import('@components/layout/StudentShell'));
+const WardenShell = lazy(() => import('@components/layout/WardenShell'));
+const GuardShell = lazy(() => import('@components/layout/GuardShell'));
+const MaintenanceShell = lazy(() => import('@components/layout/MaintenanceShell'));
+
+// Lazy-loaded global widgets (not needed for initial render)
+const Chatbot = lazy(() => import('@components/Chatbot'));
+const CommandPalette = lazy(() => import('@components/CommandPalette'));
+const AccessibilityPanel = lazy(() => import('@components/AccessibilityPanel'));
 
 // Lazy-loaded pages (route-level code splitting)
 const LoginPage = lazy(() => import('@pages/LoginPage'));
@@ -92,26 +95,14 @@ const MaintenanceAssetTrackingPage = lazy(() => import('@pages/maintenance/Asset
 function PageSpinner() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))]">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
-        className="flex flex-col items-center gap-3"
-      >
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="w-10 h-10 border-3 border-[hsl(var(--muted))] border-t-[hsl(var(--accent))] rounded-full"
+      <div className="flex flex-col items-center gap-3 animate-[fadeIn_0.3s_ease-out]">
+        <div
+          className="w-10 h-10 border-3 border-[hsl(var(--muted))] border-t-[hsl(var(--accent))] rounded-full animate-spin"
         />
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0.4, 1, 0.4] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-          className="text-sm text-[hsl(var(--muted-foreground))]"
-        >
+        <p className="text-sm text-[hsl(var(--muted-foreground))] animate-pulse">
           Loading...
-        </motion.p>
-      </motion.div>
+        </p>
+      </div>
     </div>
   );
 }
@@ -258,7 +249,7 @@ function AppRoutes() {
       </Routes>
 
       {/* Chatbot - visible only when authenticated */}
-      {isAuthenticated && <Chatbot />}
+      {isAuthenticated && <Suspense fallback={null}><Chatbot /></Suspense>}
     </Suspense>
   );
 }
@@ -271,8 +262,8 @@ function App() {
     <BrowserRouter>
       <OfflineBanner />
       <ScrollProgress />
-      <CommandPalette />
-      <AccessibilityPanel />
+      <Suspense fallback={null}><CommandPalette /></Suspense>
+      <Suspense fallback={null}><AccessibilityPanel /></Suspense>
       <PWAInstallPrompt />
       <PushPermissionPrompt />
       <RouteAnnouncer />

@@ -244,7 +244,8 @@ describe('emergencyAlertController', () => {
       const req = mockRequest({
         params: { id: 'alert-1' },
         body: { resolution: 'Issue fixed' },
-      } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any);
       const res = mockResponse();
 
       await emergencyAlertController.resolveAlert(
@@ -272,7 +273,8 @@ describe('emergencyAlertController', () => {
       const req = mockRequest({
         params: { id: 'alert-1' },
         body: {},
-      } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any);
       const res = mockResponse();
 
       await emergencyAlertController.resolveAlert(
@@ -291,7 +293,8 @@ describe('emergencyAlertController', () => {
       const req = mockRequest({
         params: { id: 'alert-1' },
         body: { resolution: 'x'.repeat(2001) },
-      } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any);
       const res = mockResponse();
 
       await expect(
@@ -310,7 +313,8 @@ describe('emergencyAlertController', () => {
       const req = mockRequest({
         params: { id: 'nonexistent' },
         body: {},
-      } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any);
       const res = mockResponse();
 
       await expect(

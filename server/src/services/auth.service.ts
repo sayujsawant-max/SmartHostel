@@ -5,7 +5,7 @@ import { env } from '@config/env.js';
 import { User } from '@models/user.model.js';
 import { AppError } from '@utils/app-error.js';
 import { logger } from '@utils/logger.js';
-import { sendWelcomeEmail, sendPasswordResetEmail } from './email.service.js';
+import { sendPasswordResetEmail } from './email.service.js';
 
 interface TokenPair {
   accessToken: string;

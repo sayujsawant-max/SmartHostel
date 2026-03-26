@@ -1,5 +1,4 @@
 import { Room } from '@models/room.model.js';
-import { logger } from '@utils/logger.js';
 
 export async function getOccupancyOverview() {
   const stats = await Room.aggregate([

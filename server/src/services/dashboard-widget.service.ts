@@ -13,7 +13,7 @@ export async function getLayout(userId: string) {
     ];
     widgets = (await DashboardWidget.insertMany(
       defaults.map(d => ({ ...d, userId }))
-    )) as any;
+    )) as unknown as typeof widgets;
   }
   return widgets;
 }

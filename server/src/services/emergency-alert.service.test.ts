@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import mongoose from 'mongoose';
 import {
-  EmergencyAlert,
   EmergencyAlertStatus,
   EmergencySeverity,
   EmergencyType,

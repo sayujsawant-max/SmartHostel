@@ -1,4 +1,4 @@
-import { EmergencyAlert, EmergencyAlertStatus, EmergencySeverity } from '@models/emergency-alert.model.js';
+import { EmergencyAlert, EmergencyAlertStatus, EmergencySeverity, type IEmergencyAlert } from '@models/emergency-alert.model.js';
 import { cacheGet, cacheSet, cacheDel } from '@config/cache.js';
 import { AppError } from '@utils/app-error.js';
 import { logger } from '@utils/logger.js';
@@ -91,7 +91,7 @@ export async function resolveAlert(alertId: string, userId: string) {
 }
 
 export async function getActiveAlerts() {
-  const cached = await cacheGet<any[]>('alerts:active');
+  const cached = await cacheGet<IEmergencyAlert[]>('alerts:active');
   if (cached) return cached;
 
   const severityOrder: Record<string, number> = {

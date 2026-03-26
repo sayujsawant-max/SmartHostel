@@ -188,7 +188,7 @@ async function buildUserContext(userId: string): Promise<string> {
 
     if (openComplaints.length) {
       parts.push(`\n--- Open Complaints (${openComplaints.length}) ---\n${openComplaints.map((c) =>
-        `- [${c.status}] ${c.category}${(c as any).priority ? ` (${(c as any).priority})` : ''}: "${c.description?.slice(0, 60)}..." (${new Date(c.createdAt).toLocaleDateString('en-IN')})`
+        `- [${c.status}] ${c.category}${(c as unknown as Record<string, unknown>).priority ? ` (${(c as unknown as Record<string, unknown>).priority})` : ''}: "${c.description?.slice(0, 60)}..." (${new Date(c.createdAt).toLocaleDateString('en-IN')})`
       ).join('\n')}`);
     } else {
       parts.push(`\n--- Open Complaints ---\nNo open complaints.`);
@@ -218,7 +218,7 @@ async function buildUserContext(userId: string): Promise<string> {
 
     if (assignedTasks.length) {
       parts.push(`\n--- Your Assigned Tasks (${assignedTasks.length}) ---\n${assignedTasks.map((t) =>
-        `- [${t.status}] ${t.category}${(t as any).priority ? ` (Priority: ${(t as any).priority})` : ''}: "${t.description?.slice(0, 60)}..." (${new Date(t.createdAt).toLocaleDateString('en-IN')})`
+        `- [${t.status}] ${t.category}${(t as unknown as Record<string, unknown>).priority ? ` (Priority: ${(t as unknown as Record<string, unknown>).priority})` : ''}: "${t.description?.slice(0, 60)}..." (${new Date(t.createdAt).toLocaleDateString('en-IN')})`
       ).join('\n')}`);
     } else {
       parts.push(`\n--- Your Assigned Tasks ---\nNo active tasks assigned.`);

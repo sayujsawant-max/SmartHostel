@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import { WellnessCheck, StressLevel } from '@models/wellness-check.model.js';
-import { AppError } from '@utils/app-error.js';
 import { logger } from '@utils/logger.js';
 
 export async function createCheck(data: {

@@ -29,6 +29,8 @@ export default defineConfig({
           'vendor-motion': ['motion'],
           'vendor-charts': ['recharts'],
           'vendor-ui': ['sonner', 'lucide-react', 'clsx', 'tailwind-merge'],
+          'vendor-forms': ['react-hook-form', '@hookform/resolvers'],
+          'vendor-markdown': ['react-markdown'],
         },
       },
     },

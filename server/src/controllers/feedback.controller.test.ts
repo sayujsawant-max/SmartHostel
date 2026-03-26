@@ -129,7 +129,8 @@ describe('feedbackController', () => {
       (feedbackService.getFeedbacks as ReturnType<typeof vi.fn>).mockResolvedValue(mockFeedbacks);
 
       const req = mockRequest({
-        user: { _id: 'admin-1', role: Role.WARDEN_ADMIN } as any,
+        user: { _id: 'admin-1', role: Role.WARDEN_ADMIN // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any,
         query: {},
       });
       const res = mockResponse();
@@ -149,7 +150,8 @@ describe('feedbackController', () => {
       (feedbackService.getFeedbacks as ReturnType<typeof vi.fn>).mockResolvedValue(mockFeedbacks);
 
       const req = mockRequest({
-        user: { _id: 'student-1', role: Role.STUDENT } as any,
+        user: { _id: 'student-1', role: Role.STUDENT // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any,
         query: { category: 'MESS' },
       });
       const res = mockResponse();
@@ -187,7 +189,8 @@ describe('feedbackController', () => {
 
       const req = mockRequest({
         params: { id: 'fb-123' },
-      } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any);
       const res = mockResponse();
 
       await feedbackController.deleteFeedback(
@@ -214,7 +217,8 @@ describe('feedbackController', () => {
 
       const req = mockRequest({
         params: { id: 'nonexistent' },
-      } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any);
       const res = mockResponse();
 
       await expect(

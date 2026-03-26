@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { AuditEvent, type IAuditEvent } from '@models/audit-event.model.js';
+import { AuditEvent } from '@models/audit-event.model.js';
 
 interface PopulatedActor {
   name: string;
