@@ -96,22 +96,76 @@
     "keywords": ["room", "assignment", "block", "floor", "change"]
   },
   {
-    "question": "Who do I contact for emergency maintenance?",
-    "answer": "For emergencies (electrical hazards, water leaks, etc.), report an issue through the app with the appropriate category. Electrical issues are flagged as CRITICAL priority with a 12-hour SLA. For immediate danger, contact the hostel security desk.",
+    "question": "How do I view my assigned tasks?",
+    "answer": "Open the Tasks page from the sidebar. All complaints assigned to you will appear here sorted by priority. Critical and overdue tasks are highlighted at the top.",
     "category": "maintenance",
-    "keywords": ["emergency", "maintenance", "urgent", "contact", "hazard"]
+    "keywords": ["tasks", "assigned", "view", "maintenance", "complaints"]
   },
   {
-    "question": "How do maintenance staff receive task assignments?",
-    "answer": "Maintenance staff receive notifications when a complaint is assigned to them. Tasks appear in the Tasks section of their dashboard, sorted by priority and SLA deadline. Staff can update task status as they work on issues.",
+    "question": "How do I update a task status?",
+    "answer": "On the Tasks page, click the status button on any task card. You can move it to 'In Progress' when you start working, or 'Resolved' when complete. Add resolution notes when marking as resolved.",
     "category": "maintenance",
-    "keywords": ["maintenance", "task", "assignment", "notification", "staff"]
+    "keywords": ["update", "status", "task", "in progress", "resolved", "complete"]
   },
   {
-    "question": "What happens when an SLA deadline is missed?",
-    "answer": "If a complaint is not resolved within its SLA window, the system automatically escalates it: a reminder is sent to the assigned staff 2 hours before the deadline, and upon breach, the warden is notified and the complaint priority is elevated.",
+    "question": "What happens when a task is overdue?",
+    "answer": "Tasks past their SLA deadline are flagged as overdue with a red indicator. Overdue tasks are automatically escalated to the warden for review. Try to resolve tasks before the deadline.",
     "category": "maintenance",
-    "keywords": ["SLA", "deadline", "missed", "escalation", "breach"]
+    "keywords": ["overdue", "SLA", "deadline", "escalation", "late"]
+  },
+  {
+    "question": "How do I handle emergency maintenance requests?",
+    "answer": "Critical priority tasks should be addressed immediately. These include water leaks, electrical hazards, and safety issues. Contact the warden directly for emergency situations that need immediate attention.",
+    "category": "maintenance",
+    "keywords": ["emergency", "critical", "urgent", "maintenance", "hazard", "safety"]
+  },
+  {
+    "question": "Can I reassign a task to another staff member?",
+    "answer": "Currently, only wardens can reassign tasks. If you cannot handle a task, update its status and add a note explaining why, then inform your warden.",
+    "category": "maintenance",
+    "keywords": ["reassign", "task", "transfer", "another", "staff", "warden"]
+  },
+  {
+    "question": "How do I view my completed task history?",
+    "answer": "Go to the History page from the sidebar. It shows all tasks you've resolved, including resolution notes and completion dates.",
+    "category": "maintenance",
+    "keywords": ["history", "completed", "resolved", "past", "tasks"]
+  },
+  {
+    "question": "How do I check inventory stock levels?",
+    "answer": "Visit the Inventory page to see all items with current quantities. Items are color-coded: green for in-stock, yellow for low-stock, and red for out-of-stock.",
+    "category": "inventory",
+    "keywords": ["inventory", "stock", "levels", "quantity", "check", "supplies"]
+  },
+  {
+    "question": "How do I report low stock or out-of-stock items?",
+    "answer": "The inventory page automatically flags items below minimum stock levels. You can also add new items or update quantities as you restock supplies.",
+    "category": "inventory",
+    "keywords": ["low stock", "out of stock", "report", "restock", "minimum"]
+  },
+  {
+    "question": "Where are maintenance supplies stored?",
+    "answer": "Supplies are organized across multiple locations: Store Room A (plumbing & general), Electrical Store, Janitor Room (cleaning), Store Room B (hardware), Paint Store, and Admin Office (safety equipment).",
+    "category": "inventory",
+    "keywords": ["supplies", "stored", "location", "store room", "where"]
+  },
+  {
+    "question": "How do I track hostel assets?",
+    "answer": "The Asset Tracking page lists all registered assets with their status, location, and last maintenance date. Use the search and filter options to find specific assets.",
+    "category": "assets",
+    "keywords": ["asset", "track", "list", "search", "filter"]
+  },
+  {
+    "question": "How do I report an asset that needs repair?",
+    "answer": "Find the asset on the Asset Tracking page and log a maintenance entry. The warden will be notified and can schedule repairs.",
+    "category": "assets",
+    "keywords": ["asset", "repair", "report", "maintenance", "broken"]
+  },
+  {
+    "question": "What do the asset status labels mean?",
+    "answer": "HEALTHY means the asset is working fine. NEEDS_REPAIR means it has been flagged for repair. UNDER_REPAIR means a technician is working on it. DECOMMISSIONED means the asset has been retired from use.",
+    "category": "assets",
+    "keywords": ["asset", "status", "healthy", "needs repair", "under repair", "decommissioned"]
   },
   {
     "question": "How do I reset my password?",

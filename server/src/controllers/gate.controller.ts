@@ -2,6 +2,8 @@ import type { Request, Response } from 'express';
 import * as gateService from '@services/gate.service.js';
 import * as overrideService from '@services/override.service.js';
 import { AppError } from '@utils/app-error.js';
+import { GateScan } from '@models/gate-scan.model.js';
+import { User } from '@models/user.model.js';
 
 interface ValidateBody {
   qrToken?: string;
@@ -85,6 +87,21 @@ export async function reviewOverride(req: Request<{ id: string }>, res: Response
   res.json({ success: true, data: result });
 }
 
+export async function getMyScans(req: Request, res: Response) {
+  const { GateScan } = await import('@models/gate-scan.model.js');
+  const scans = await GateScan.find({ studentId: req.user!._id })
+    .sort({ createdAt: -1 })
+    .limit(500)
+    .select('createdAt verdict directionUsed')
+    .lean();
+
+  res.json({
+    success: true,
+    data: { scans },
+    correlationId: req.correlationId,
+  });
+}
+
 interface ReconcileBody {
   scanAttemptId: string;
   qrToken?: string;
@@ -93,6 +110,77 @@ interface ReconcileBody {
   directionOverride?: 'ENTRY' | 'EXIT';
   offlineStatus: 'OFFLINE_OVERRIDE' | 'OFFLINE_DENY_LOGGED';
   reason?: string;
+}
+
+export async function analytics(_req: Request, res: Response) {
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  // Aggregate today's scans
+  const todayScans = await GateScan.find({ createdAt: { $gte: startOfDay } }).lean();
+
+  const totalScans = todayScans.length;
+  const allowCount = todayScans.filter((s) => s.verdict === 'ALLOW').length;
+  const denyCount = todayScans.filter((s) => s.verdict === 'DENY').length;
+  const offlineScans = todayScans.filter((s) => s.offlineStatus != null).length;
+  const avgLatencyMs = totalScans > 0
+    ? Math.round(todayScans.reduce((sum, s) => sum + (s.latencyMs || 0), 0) / totalScans)
+    : 0;
+
+  // Hourly distribution
+  const hourlyMap = new Map<number, { entry: number; exit: number }>();
+  for (let h = 0; h < 24; h++) hourlyMap.set(h, { entry: 0, exit: 0 });
+  for (const s of todayScans) {
+    const hour = new Date(s.createdAt).getHours();
+    const bucket = hourlyMap.get(hour)!;
+    if (s.directionUsed === 'ENTRY') bucket.entry++;
+    else if (s.directionUsed === 'EXIT') bucket.exit++;
+  }
+  const hourlyDistribution = Array.from(hourlyMap.entries()).map(([hour, counts]) => ({
+    hour,
+    ...counts,
+  }));
+
+  // Peak hour
+  let peakHour = 0;
+  let peakTotal = 0;
+  for (const h of hourlyDistribution) {
+    const total = h.entry + h.exit;
+    if (total > peakTotal) { peakTotal = total; peakHour = h.hour; }
+  }
+
+  // Recent denials with student names
+  const denials = todayScans
+    .filter((s) => s.verdict === 'DENY')
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 10);
+
+  const studentIds = [...new Set(denials.filter((d) => d.studentId).map((d) => d.studentId!.toString()))];
+  const students = studentIds.length > 0
+    ? await User.find({ _id: { $in: studentIds } }).select('name').lean()
+    : [];
+  const studentMap = new Map(students.map((s) => [s._id.toString(), s.name]));
+
+  const recentDenials = denials.map((d) => ({
+    studentName: d.studentId ? (studentMap.get(d.studentId.toString()) ?? 'Unknown') : 'Unknown',
+    reason: d.scanResult,
+    time: d.createdAt.toISOString(),
+  }));
+
+  res.json({
+    success: true,
+    data: {
+      totalScans,
+      allowCount,
+      denyCount,
+      avgLatencyMs,
+      hourlyDistribution,
+      recentDenials,
+      peakHour,
+      offlineScans,
+    },
+    correlationId: _req.correlationId,
+  });
 }
 
 export async function reconcile(req: Request, res: Response) {

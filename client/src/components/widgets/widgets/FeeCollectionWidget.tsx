@@ -12,7 +12,7 @@ interface FeeData {
 export default function FeeCollectionWidget() {
   const [data, setData] = useState<FeeData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [error] = useState(false);
 
   useEffect(() => {
     apiFetch<{ fees: FeeData }>('/admin/analytics')

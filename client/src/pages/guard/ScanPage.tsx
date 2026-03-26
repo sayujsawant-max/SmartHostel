@@ -415,17 +415,21 @@ export default function ScanPage() {
           <div className="mt-8 flex flex-col gap-3 w-64">
             <button
               onClick={(e) => { e.stopPropagation(); handleOverrideOpen(); }}
-              className="px-6 py-3 bg-yellow-600 rounded-lg text-lg font-medium"
+              className="px-6 py-3 bg-yellow-600 rounded-lg text-lg font-medium active:bg-yellow-700 transition-colors"
             >
               Override
             </button>
             <button
-              onClick={dismissVerdict}
-              className="px-6 py-3 bg-white/20 rounded-lg text-lg font-medium"
+              onClick={(e) => { e.stopPropagation(); dismissVerdict(); }}
+              className="px-6 py-3 bg-white text-red-700 rounded-lg text-lg font-semibold active:bg-gray-200 transition-colors"
             >
               Dismiss
             </button>
           </div>
+        )}
+        {/* Always show dismiss at bottom for ALLOW verdict */}
+        {isAllow && (
+          <p className="mt-8 text-sm opacity-60">Tap anywhere to dismiss</p>
         )}
         {/* Override bottom sheet */}
         {showOverrideSheet && (

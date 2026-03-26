@@ -205,7 +205,7 @@ export default function SmartRoomMatcher({ onSelectRoom }: Props) {
                     transition={{ delay: i * 0.07, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                   >
                     <motion.div
-                      whileHover={{ y: -2, shadow: '0 8px 30px rgba(0,0,0,0.08)' }}
+                      whileHover={{ y: -2, boxShadow: '0 8px 30px rgba(0,0,0,0.08)' }}
                       transition={spring}
                       className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] hover:border-[hsl(var(--accent))]/30 transition-all duration-200 shadow-sm"
                     >

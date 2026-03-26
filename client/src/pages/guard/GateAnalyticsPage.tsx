@@ -7,8 +7,8 @@ import { AnimatedCounter } from '@/components/motion/AnimatedCounter';
 import { motion } from 'motion/react';
 import PageHeader from '@components/ui/PageHeader';
 import { PageSkeleton } from '@components/Skeleton';
-import { Shield, Users, Clock, TrendingUp, AlertTriangle, CheckCircle2, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, AreaChart, Area } from 'recharts';
+import { Shield, Clock, TrendingUp, AlertTriangle, CheckCircle2, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, AreaChart, Area } from 'recharts';
 import { usePageTitle } from '@hooks/usePageTitle';
 
 interface GateStats {

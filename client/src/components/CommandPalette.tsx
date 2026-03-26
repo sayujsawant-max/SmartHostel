@@ -31,7 +31,7 @@ export default function CommandPalette() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { setTheme } = useTheme();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 

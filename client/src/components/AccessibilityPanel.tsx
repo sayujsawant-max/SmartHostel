@@ -207,8 +207,6 @@ export default function AccessibilityPanel() {
             '0 0 0 8px hsla(var(--primary), 0)',
           ],
         }}
-        // @ts-expect-error motion transition supports repeat
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         style={{}}
       >
         <motion.div

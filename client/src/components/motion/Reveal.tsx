@@ -7,11 +7,14 @@ import {
 
 export type RevealDirection = 'up' | 'down' | 'left' | 'right' | 'none';
 
-interface RevealProps {
+export interface RevealProps {
   children: ReactNode;
   className?: string;
   direction?: RevealDirection;
+  /** Delay in seconds before reveal starts */
   delay?: number;
+  /** Duration override (currently maps to delay for compatibility) */
+  duration?: number;
   once?: boolean;
   as?: 'div' | 'section' | 'span';
 }
@@ -26,9 +29,11 @@ export function Reveal({
   className,
   direction = 'up',
   delay = 0,
+  duration: _duration,
   once = true,
   as = 'div',
 }: RevealProps) {
+  void _duration;
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once, margin: '-60px 0px' });
 

@@ -51,7 +51,7 @@ export function useSocket(event: string, handler: EventHandler) {
   useEffect(() => {
     if (!user) return;
 
-    getSocket(user._id);
+    getSocket(user.id);
 
     if (!listeners.has(event)) {
       listeners.set(event, new Set());

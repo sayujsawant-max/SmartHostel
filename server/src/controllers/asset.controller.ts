@@ -40,11 +40,11 @@ export async function createAsset(req: Request, res: Response) {
 }
 
 export async function listAssets(req: Request, res: Response) {
-  const assets = await assetService.getAssets(req.query);
+  const result = await assetService.getAssets(req.query);
 
   res.json({
     success: true,
-    data: { assets },
+    data: result.assets,
     correlationId: req.correlationId,
   });
 }

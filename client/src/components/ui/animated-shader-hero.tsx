@@ -89,10 +89,12 @@ class ShaderRenderer {
   private fs: WebGLShader | null = null;
   private buffer: WebGLBuffer | null = null;
   private uniforms: Record<string, WebGLUniformLocation | null> = {};
-  private mouseCoords = [0, 0];
+  private mouseCoords: [number, number] = [0, 0];
   private pointerCount = 0;
+  private canvas: HTMLCanvasElement;
 
-  constructor(private canvas: HTMLCanvasElement, private scale: number) {
+  constructor(canvas: HTMLCanvasElement, scale: number) {
+    this.canvas = canvas;
     this.gl = canvas.getContext('webgl2')!;
     this.gl.viewport(0, 0, canvas.width * scale, canvas.height * scale);
   }
@@ -132,7 +134,6 @@ class ShaderRenderer {
   }
 
   updateScale(s: number) {
-    this.scale = s;
     this.gl.viewport(0, 0, this.canvas.width * s, this.canvas.height * s);
   }
 

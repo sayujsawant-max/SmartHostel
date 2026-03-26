@@ -7,10 +7,10 @@ export async function createAsset(data: {
   name: string;
   assetTag: string;
   category: AssetCategory;
-  location: { block: string; floor: string; room: string };
+  location: string | { block: string; floor: string; room: string };
   status?: AssetStatus;
   assignedTo?: string;
-  purchaseDate: Date;
+  purchaseDate?: Date;
   warrantyExpiry?: Date;
   notes?: string;
 }) {
@@ -19,11 +19,20 @@ export async function createAsset(data: {
     throw new AppError('CONFLICT', 'An asset with this tag already exists', 409);
   }
 
+  // Parse location if provided as flat string (e.g. "BlockA-2-201")
+  let location = data.location;
+  if (typeof location === 'string') {
+    const parts = location.split('-');
+    location = { block: parts[0] ?? '', floor: parts[1] ?? '', room: parts.slice(2).join('-') || '' };
+  }
+
   // Auto-generate QR code value
   const qrCode = `ASSET-${data.assetTag}-${randomUUID().slice(0, 8)}`;
 
   const asset = await Asset.create({
     ...data,
+    location,
+    purchaseDate: data.purchaseDate ?? new Date(),
     qrCode,
   });
 

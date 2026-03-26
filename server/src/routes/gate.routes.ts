@@ -32,6 +32,8 @@ router.use(authMiddleware);
  *       403: { description: Forbidden - GUARD only }
  *       429: { description: Rate limit exceeded }
  */
+router.get('/my-scans', requireRole(Role.STUDENT), gateController.getMyScans);
+
 router.post('/validate', requireRole(Role.GUARD), passCodeRateLimiter, gateController.validate);
 
 /**
@@ -74,6 +76,20 @@ router.post('/override', requireRole(Role.GUARD), gateController.override);
  *       401: { description: Unauthorized }
  *       403: { description: Forbidden - WARDEN_ADMIN only }
  */
+/**
+ * @openapi
+ * /gate/analytics:
+ *   get:
+ *     tags: [Gate]
+ *     summary: Get gate scan analytics for today
+ *     security: [{ cookieAuth: [] }]
+ *     responses:
+ *       200: { description: Gate analytics data }
+ *       401: { description: Unauthorized }
+ *       403: { description: Forbidden - GUARD or WARDEN_ADMIN only }
+ */
+router.get('/analytics', requireRole(Role.GUARD, Role.WARDEN_ADMIN), gateController.analytics);
+
 router.get('/overrides', requireRole(Role.WARDEN_ADMIN), gateController.getOverrides);
 
 /**

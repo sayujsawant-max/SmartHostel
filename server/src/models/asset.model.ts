@@ -4,6 +4,7 @@ export enum AssetCategory {
   FURNITURE = 'FURNITURE',
   ELECTRICAL = 'ELECTRICAL',
   PLUMBING = 'PLUMBING',
+  HVAC = 'HVAC',
   IT_EQUIPMENT = 'IT_EQUIPMENT',
   OTHER = 'OTHER',
 }

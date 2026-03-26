@@ -7,7 +7,7 @@ import { AnimatedCounter } from '@/components/motion/AnimatedCounter';
 import { motion } from 'motion/react';
 import PageHeader from '@components/ui/PageHeader';
 import { PageSkeleton } from '@components/Skeleton';
-import { Calendar, Clock, CheckCircle2, XCircle, AlertTriangle, TrendingUp } from 'lucide-react';
+import { Calendar, Clock, CheckCircle2, AlertTriangle, TrendingUp } from 'lucide-react';
 import { usePageTitle } from '@hooks/usePageTitle';
 
 interface LeaveQuota {

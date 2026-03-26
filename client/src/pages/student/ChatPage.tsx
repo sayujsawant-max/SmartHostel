@@ -67,7 +67,7 @@ export default function ChatPage() {
   async function fetchConversations() {
     try {
       setLoading(true);
-      const res = await apiFetch('/assistant/conversations');
+      const res = await apiFetch<Conversation[]>('/assistant/conversations');
       setConversations(res.data ?? []);
     } catch {
       showError('Failed to load conversations');
@@ -79,7 +79,7 @@ export default function ChatPage() {
   async function fetchMessages(conversationId: string) {
     try {
       setMessagesLoading(true);
-      const res = await apiFetch(`/assistant/conversations/${conversationId}/messages`);
+      const res = await apiFetch<Message[]>(`/assistant/conversations/${conversationId}/messages`);
       setMessages(res.data ?? []);
     } catch {
       showError('Failed to load messages');

@@ -9,7 +9,7 @@ import PageHeader from '@components/ui/PageHeader';
 import StatusBadge from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
-import { CreditCard, IndianRupee, CheckCircle2, Clock, AlertTriangle, Zap, Shield, ArrowRight } from 'lucide-react';
+import { CreditCard, IndianRupee, CheckCircle2, AlertTriangle, Zap, Shield, ArrowRight } from 'lucide-react';
 import { usePageTitle } from '@hooks/usePageTitle';
 
 interface PayableFee {

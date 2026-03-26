@@ -4,11 +4,10 @@ import { apiFetch } from '@services/api';
 import { showError } from '@/utils/toast';
 import { Reveal } from '@/components/motion/Reveal';
 import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger';
-import { AnimatedCounter } from '@/components/motion/AnimatedCounter';
 import { motion } from 'motion/react';
 import PageHeader from '@components/ui/PageHeader';
 import { PageSkeleton } from '@components/Skeleton';
-import { Trophy, Medal, Crown, Flame, Star, TrendingUp } from 'lucide-react';
+import { Medal, Crown, Flame, Star } from 'lucide-react';
 
 interface LeaderboardEntry {
   rank: number;

@@ -22,9 +22,9 @@ function sendToAnalytics(metric: Metric) {
 }
 
 export async function reportWebVitals() {
-  const { onCLS, onFID, onLCP, onFCP, onTTFB } = await import('web-vitals');
+  const { onCLS, onINP, onLCP, onFCP, onTTFB } = await import('web-vitals');
   onCLS(sendToAnalytics);
-  onFID(sendToAnalytics);
+  onINP(sendToAnalytics);
   onLCP(sendToAnalytics);
   onFCP(sendToAnalytics);
   onTTFB(sendToAnalytics);

@@ -17,7 +17,6 @@ import {
   Shield,
   Send,
   ChevronDown,
-  ChevronUp,
   Clock,
   CheckCircle2,
   AlertCircle,
@@ -144,8 +143,8 @@ export default function FeedbackPage() {
 
   const fetchMyFeedback = useCallback(async () => {
     try {
-      const res = await apiFetch('/assistant/feedback/my');
-      setMyFeedback(res.data ?? res);
+      const res = await apiFetch<FeedbackItem[]>('/assistant/feedback/my');
+      setMyFeedback(res.data ?? []);
     } catch {
       // silently fail
     }
@@ -153,8 +152,8 @@ export default function FeedbackPage() {
 
   const fetchAverages = useCallback(async () => {
     try {
-      const res = await apiFetch('/assistant/feedback/averages');
-      setAverages(res.data ?? res);
+      const res = await apiFetch<CategoryAverage[]>('/assistant/feedback/averages');
+      setAverages(res.data ?? []);
     } catch {
       // use empty
     }

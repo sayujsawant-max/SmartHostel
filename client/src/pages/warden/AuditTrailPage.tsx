@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import PageHeader from '@components/ui/PageHeader';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
-import { History, User, Shield, Settings, FileText, Search, ChevronDown } from 'lucide-react';
+import { User, Search, ChevronDown } from 'lucide-react';
 import { usePageTitle } from '@hooks/usePageTitle';
 
 interface AuditEvent {

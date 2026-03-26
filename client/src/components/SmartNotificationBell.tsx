@@ -119,9 +119,8 @@ export default function SmartNotificationBell() {
 
   const fetchNotifications = useCallback(async () => {
     try {
-      const res = await apiFetch('/notifications');
-      const data = await res.json();
-      setNotifications(data);
+      const res = await apiFetch<NotificationItem[]>('/notifications');
+      setNotifications(res.data);
     } catch {
       showError('Failed to load notifications');
     }

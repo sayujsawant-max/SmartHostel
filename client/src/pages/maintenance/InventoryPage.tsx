@@ -9,7 +9,7 @@ import PageHeader from '@components/ui/PageHeader';
 import StatusBadge from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
-import { Package, Plus, Search, AlertTriangle, CheckCircle2, Wrench, Archive } from 'lucide-react';
+import { Package, Plus, Search, AlertTriangle, Wrench, Archive } from 'lucide-react';
 import { usePageTitle } from '@hooks/usePageTitle';
 
 interface InventoryItem {

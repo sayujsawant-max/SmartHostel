@@ -30,7 +30,7 @@ export async function createNotice(req: Request, res: Response, next: NextFuncti
 
 export async function getNotices(req: Request, res: Response, next: NextFunction) {
   try {
-    const notices = await noticeService.getNotices();
+    const notices = await noticeService.getNotices(false);
     res.json({ success: true, data: { notices } });
   } catch (err) {
     next(err);

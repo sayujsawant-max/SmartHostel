@@ -5,9 +5,11 @@ import { AppError } from '@utils/app-error.js';
 
 const createAlertSchema = z.object({
   title: z.string().min(1).max(200),
-  message: z.string().min(1).max(5000),
-  severity: z.enum(['low', 'medium', 'high', 'critical']),
-  affectedBlocks: z.array(z.string()).optional(),
+  description: z.string().max(5000).optional().default(''),
+  type: z.string().min(1).max(50),
+  severity: z.string().min(1).max(20),
+  targetScope: z.string().optional().default('ALL'),
+  targetValue: z.string().optional(),
 });
 
 const resolveAlertSchema = z.object({
@@ -24,12 +26,12 @@ export async function createAlert(req: Request, res: Response) {
 
   const alert = await emergencyAlertService.createAlert(
     {
-      type: 'EMERGENCY',
-      severity: parsed.data.severity,
+      type: parsed.data.type.toUpperCase(),
+      severity: parsed.data.severity.toUpperCase(),
       title: parsed.data.title,
-      description: parsed.data.message,
-      targetScope: parsed.data.affectedBlocks?.length ? 'BLOCK' : 'ALL',
-      targetValue: parsed.data.affectedBlocks?.join(','),
+      description: parsed.data.description,
+      targetScope: parsed.data.targetScope.toUpperCase(),
+      targetValue: parsed.data.targetValue,
     },
     req.user!._id,
   );
@@ -42,11 +44,11 @@ export async function createAlert(req: Request, res: Response) {
 }
 
 export async function listAlerts(req: Request, res: Response) {
-  const alerts = await emergencyAlertService.getAlerts(req.query);
+  const result = await emergencyAlertService.getAlerts(req.query);
 
   res.json({
     success: true,
-    data: { alerts },
+    data: result,
     correlationId: req.correlationId,
   });
 }

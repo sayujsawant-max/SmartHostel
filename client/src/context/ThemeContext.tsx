@@ -42,10 +42,6 @@ function resolveTheme(theme: Theme): 'light' | 'dark' {
   }
 }
 
-function applyTheme(theme: Theme) {
-  document.documentElement.classList.toggle('dark', resolveTheme(theme) === 'dark');
-}
-
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(getStoredTheme);
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() => resolveTheme(getStoredTheme()));

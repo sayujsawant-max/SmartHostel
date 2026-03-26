@@ -9,7 +9,7 @@ import PageHeader from '@components/ui/PageHeader';
 import StatusBadge from '@components/ui/StatusBadge';
 import EmptyState from '@components/EmptyState';
 import { PageSkeleton } from '@components/Skeleton';
-import { ClipboardCheck, Plus, Calendar, MapPin, Star, CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
+import { ClipboardCheck, Plus, Calendar, Star, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { usePageTitle } from '@hooks/usePageTitle';
 
 interface Inspection {

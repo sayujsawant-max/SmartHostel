@@ -25,6 +25,11 @@ import { WellnessCheck } from '../models/wellness-check.model.js';
 import { EmergencyAlert } from '../models/emergency-alert.model.js';
 import { Sos } from '../models/sos.model.js';
 import { GateScan } from '../models/gate-scan.model.js';
+import { GatePass } from '../models/gate-pass.model.js';
+import { Inspection } from '../models/inspection.model.js';
+import { AuditEvent } from '../models/audit-event.model.js';
+import { InventoryItem as Inventory } from '../models/inventory.model.js';
+import { RoomChange } from '../models/room-change.model.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -546,6 +551,40 @@ async function seedLeaves(): Promise<{ created: number }> {
 }
 
 // ---------------------------------------------------------------------------
+// Seed Gate Passes (for passcode check-in testing)
+// ---------------------------------------------------------------------------
+
+async function seedGatePasses(): Promise<{ created: number }> {
+  const alice = await User.findOne({ email: 'student@smarthostel.dev' });
+  const rahul = await User.findOne({ email: 'rahul@smarthostel.dev' });
+  const arjun = await User.findOne({ email: 'arjun@smarthostel.dev' });
+  if (!alice) return { created: 0 };
+
+  // Find approved leaves to link gate passes to
+  const approvedLeaves = await Leave.find({ status: 'APPROVED' }).lean();
+  if (approvedLeaves.length === 0) return { created: 0 };
+
+  // Clear existing gate passes for these leaves
+  const leaveIds = approvedLeaves.map((l) => l._id);
+  await GatePass.deleteMany({ leaveId: { $in: leaveIds } });
+
+  const now = new Date();
+  const gatePasses = approvedLeaves.map((leave, i) => ({
+    leaveId: leave._id,
+    studentId: leave.studentId,
+    qrToken: `SEED_QR_TOKEN_${leave._id.toString()}`,
+    passCode: String(100001 + i).slice(0, 6), // 100001, 100002, etc.
+    jti: `seed-jti-${leave._id.toString()}`,
+    status: 'ACTIVE',
+    expiresAt: new Date(now.getTime() + 7 * DAY),
+    lastGateState: 'IN',
+  }));
+
+  await GatePass.insertMany(gatePasses);
+  return { created: gatePasses.length };
+}
+
+// ---------------------------------------------------------------------------
 // Seed Notices
 // ---------------------------------------------------------------------------
 
@@ -755,6 +794,277 @@ async function seedComplaints(): Promise<{ created: number }> {
           },
         ]
       : []),
+
+    // --- Additional complaints assigned to maintenance (ASSIGNED status) ---
+    {
+      studentId: alice._id,
+      category: 'PLUMBING',
+      description: 'Water pressure in Block B 2nd floor shower is very low. Takes forever to rinse off soap.',
+      status: 'ASSIGNED',
+      priority: 'MEDIUM',
+      assigneeId: maintenance._id,
+      dueAt: new Date(now.getTime() + 2 * DAY),
+      createdAt: new Date(now.getTime() - 1 * DAY),
+      updatedAt: new Date(now.getTime() - 12 * HOUR),
+    },
+    ...(rahul
+      ? [
+          {
+            studentId: rahul._id,
+            category: 'ELECTRICAL',
+            description: 'Corridor light on 1st floor Block A flickers constantly at night. Very disturbing and potential fire hazard.',
+            status: 'ASSIGNED',
+            priority: 'HIGH',
+            assigneeId: maintenance._id,
+            dueAt: new Date(now.getTime() + 1 * DAY),
+            createdAt: new Date(now.getTime() - 18 * HOUR),
+            updatedAt: new Date(now.getTime() - 12 * HOUR),
+          },
+        ]
+      : []),
+    ...(priya
+      ? [
+          {
+            studentId: priya._id,
+            category: 'FURNITURE',
+            description: 'Wardrobe door in room B-102 is coming off the hinges. Cannot close it properly and clothes are getting dusty.',
+            status: 'ASSIGNED',
+            priority: 'MEDIUM',
+            assigneeId: maintenance._id,
+            dueAt: new Date(now.getTime() + 3 * DAY),
+            createdAt: new Date(now.getTime() - 1 * DAY),
+            updatedAt: new Date(now.getTime() - 8 * HOUR),
+          },
+        ]
+      : []),
+    ...(arjun
+      ? [
+          {
+            studentId: arjun._id,
+            category: 'INTERNET',
+            description: 'Ethernet port in room A-201 is completely dead. No link light even with a known-good cable.',
+            status: 'ASSIGNED',
+            priority: 'MEDIUM',
+            assigneeId: maintenance._id,
+            dueAt: new Date(now.getTime() + 2 * DAY),
+            createdAt: new Date(now.getTime() - 20 * HOUR),
+            updatedAt: new Date(now.getTime() - 14 * HOUR),
+          },
+        ]
+      : []),
+    ...(sneha
+      ? [
+          {
+            studentId: sneha._id,
+            category: 'CLEANING',
+            description: 'Foul smell coming from the drain in Block B 3rd floor corridor. Might be a clogged drain pipe.',
+            status: 'ASSIGNED',
+            priority: 'HIGH',
+            assigneeId: maintenance._id,
+            dueAt: new Date(now.getTime() + 1 * DAY),
+            createdAt: new Date(now.getTime() - 16 * HOUR),
+            updatedAt: new Date(now.getTime() - 10 * HOUR),
+          },
+        ]
+      : []),
+    ...(vikram
+      ? [
+          {
+            studentId: vikram._id,
+            category: 'GENERAL',
+            description: 'Notice board glass in Block C ground floor is cracked. Shards could fall and injure someone.',
+            status: 'ASSIGNED',
+            priority: 'HIGH',
+            assigneeId: maintenance._id,
+            dueAt: new Date(now.getTime() + 1 * DAY),
+            createdAt: new Date(now.getTime() - 14 * HOUR),
+            updatedAt: new Date(now.getTime() - 8 * HOUR),
+          },
+        ]
+      : []),
+
+    // --- Additional complaints assigned to maintenance (IN_PROGRESS status) ---
+    ...(rahul
+      ? [
+          {
+            studentId: rahul._id,
+            category: 'PLUMBING',
+            description: 'Hot water geyser in Block A common bathroom is not heating. Students have to bathe with cold water.',
+            status: 'IN_PROGRESS',
+            priority: 'HIGH',
+            assigneeId: maintenance._id,
+            dueAt: new Date(now.getTime() + 6 * HOUR),
+            createdAt: new Date(now.getTime() - 2 * DAY),
+            updatedAt: new Date(now.getTime() - 6 * HOUR),
+          },
+        ]
+      : []),
+    ...(priya
+      ? [
+          {
+            studentId: priya._id,
+            category: 'ELECTRICAL',
+            description: 'Exhaust fan in Block B 1st floor common washroom stopped working. Bathroom gets very humid and smelly.',
+            status: 'IN_PROGRESS',
+            priority: 'MEDIUM',
+            assigneeId: maintenance._id,
+            dueAt: new Date(now.getTime() + 1 * DAY),
+            createdAt: new Date(now.getTime() - 3 * DAY),
+            updatedAt: new Date(now.getTime() - 1 * DAY),
+          },
+        ]
+      : []),
+    ...(sneha
+      ? [
+          {
+            studentId: sneha._id,
+            category: 'PEST_CONTROL',
+            description: 'Ant infestation in the common pantry area on Block B 3rd floor. Ants are getting into stored food items.',
+            status: 'IN_PROGRESS',
+            priority: 'MEDIUM',
+            assigneeId: maintenance._id,
+            dueAt: new Date(now.getTime() + 2 * DAY),
+            createdAt: new Date(now.getTime() - 2 * DAY),
+            updatedAt: new Date(now.getTime() - 12 * HOUR),
+          },
+        ]
+      : []),
+    ...(vikram
+      ? [
+          {
+            studentId: vikram._id,
+            category: 'FURNITURE',
+            description: 'Ceiling-mounted clothes drying rack in Block C laundry area has come loose from one side. Could fall any time.',
+            status: 'IN_PROGRESS',
+            priority: 'HIGH',
+            assigneeId: maintenance._id,
+            dueAt: new Date(now.getTime() + 12 * HOUR),
+            createdAt: new Date(now.getTime() - 1 * DAY),
+            updatedAt: new Date(now.getTime() - 8 * HOUR),
+          },
+        ]
+      : []),
+
+    // --- Additional CRITICAL priority complaints ---
+    {
+      studentId: alice._id,
+      category: 'ELECTRICAL',
+      description: 'Main circuit breaker for Block B 2nd floor keeps tripping. Entire floor loses power multiple times a day.',
+      status: 'ASSIGNED',
+      priority: 'CRITICAL',
+      assigneeId: maintenance._id,
+      dueAt: new Date(now.getTime() + 4 * HOUR),
+      createdAt: new Date(now.getTime() - 8 * HOUR),
+      updatedAt: new Date(now.getTime() - 6 * HOUR),
+    },
+    ...(arjun
+      ? [
+          {
+            studentId: arjun._id,
+            category: 'PLUMBING',
+            description: 'Major water leak from the overhead tank pipe in Block A. Water is flooding the stairwell between 2nd and 3rd floor.',
+            status: 'IN_PROGRESS',
+            priority: 'CRITICAL',
+            assigneeId: maintenance._id,
+            dueAt: new Date(now.getTime() + 2 * HOUR),
+            createdAt: new Date(now.getTime() - 4 * HOUR),
+            updatedAt: new Date(now.getTime() - 2 * HOUR),
+          },
+        ]
+      : []),
+    ...(sneha
+      ? [
+          {
+            studentId: sneha._id,
+            category: 'ELECTRICAL',
+            description: 'Burning smell from the electrical panel near Block B staircase. Smoke was visible briefly. Extremely dangerous.',
+            status: 'ASSIGNED',
+            priority: 'CRITICAL',
+            assigneeId: maintenance._id,
+            dueAt: new Date(now.getTime() + 2 * HOUR),
+            createdAt: new Date(now.getTime() - 3 * HOUR),
+            updatedAt: new Date(now.getTime() - 2 * HOUR),
+          },
+        ]
+      : []),
+
+    // --- Additional RESOLVED complaints (for history page) ---
+    ...(rahul
+      ? [
+          {
+            studentId: rahul._id,
+            category: 'INTERNET',
+            description: 'Wi-Fi router in Block A common room needs restart. No internet access for past 3 hours.',
+            status: 'RESOLVED',
+            priority: 'HIGH',
+            assigneeId: maintenance._id,
+            resolutionNotes: 'Restarted the router and updated firmware. Also added a UPS to prevent future power-related disconnections.',
+            dueAt: new Date(now.getTime() - 8 * DAY),
+            createdAt: new Date(now.getTime() - 10 * DAY),
+            updatedAt: new Date(now.getTime() - 8 * DAY),
+          },
+        ]
+      : []),
+    ...(priya
+      ? [
+          {
+            studentId: priya._id,
+            category: 'FURNITURE',
+            description: 'Bed frame in room B-102 is wobbly and creaks loudly. One of the support bolts is missing.',
+            status: 'RESOLVED',
+            priority: 'MEDIUM',
+            assigneeId: maintenance._id,
+            resolutionNotes: 'Replaced missing bolt and tightened all other bolts. Added rubber pads under the legs to reduce noise.',
+            dueAt: new Date(now.getTime() - 6 * DAY),
+            createdAt: new Date(now.getTime() - 9 * DAY),
+            updatedAt: new Date(now.getTime() - 6 * DAY),
+          },
+        ]
+      : []),
+    ...(arjun
+      ? [
+          {
+            studentId: arjun._id,
+            category: 'CLEANING',
+            description: 'Mold growing on the bathroom ceiling in room A-201. Appears to be from a persistent moisture problem.',
+            status: 'RESOLVED',
+            priority: 'HIGH',
+            assigneeId: maintenance._id,
+            resolutionNotes: 'Cleaned mold with anti-fungal solution. Sealed the leak in the overhead pipe causing moisture. Applied waterproof paint.',
+            dueAt: new Date(now.getTime() - 12 * DAY),
+            createdAt: new Date(now.getTime() - 15 * DAY),
+            updatedAt: new Date(now.getTime() - 12 * DAY),
+          },
+        ]
+      : []),
+    ...(vikram
+      ? [
+          {
+            studentId: vikram._id,
+            category: 'ELECTRICAL',
+            description: 'Tube light in Block C 1st floor corridor not working. The area is completely dark after sunset.',
+            status: 'RESOLVED',
+            priority: 'MEDIUM',
+            assigneeId: maintenance._id,
+            resolutionNotes: 'Replaced faulty tube light and starter. Tested — working fine now.',
+            dueAt: new Date(now.getTime() - 18 * DAY),
+            createdAt: new Date(now.getTime() - 20 * DAY),
+            updatedAt: new Date(now.getTime() - 18 * DAY),
+          },
+        ]
+      : []),
+    {
+      studentId: alice._id,
+      category: 'PEST_CONTROL',
+      description: 'Termite infestation in the wooden furniture of room B-202. White powder visible on desk legs.',
+      status: 'RESOLVED',
+      priority: 'HIGH',
+      assigneeId: maintenance._id,
+      resolutionNotes: 'Conducted full anti-termite treatment for the room. Treated all wooden furniture with borate solution. Scheduled follow-up inspection in 30 days.',
+      dueAt: new Date(now.getTime() - 22 * DAY),
+      createdAt: new Date(now.getTime() - 25 * DAY),
+      updatedAt: new Date(now.getTime() - 22 * DAY),
+    },
   ];
 
   await Complaint.insertMany(complaints);
@@ -1012,15 +1322,18 @@ async function seedVisitors(): Promise<{ created: number }> {
   await Visitor.deleteMany({ studentId: { $in: studentIds } });
 
   const now = new Date();
+  // Use UTC midnight so date filter in visitor route matches correctly
+  const todayStr = now.toISOString().split('T')[0]; // "YYYY-MM-DD"
+  const today = new Date(todayStr); // UTC midnight
   const visitors = [
-    // Alice's visitors
+    // Alice's visitors — TODAY (for guard check-in testing)
     {
       studentId: alice._id,
       visitorName: 'Meera Student',
       visitorPhone: '9876543210',
       relationship: 'Parent',
       purpose: 'Monthly visit to check on hostel accommodation and bring home-cooked food',
-      expectedDate: new Date(now.getTime() + 2 * DAY),
+      expectedDate: today,
       expectedTime: '10:00 AM - 12:00 PM',
       status: 'APPROVED',
       approvedBy: warden._id,
@@ -1028,20 +1341,36 @@ async function seedVisitors(): Promise<{ created: number }> {
     },
     {
       studentId: alice._id,
-      visitorName: 'Rohan Kumar',
-      visitorPhone: '9123456789',
-      relationship: 'Friend',
-      purpose: 'Returning borrowed textbooks and study materials',
-      expectedDate: new Date(now.getTime() + 5 * DAY),
-      expectedTime: '02:00 PM - 04:00 PM',
-      status: 'PENDING',
-    },
-    {
-      studentId: alice._id,
       visitorName: 'Dr. Suresh Patel',
       visitorPhone: '9988776655',
       relationship: 'Guardian',
       purpose: 'Meeting with warden regarding fee payment',
+      expectedDate: today,
+      expectedTime: '02:00 PM - 04:00 PM',
+      status: 'APPROVED',
+      approvedBy: warden._id,
+      approvedAt: new Date(now.getTime() - 3 * HOUR),
+    },
+    {
+      studentId: alice._id,
+      visitorName: 'Rohan Kumar',
+      visitorPhone: '9123456789',
+      relationship: 'Friend',
+      purpose: 'Returning borrowed textbooks and study materials',
+      expectedDate: today,
+      expectedTime: '11:00 AM - 01:00 PM',
+      status: 'CHECKED_IN',
+      approvedBy: warden._id,
+      approvedAt: new Date(now.getTime() - 4 * HOUR),
+      checkedInAt: new Date(now.getTime() - 1 * HOUR),
+    },
+    // Alice — past visitor
+    {
+      studentId: alice._id,
+      visitorName: 'Sunil Verma',
+      visitorPhone: '9871234567',
+      relationship: 'Uncle',
+      purpose: 'Dropping off medicines and winter clothing',
       expectedDate: new Date(now.getTime() - 4 * DAY),
       expectedTime: '10:00 AM - 12:00 PM',
       status: 'CHECKED_OUT',
@@ -1050,7 +1379,18 @@ async function seedVisitors(): Promise<{ created: number }> {
       checkedInAt: new Date(now.getTime() - 4 * DAY + 10 * HOUR),
       checkedOutAt: new Date(now.getTime() - 4 * DAY + 12 * HOUR),
     },
-    // Rahul's visitors
+    // Alice — future visitor
+    {
+      studentId: alice._id,
+      visitorName: 'Priyanka Gupta',
+      visitorPhone: '9998887776',
+      relationship: 'Friend',
+      purpose: 'Project discussion and study group meeting',
+      expectedDate: new Date(now.getTime() + 2 * DAY),
+      expectedTime: '02:00 PM - 04:00 PM',
+      status: 'PENDING',
+    },
+    // Rahul's visitors — today
     ...(rahul
       ? [
           {
@@ -1059,13 +1399,15 @@ async function seedVisitors(): Promise<{ created: number }> {
             visitorPhone: '9876501234',
             relationship: 'Parent',
             purpose: 'Dropping off winter clothing and medicines',
-            expectedDate: new Date(now.getTime() + 1 * DAY),
+            expectedDate: today,
             expectedTime: '04:00 PM - 06:00 PM',
-            status: 'PENDING',
+            status: 'APPROVED',
+            approvedBy: warden._id,
+            approvedAt: new Date(now.getTime() - 2 * HOUR),
           },
         ]
       : []),
-    // Priya's visitors
+    // Priya's visitors — today
     ...(priya
       ? [
           {
@@ -1074,9 +1416,11 @@ async function seedVisitors(): Promise<{ created: number }> {
             visitorPhone: '9654321098',
             relationship: 'Sibling',
             purpose: 'Birthday celebration — bringing cake and snacks',
-            expectedDate: new Date(now.getTime() + 3 * DAY),
+            expectedDate: today,
             expectedTime: '12:00 PM - 02:00 PM',
-            status: 'PENDING',
+            status: 'APPROVED',
+            approvedBy: warden._id,
+            approvedAt: new Date(now.getTime() - 1 * HOUR),
           },
         ]
       : []),
@@ -1693,6 +2037,312 @@ async function seedAssets(): Promise<{ created: number }> {
       qrCode: 'QR-SEED-ELE-004',
       notes: null,
     },
+    // ── More Furniture ──
+    {
+      name: 'Bookshelf (3-Tier)',
+      assetTag: 'SEED-FUR-004',
+      category: 'FURNITURE',
+      location: { block: 'A', floor: '3', room: 'A-302' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 200 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 530 * DAY),
+      lastMaintenanceDate: null,
+      qrCode: 'QR-SEED-FUR-004',
+      notes: null,
+    },
+    {
+      name: 'Steel Almirah',
+      assetTag: 'SEED-FUR-005',
+      category: 'FURNITURE',
+      location: { block: 'B', floor: '1', room: 'B-101' },
+      status: 'NEEDS_REPAIR',
+      purchaseDate: new Date(now.getTime() - 900 * DAY),
+      warrantyExpiry: null,
+      lastMaintenanceDate: new Date(now.getTime() - 120 * DAY),
+      qrCode: 'QR-SEED-FUR-005',
+      notes: 'Lock mechanism jammed, rust on bottom shelf',
+    },
+    {
+      name: 'Folding Chair',
+      assetTag: 'SEED-FUR-006',
+      category: 'FURNITURE',
+      location: { block: 'C', floor: '1', room: 'Common Hall' },
+      status: 'DECOMMISSIONED',
+      purchaseDate: new Date(now.getTime() - 1200 * DAY),
+      warrantyExpiry: null,
+      lastMaintenanceDate: new Date(now.getTime() - 60 * DAY),
+      qrCode: 'QR-SEED-FUR-006',
+      notes: 'Leg broken beyond repair — marked for disposal',
+    },
+    {
+      name: 'Plastic Chair (Visitor)',
+      assetTag: 'SEED-FUR-007',
+      category: 'FURNITURE',
+      location: { block: 'A', floor: 'G', room: 'Reception' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 60 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 670 * DAY),
+      lastMaintenanceDate: null,
+      qrCode: 'QR-SEED-FUR-007',
+      notes: null,
+    },
+    // ── More Electrical ──
+    {
+      name: 'Inverter Battery (150Ah)',
+      assetTag: 'SEED-ELE-005',
+      category: 'ELECTRICAL',
+      location: { block: 'A', floor: 'G', room: 'UPS Room' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 180 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 550 * DAY),
+      lastMaintenanceDate: new Date(now.getTime() - 30 * DAY),
+      qrCode: 'QR-SEED-ELE-005',
+      notes: 'Distilled water topped up',
+    },
+    {
+      name: 'LED Panel Light (40W)',
+      assetTag: 'SEED-ELE-006',
+      category: 'ELECTRICAL',
+      location: { block: 'B', floor: '2', room: 'Corridor' },
+      status: 'NEEDS_REPAIR',
+      purchaseDate: new Date(now.getTime() - 350 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 380 * DAY),
+      lastMaintenanceDate: null,
+      qrCode: 'QR-SEED-ELE-006',
+      notes: 'Flickering intermittently — driver may be faulty',
+    },
+    {
+      name: 'MCB Distribution Board',
+      assetTag: 'SEED-ELE-007',
+      category: 'ELECTRICAL',
+      location: { block: 'C', floor: 'G', room: 'Electrical Panel' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 400 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 330 * DAY),
+      lastMaintenanceDate: new Date(now.getTime() - 14 * DAY),
+      qrCode: 'QR-SEED-ELE-007',
+      notes: 'All breakers tested — functioning normally',
+    },
+    {
+      name: 'Emergency Exit Light',
+      assetTag: 'SEED-ELE-008',
+      category: 'ELECTRICAL',
+      location: { block: 'A', floor: '1', room: 'Stairwell' },
+      status: 'UNDER_REPAIR',
+      purchaseDate: new Date(now.getTime() - 500 * DAY),
+      warrantyExpiry: null,
+      lastMaintenanceDate: new Date(now.getTime() - 3 * DAY),
+      qrCode: 'QR-SEED-ELE-008',
+      notes: 'Battery not holding charge — replacement ordered',
+    },
+    // ── More Plumbing ──
+    {
+      name: 'Water Tank (1000L)',
+      assetTag: 'SEED-PLU-003',
+      category: 'PLUMBING',
+      location: { block: 'A', floor: 'Roof', room: 'Terrace' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 700 * DAY),
+      warrantyExpiry: null,
+      lastMaintenanceDate: new Date(now.getTime() - 45 * DAY),
+      qrCode: 'QR-SEED-PLU-003',
+      notes: 'Cleaned and sanitized',
+    },
+    {
+      name: 'Submersible Pump (1HP)',
+      assetTag: 'SEED-PLU-004',
+      category: 'PLUMBING',
+      location: { block: 'B', floor: 'G', room: 'Pump Room' },
+      status: 'NEEDS_REPAIR',
+      purchaseDate: new Date(now.getTime() - 500 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 230 * DAY),
+      lastMaintenanceDate: new Date(now.getTime() - 7 * DAY),
+      qrCode: 'QR-SEED-PLU-004',
+      notes: 'Overheating during long runs — capacitor suspected',
+    },
+    {
+      name: 'Solar Water Heater',
+      assetTag: 'SEED-PLU-005',
+      category: 'PLUMBING',
+      location: { block: 'C', floor: 'Roof', room: 'Terrace' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 300 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 1460 * DAY),
+      lastMaintenanceDate: new Date(now.getTime() - 60 * DAY),
+      qrCode: 'QR-SEED-PLU-005',
+      notes: null,
+    },
+    {
+      name: 'RO Water Purifier',
+      assetTag: 'SEED-PLU-006',
+      category: 'PLUMBING',
+      location: { block: 'A', floor: 'G', room: 'Mess Hall' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 150 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 580 * DAY),
+      lastMaintenanceDate: new Date(now.getTime() - 20 * DAY),
+      qrCode: 'QR-SEED-PLU-006',
+      notes: 'Filter replaced during last maintenance',
+    },
+    // ── HVAC ──
+    {
+      name: 'Split AC (1.5 Ton)',
+      assetTag: 'SEED-HVAC-001',
+      category: 'HVAC',
+      location: { block: 'A', floor: 'G', room: 'Warden Office' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 365 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 365 * DAY),
+      lastMaintenanceDate: new Date(now.getTime() - 30 * DAY),
+      qrCode: 'QR-SEED-HVAC-001',
+      notes: 'Gas topped up, filters cleaned',
+    },
+    {
+      name: 'Window AC (1 Ton)',
+      assetTag: 'SEED-HVAC-002',
+      category: 'HVAC',
+      location: { block: 'B', floor: 'G', room: 'Server Room' },
+      status: 'NEEDS_REPAIR',
+      purchaseDate: new Date(now.getTime() - 800 * DAY),
+      warrantyExpiry: null,
+      lastMaintenanceDate: new Date(now.getTime() - 90 * DAY),
+      qrCode: 'QR-SEED-HVAC-002',
+      notes: 'Compressor making loud noise — needs servicing',
+    },
+    {
+      name: 'Exhaust Fan (Industrial)',
+      assetTag: 'SEED-HVAC-003',
+      category: 'HVAC',
+      location: { block: 'A', floor: 'G', room: 'Kitchen' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 450 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 280 * DAY),
+      lastMaintenanceDate: new Date(now.getTime() - 14 * DAY),
+      qrCode: 'QR-SEED-HVAC-003',
+      notes: 'Blades cleaned, bearings oiled',
+    },
+    {
+      name: 'Air Cooler (Desert)',
+      assetTag: 'SEED-HVAC-004',
+      category: 'HVAC',
+      location: { block: 'C', floor: 'G', room: 'Common Room' },
+      status: 'UNDER_REPAIR',
+      purchaseDate: new Date(now.getTime() - 600 * DAY),
+      warrantyExpiry: null,
+      lastMaintenanceDate: new Date(now.getTime() - 5 * DAY),
+      qrCode: 'QR-SEED-HVAC-004',
+      notes: 'Water pump not circulating — motor replaced, testing',
+    },
+    {
+      name: 'Ventilation Duct System',
+      assetTag: 'SEED-HVAC-005',
+      category: 'HVAC',
+      location: { block: 'B', floor: '1', room: 'Corridor' },
+      status: 'DECOMMISSIONED',
+      purchaseDate: new Date(now.getTime() - 1500 * DAY),
+      warrantyExpiry: null,
+      lastMaintenanceDate: new Date(now.getTime() - 200 * DAY),
+      qrCode: 'QR-SEED-HVAC-005',
+      notes: 'Old ducting system — replaced with new inline fans',
+    },
+    // ── More IT Equipment ──
+    {
+      name: 'CCTV Camera (IP)',
+      assetTag: 'SEED-IT-004',
+      category: 'IT_EQUIPMENT',
+      location: { block: 'A', floor: 'G', room: 'Main Gate' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 200 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 530 * DAY),
+      lastMaintenanceDate: new Date(now.getTime() - 10 * DAY),
+      qrCode: 'QR-SEED-IT-004',
+      notes: 'Lens cleaned, night vision verified',
+    },
+    {
+      name: 'Biometric Scanner',
+      assetTag: 'SEED-IT-005',
+      category: 'IT_EQUIPMENT',
+      location: { block: 'A', floor: 'G', room: 'Entry Gate' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 180 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 550 * DAY),
+      lastMaintenanceDate: new Date(now.getTime() - 7 * DAY),
+      qrCode: 'QR-SEED-IT-005',
+      notes: 'Sensor calibrated',
+    },
+    {
+      name: 'NVR (16-Channel)',
+      assetTag: 'SEED-IT-006',
+      category: 'IT_EQUIPMENT',
+      location: { block: 'B', floor: 'G', room: 'Server Room' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 200 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 530 * DAY),
+      lastMaintenanceDate: new Date(now.getTime() - 15 * DAY),
+      qrCode: 'QR-SEED-IT-006',
+      notes: 'HDD 80% — plan for expansion',
+    },
+    // ── Other ──
+    {
+      name: 'Fire Extinguisher (ABC)',
+      assetTag: 'SEED-OTH-001',
+      category: 'OTHER',
+      location: { block: 'A', floor: '1', room: 'Corridor' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 180 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 180 * DAY),
+      lastMaintenanceDate: new Date(now.getTime() - 30 * DAY),
+      qrCode: 'QR-SEED-OTH-001',
+      notes: 'Pressure gauge green — inspection passed',
+    },
+    {
+      name: 'First Aid Cabinet',
+      assetTag: 'SEED-OTH-002',
+      category: 'OTHER',
+      location: { block: 'B', floor: 'G', room: 'Guard Room' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 100 * DAY),
+      warrantyExpiry: null,
+      lastMaintenanceDate: new Date(now.getTime() - 14 * DAY),
+      qrCode: 'QR-SEED-OTH-002',
+      notes: 'Supplies restocked',
+    },
+    {
+      name: 'Notice Board (Glass)',
+      assetTag: 'SEED-OTH-003',
+      category: 'OTHER',
+      location: { block: 'C', floor: 'G', room: 'Lobby' },
+      status: 'NEEDS_REPAIR',
+      purchaseDate: new Date(now.getTime() - 400 * DAY),
+      warrantyExpiry: null,
+      lastMaintenanceDate: null,
+      qrCode: 'QR-SEED-OTH-003',
+      notes: 'Glass panel cracked — needs replacement',
+    },
+    {
+      name: 'Washing Machine (Semi-Auto)',
+      assetTag: 'SEED-OTH-004',
+      category: 'OTHER',
+      location: { block: 'A', floor: 'G', room: 'Laundry Room' },
+      status: 'WORKING',
+      purchaseDate: new Date(now.getTime() - 250 * DAY),
+      warrantyExpiry: new Date(now.getTime() + 480 * DAY),
+      lastMaintenanceDate: new Date(now.getTime() - 20 * DAY),
+      qrCode: 'QR-SEED-OTH-004',
+      notes: 'Inlet valve cleaned',
+    },
+    {
+      name: 'Iron Press (Industrial)',
+      assetTag: 'SEED-OTH-005',
+      category: 'OTHER',
+      location: { block: 'A', floor: 'G', room: 'Laundry Room' },
+      status: 'DECOMMISSIONED',
+      purchaseDate: new Date(now.getTime() - 1100 * DAY),
+      warrantyExpiry: null,
+      lastMaintenanceDate: new Date(now.getTime() - 90 * DAY),
+      qrCode: 'QR-SEED-OTH-005',
+      notes: 'Thermostat failed — replaced with new unit',
+    },
   ];
 
   await Asset.insertMany(assets);
@@ -1932,179 +2582,312 @@ async function seedGateScans(): Promise<{ created: number }> {
   const vikram = await User.findOne({ email: 'vikram@smarthostel.dev' });
   if (!guard || !alice) return { created: 0 };
 
-  await GateScan.deleteMany({ guardId: guard._id });
+  await GateScan.deleteMany({});
 
   const now = new Date();
+  const ts = Date.now();
+
+  // Helper to create a scan record
+  function makeScan(
+    studentId: mongoose.Types.ObjectId,
+    id: string,
+    opts: {
+      verdict?: 'ALLOW' | 'DENY';
+      direction?: 'ENTRY' | 'EXIT';
+      method?: 'QR' | 'PASSCODE';
+      latencyMs?: number;
+      createdAt: Date;
+    },
+  ) {
+    return {
+      guardId: guard._id,
+      studentId,
+      leaveId: null,
+      gatePassId: null,
+      verdict: opts.verdict ?? 'ALLOW',
+      scanResult: opts.direction === 'ENTRY' ? 'Student verified — returning' : 'Student verified — exiting',
+      method: opts.method ?? 'QR',
+      directionDetected: opts.direction ?? 'EXIT',
+      directionUsed: opts.direction ?? 'EXIT',
+      directionSource: 'AUTO' as const,
+      lastGateStateBeforeScan: (opts.direction === 'ENTRY' ? 'OUT' : 'IN') as 'IN' | 'OUT',
+      latencyMs: opts.latencyMs ?? 100 + Math.floor(Math.random() * 150),
+      timeoutTriggered: false,
+      offlineStatus: null,
+      reconcileStatus: null,
+      reconcileErrorCode: null,
+      reconciledAt: null,
+      scanAttemptId: `SEED-SCAN-${id}-${ts}`,
+      createdAt: opts.createdAt,
+    };
+  }
+
+  // Generate rich 12-week history for alice (the demo student)
+  // Pattern: most weekdays have 2 scans (exit+entry), some days have 4, weekends are sparse
+  const aliceScans: ReturnType<typeof makeScan>[] = [];
+  let scanIdx = 100;
+  for (let daysAgo = 0; daysAgo < 84; daysAgo++) {
+    const d = new Date(now.getTime() - daysAgo * DAY);
+    const dayOfWeek = d.getDay(); // 0=Sun, 6=Sat
+
+    // Skip some days randomly for a natural look
+    if (dayOfWeek === 0 && Math.random() < 0.7) continue; // most Sundays: no scans
+    if (dayOfWeek === 6 && Math.random() < 0.5) continue; // half Saturdays: no scans
+    if (dayOfWeek >= 1 && dayOfWeek <= 5 && Math.random() < 0.15) continue; // skip ~15% weekdays
+
+    // Morning exit + evening entry (base pair)
+    aliceScans.push(makeScan(alice._id, String(scanIdx++), {
+      direction: 'EXIT', createdAt: new Date(d.getTime() - 14 * HOUR + 8 * HOUR), // ~8 AM
+    }));
+    aliceScans.push(makeScan(alice._id, String(scanIdx++), {
+      direction: 'ENTRY', createdAt: new Date(d.getTime() - 14 * HOUR + 17 * HOUR), // ~5 PM
+    }));
+
+    // Some days have extra trips (lunch outing, evening outing)
+    if (Math.random() < 0.35) {
+      aliceScans.push(makeScan(alice._id, String(scanIdx++), {
+        direction: 'EXIT', createdAt: new Date(d.getTime() - 14 * HOUR + 12 * HOUR), // ~12 PM
+      }));
+      aliceScans.push(makeScan(alice._id, String(scanIdx++), {
+        direction: 'ENTRY', createdAt: new Date(d.getTime() - 14 * HOUR + 13 * HOUR), // ~1 PM
+      }));
+    }
+
+    // Rare evening outing
+    if (dayOfWeek >= 4 && Math.random() < 0.2) {
+      aliceScans.push(makeScan(alice._id, String(scanIdx++), {
+        direction: 'EXIT', createdAt: new Date(d.getTime() - 14 * HOUR + 19 * HOUR), // ~7 PM
+      }));
+    }
+  }
+
   const scans = [
-    // Today's scans
-    {
-      guardId: guard._id,
-      studentId: alice._id,
-      leaveId: null,
-      gatePassId: null,
-      verdict: 'ALLOW',
-      scanResult: 'Student verified — active hostel resident',
-      method: 'QR',
-      directionDetected: 'EXIT',
-      directionUsed: 'EXIT',
-      directionSource: 'AUTO',
-      lastGateStateBeforeScan: 'IN',
-      latencyMs: 120,
-      timeoutTriggered: false,
-      offlineStatus: null,
-      reconcileStatus: null,
-      reconcileErrorCode: null,
-      reconciledAt: null,
-      scanAttemptId: `SEED-SCAN-001-${Date.now()}`,
-      createdAt: new Date(now.getTime() - 3 * HOUR),
-    },
-    {
-      guardId: guard._id,
-      studentId: alice._id,
-      leaveId: null,
-      gatePassId: null,
-      verdict: 'ALLOW',
-      scanResult: 'Student verified — returning to hostel',
-      method: 'QR',
-      directionDetected: 'ENTRY',
-      directionUsed: 'ENTRY',
-      directionSource: 'AUTO',
-      lastGateStateBeforeScan: 'OUT',
-      latencyMs: 95,
-      timeoutTriggered: false,
-      offlineStatus: null,
-      reconcileStatus: null,
-      reconcileErrorCode: null,
-      reconciledAt: null,
-      scanAttemptId: `SEED-SCAN-002-${Date.now()}`,
-      createdAt: new Date(now.getTime() - 1 * HOUR),
-    },
+    ...aliceScans,
+    // Other students — a few recent scans
     ...(rahul
       ? [
-          {
-            guardId: guard._id,
-            studentId: rahul._id,
-            leaveId: null,
-            gatePassId: null,
-            verdict: 'ALLOW' as const,
-            scanResult: 'Student verified — day outing approved',
-            method: 'PASSCODE' as const,
-            directionDetected: 'EXIT' as const,
-            directionUsed: 'EXIT' as const,
-            directionSource: 'AUTO' as const,
-            lastGateStateBeforeScan: 'IN' as const,
-            latencyMs: 200,
-            timeoutTriggered: false,
-            offlineStatus: null,
-            reconcileStatus: null,
-            reconcileErrorCode: null,
-            reconciledAt: null,
-            scanAttemptId: `SEED-SCAN-003-${Date.now()}`,
-            createdAt: new Date(now.getTime() - 5 * HOUR),
-          },
+          makeScan(rahul._id, '003', { direction: 'EXIT', method: 'PASSCODE', createdAt: new Date(now.getTime() - 5 * HOUR) }),
+          makeScan(rahul._id, '010', { direction: 'ENTRY', createdAt: new Date(now.getTime() - 2 * HOUR) }),
         ]
       : []),
     ...(priya
       ? [
-          {
-            guardId: guard._id,
-            studentId: priya._id,
-            leaveId: null,
-            gatePassId: null,
-            verdict: 'DENY' as const,
-            scanResult: 'No approved leave — denied exit after curfew',
-            method: 'QR' as const,
-            directionDetected: 'EXIT' as const,
-            directionUsed: 'EXIT' as const,
-            directionSource: 'AUTO' as const,
-            lastGateStateBeforeScan: 'IN' as const,
-            latencyMs: 150,
-            timeoutTriggered: false,
-            offlineStatus: null,
-            reconcileStatus: null,
-            reconcileErrorCode: null,
-            reconciledAt: null,
-            scanAttemptId: `SEED-SCAN-004-${Date.now()}`,
-            createdAt: new Date(now.getTime() - 14 * HOUR),
-          },
+          makeScan(priya._id, '004', { verdict: 'DENY', direction: 'EXIT', createdAt: new Date(now.getTime() - 14 * HOUR) }),
         ]
       : []),
-    // Yesterday's scans
     ...(arjun
       ? [
-          {
-            guardId: guard._id,
-            studentId: arjun._id,
-            leaveId: null,
-            gatePassId: null,
-            verdict: 'ALLOW' as const,
-            scanResult: 'Student verified — approved leave gate pass valid',
-            method: 'QR' as const,
-            directionDetected: 'EXIT' as const,
-            directionUsed: 'EXIT' as const,
-            directionSource: 'AUTO' as const,
-            lastGateStateBeforeScan: 'IN' as const,
-            latencyMs: 110,
-            timeoutTriggered: false,
-            offlineStatus: null,
-            reconcileStatus: null,
-            reconcileErrorCode: null,
-            reconciledAt: null,
-            scanAttemptId: `SEED-SCAN-005-${Date.now()}`,
-            createdAt: new Date(now.getTime() - 1 * DAY - 6 * HOUR),
-          },
-          {
-            guardId: guard._id,
-            studentId: arjun._id,
-            leaveId: null,
-            gatePassId: null,
-            verdict: 'ALLOW' as const,
-            scanResult: 'Student verified — returning from leave',
-            method: 'QR' as const,
-            directionDetected: 'ENTRY' as const,
-            directionUsed: 'ENTRY' as const,
-            directionSource: 'AUTO' as const,
-            lastGateStateBeforeScan: 'OUT' as const,
-            latencyMs: 130,
-            timeoutTriggered: false,
-            offlineStatus: null,
-            reconcileStatus: null,
-            reconcileErrorCode: null,
-            reconciledAt: null,
-            scanAttemptId: `SEED-SCAN-006-${Date.now()}`,
-            createdAt: new Date(now.getTime() - 1 * DAY - 1 * HOUR),
-          },
+          makeScan(arjun._id, '005', { direction: 'EXIT', createdAt: new Date(now.getTime() - 1 * DAY - 6 * HOUR) }),
+          makeScan(arjun._id, '006', { direction: 'ENTRY', createdAt: new Date(now.getTime() - 1 * DAY - 1 * HOUR) }),
         ]
       : []),
     ...(vikram
       ? [
-          {
-            guardId: guard._id,
-            studentId: vikram._id,
-            leaveId: null,
-            gatePassId: null,
-            verdict: 'ALLOW' as const,
-            scanResult: 'Student verified — day outing',
-            method: 'PASSCODE' as const,
-            directionDetected: 'EXIT' as const,
-            directionUsed: 'EXIT' as const,
-            directionSource: 'MANUAL_ONE_SHOT' as const,
-            lastGateStateBeforeScan: 'IN' as const,
-            latencyMs: 300,
-            timeoutTriggered: false,
-            offlineStatus: null,
-            reconcileStatus: null,
-            reconcileErrorCode: null,
-            reconciledAt: null,
-            scanAttemptId: `SEED-SCAN-007-${Date.now()}`,
-            createdAt: new Date(now.getTime() - 2 * DAY - 4 * HOUR),
-          },
+          makeScan(vikram._id, '007', { direction: 'EXIT', method: 'PASSCODE', createdAt: new Date(now.getTime() - 2 * DAY - 4 * HOUR) }),
         ]
       : []),
   ];
 
   await GateScan.insertMany(scans);
   return { created: scans.length };
+}
+
+// ---------------------------------------------------------------------------
+// Seed Inspections
+// ---------------------------------------------------------------------------
+
+async function seedInspections() {
+  const warden = await User.findOne({ email: 'warden@smarthostel.dev' }).lean();
+  if (!warden) return { created: 0 };
+
+  const existing = await Inspection.countDocuments();
+  if (existing > 0) return { created: 0 };
+
+  const now = Date.now();
+  const inspections = [
+    { roomNumber: 'A-101', block: 'A', floor: '1', score: 92, status: 'COMPLETED', remarks: 'Room is well maintained, clean and organized', issues: [], date: new Date(now - 2 * DAY) },
+    { roomNumber: 'A-102', block: 'A', floor: '1', score: 78, status: 'COMPLETED', remarks: 'Minor cleanliness issues in bathroom area', issues: ['Bathroom needs cleaning', 'Dusty shelves'], date: new Date(now - 2 * DAY) },
+    { roomNumber: 'B-201', block: 'B', floor: '2', score: 45, status: 'FAILED', remarks: 'Multiple hygiene violations found', issues: ['Garbage not disposed', 'Stained walls', 'Broken window latch'], date: new Date(now - 1 * DAY) },
+    { roomNumber: 'B-202', block: 'B', floor: '2', score: 88, status: 'COMPLETED', remarks: 'Good condition overall', issues: [], date: new Date(now - 1 * DAY) },
+    { roomNumber: 'C-301', block: 'C', floor: '3', score: 95, status: 'COMPLETED', remarks: 'Excellent room condition, well above standard', issues: [], date: new Date(now - 3 * DAY) },
+    { roomNumber: 'C-302', block: 'C', floor: '3', score: 55, status: 'FAILED', remarks: 'Failed due to electrical safety concern', issues: ['Exposed wiring near bed', 'Overloaded power strip'], date: new Date(now - 3 * DAY) },
+    { roomNumber: 'A-201', block: 'A', floor: '2', score: 82, status: 'COMPLETED', remarks: 'Satisfactory', issues: ['Minor wall damage'], date: new Date(now - 5 * DAY) },
+    { roomNumber: 'D-101', block: 'D', floor: '1', score: 70, status: 'COMPLETED', remarks: 'Passed with warnings', issues: ['Furniture needs repair'], date: new Date(now - 4 * DAY) },
+  ];
+
+  await Inspection.insertMany(
+    inspections.map((i) => ({ ...i, inspectedBy: warden._id })),
+  );
+
+  return { created: inspections.length };
+}
+
+// ---------------------------------------------------------------------------
+// Seed Audit Events
+// ---------------------------------------------------------------------------
+
+async function seedAuditEvents() {
+  const existing = await AuditEvent.countDocuments();
+  if (existing > 0) return { created: 0 };
+
+  const warden = await User.findOne({ email: 'warden@smarthostel.dev' }).lean();
+  const student = await User.findOne({ email: 'student@smarthostel.dev' }).lean();
+  const guard = await User.findOne({ email: 'guard@smarthostel.dev' }).lean();
+  if (!warden || !student || !guard) return { created: 0 };
+
+  const now = Date.now();
+  const events = [
+    { entityType: 'User', entityId: student._id, eventType: 'LOGIN', actorRole: 'STUDENT', actorId: student._id, metadata: { details: 'Student logged in via email/password', ip: '192.168.1.45' }, correlationId: 'seed-audit-01', createdAt: new Date(now - 1 * HOUR) },
+    { entityType: 'User', entityId: warden._id, eventType: 'LOGIN', actorRole: 'WARDEN_ADMIN', actorId: warden._id, metadata: { details: 'Warden admin logged in', ip: '192.168.1.10' }, correlationId: 'seed-audit-02', createdAt: new Date(now - 2 * HOUR) },
+    { entityType: 'Leave', entityId: new mongoose.Types.ObjectId(), eventType: 'APPROVE', actorRole: 'WARDEN_ADMIN', actorId: warden._id, metadata: { details: 'Leave request approved for Alice Student', ip: '192.168.1.10' }, correlationId: 'seed-audit-03', createdAt: new Date(now - 3 * HOUR) },
+    { entityType: 'Leave', entityId: new mongoose.Types.ObjectId(), eventType: 'REJECT', actorRole: 'WARDEN_ADMIN', actorId: warden._id, metadata: { details: 'Leave request rejected — conflicting dates', ip: '192.168.1.10' }, correlationId: 'seed-audit-04', createdAt: new Date(now - 5 * HOUR) },
+    { entityType: 'Complaint', entityId: new mongoose.Types.ObjectId(), eventType: 'CREATE', actorRole: 'STUDENT', actorId: student._id, metadata: { details: 'New plumbing complaint created for room B-202', ip: '192.168.1.45' }, correlationId: 'seed-audit-05', createdAt: new Date(now - 6 * HOUR) },
+    { entityType: 'Complaint', entityId: new mongoose.Types.ObjectId(), eventType: 'UPDATE', actorRole: 'WARDEN_ADMIN', actorId: warden._id, metadata: { details: 'Complaint status changed to IN_PROGRESS', ip: '192.168.1.10' }, correlationId: 'seed-audit-06', createdAt: new Date(now - 8 * HOUR) },
+    { entityType: 'Notice', entityId: new mongoose.Types.ObjectId(), eventType: 'CREATE', actorRole: 'WARDEN_ADMIN', actorId: warden._id, metadata: { details: 'New notice published: Hostel maintenance schedule', ip: '192.168.1.10' }, correlationId: 'seed-audit-07', createdAt: new Date(now - 12 * HOUR) },
+    { entityType: 'GateScan', entityId: new mongoose.Types.ObjectId(), eventType: 'CREATE', actorRole: 'GUARD', actorId: guard._id, metadata: { details: 'Gate scan recorded — student entry verified', ip: '192.168.1.20' }, correlationId: 'seed-audit-08', createdAt: new Date(now - 1 * DAY) },
+    { entityType: 'User', entityId: new mongoose.Types.ObjectId(), eventType: 'CREATE', actorRole: 'WARDEN_ADMIN', actorId: warden._id, metadata: { details: 'New student account created for Dev Student', ip: '192.168.1.10' }, correlationId: 'seed-audit-09', createdAt: new Date(now - 1.5 * DAY) },
+    { entityType: 'Notice', entityId: new mongoose.Types.ObjectId(), eventType: 'DELETE', actorRole: 'WARDEN_ADMIN', actorId: warden._id, metadata: { details: 'Expired notice removed', ip: '192.168.1.10' }, correlationId: 'seed-audit-10', createdAt: new Date(now - 2 * DAY) },
+    { entityType: 'Room', entityId: new mongoose.Types.ObjectId(), eventType: 'UPDATE', actorRole: 'WARDEN_ADMIN', actorId: warden._id, metadata: { details: 'Room A-101 assignment updated', ip: '192.168.1.10' }, correlationId: 'seed-audit-11', createdAt: new Date(now - 3 * DAY) },
+    { entityType: 'Visitor', entityId: new mongoose.Types.ObjectId(), eventType: 'APPROVE', actorRole: 'GUARD', actorId: guard._id, metadata: { details: 'Visitor entry approved at main gate', ip: '192.168.1.20' }, correlationId: 'seed-audit-12', createdAt: new Date(now - 3 * DAY) },
+  ];
+
+  await AuditEvent.insertMany(events);
+  return { created: events.length };
+}
+
+// ---------------------------------------------------------------------------
+// Seed Inventory
+// ---------------------------------------------------------------------------
+
+async function seedInventory(): Promise<{ created: number }> {
+  await Inventory.deleteMany({});
+
+  const items = [
+    { name: 'PVC Pipes (1 inch)', category: 'PLUMBING', quantity: 45, minStock: 10, unit: 'pcs', location: 'Store Room A', status: 'IN_STOCK' },
+    { name: 'Pipe Fittings Assorted', category: 'PLUMBING', quantity: 120, minStock: 20, unit: 'pcs', location: 'Store Room A', status: 'IN_STOCK' },
+    { name: 'Teflon Tape', category: 'PLUMBING', quantity: 30, minStock: 10, unit: 'rolls', location: 'Store Room A', status: 'IN_STOCK' },
+    { name: 'LED Tube Lights', category: 'ELECTRICAL', quantity: 25, minStock: 8, unit: 'pcs', location: 'Electrical Store', status: 'IN_STOCK' },
+    { name: 'MCB Switches (32A)', category: 'ELECTRICAL', quantity: 12, minStock: 5, unit: 'pcs', location: 'Electrical Store', status: 'IN_STOCK' },
+    { name: 'Electrical Wire (1.5mm)', category: 'ELECTRICAL', quantity: 8, minStock: 3, unit: 'rolls', location: 'Electrical Store', status: 'IN_STOCK' },
+    { name: 'Extension Cords', category: 'ELECTRICAL', quantity: 3, minStock: 5, unit: 'pcs', location: 'Electrical Store', status: 'LOW_STOCK' },
+    { name: 'Floor Cleaner', category: 'CLEANING', quantity: 15, minStock: 5, unit: 'liters', location: 'Janitor Room', status: 'IN_STOCK' },
+    { name: 'Toilet Cleaner', category: 'CLEANING', quantity: 0, minStock: 5, unit: 'liters', location: 'Janitor Room', status: 'OUT_OF_STOCK' },
+    { name: 'Brooms', category: 'CLEANING', quantity: 18, minStock: 8, unit: 'pcs', location: 'Janitor Room', status: 'IN_STOCK' },
+    { name: 'Mops', category: 'CLEANING', quantity: 6, minStock: 4, unit: 'pcs', location: 'Janitor Room', status: 'IN_STOCK' },
+    { name: 'Door Hinges', category: 'HARDWARE', quantity: 20, minStock: 10, unit: 'pcs', location: 'Store Room B', status: 'IN_STOCK' },
+    { name: 'Padlocks', category: 'HARDWARE', quantity: 8, minStock: 5, unit: 'pcs', location: 'Store Room B', status: 'IN_STOCK' },
+    { name: 'Wood Screws Assorted', category: 'HARDWARE', quantity: 200, minStock: 50, unit: 'pcs', location: 'Store Room B', status: 'IN_STOCK' },
+    { name: 'Paint (White Emulsion)', category: 'PAINTING', quantity: 0, minStock: 2, unit: 'buckets', location: 'Paint Store', status: 'OUT_OF_STOCK' },
+    { name: 'Paint Brushes', category: 'PAINTING', quantity: 10, minStock: 4, unit: 'pcs', location: 'Paint Store', status: 'IN_STOCK' },
+    { name: 'Fire Extinguishers', category: 'SAFETY', quantity: 2, minStock: 3, unit: 'pcs', location: 'Block A Ground Floor', status: 'LOW_STOCK' },
+    { name: 'First Aid Kits', category: 'SAFETY', quantity: 4, minStock: 2, unit: 'boxes', location: 'Admin Office', status: 'IN_STOCK' },
+    { name: 'Safety Gloves', category: 'SAFETY', quantity: 15, minStock: 10, unit: 'pairs', location: 'Store Room A', status: 'IN_STOCK' },
+    { name: 'Pest Control Spray', category: 'CLEANING', quantity: 3, minStock: 5, unit: 'cans', location: 'Janitor Room', status: 'LOW_STOCK' },
+  ];
+
+  await Inventory.insertMany(items);
+  return { created: items.length };
+}
+
+// ---------------------------------------------------------------------------
+// Room Changes
+// ---------------------------------------------------------------------------
+
+async function seedRoomChanges(): Promise<{ created: number }> {
+  await RoomChange.deleteMany({});
+
+  const warden = await User.findOne({ email: 'warden@smarthostel.dev' });
+  if (!warden) return { created: 0 };
+
+  // Find students with rooms assigned
+  const studentsWithRooms = await User.find({ role: 'STUDENT', roomNumber: { $ne: null }, block: { $ne: null } }).lean();
+  if (studentsWithRooms.length < 2) return { created: 0 };
+
+  const rooms = await Room.find().lean();
+  const roomMap = new Map(rooms.map((r) => [`${r.block}-${r.roomNumber}`, r]));
+
+  const now = new Date();
+  const requests: Array<Record<string, unknown>> = [];
+
+  const reasons = [
+    'Current room is too noisy, affecting my studies',
+    'Want to be closer to friends in the same academic year',
+    'Plumbing issues in my current room',
+    'Roommate conflict — requesting a transfer',
+    'Would prefer a room on a lower floor for easier access',
+    'Current room has persistent pest issues',
+    'Upgrading to a deluxe room for better AC',
+    'Want to move to a quieter block for exam preparation',
+    'My current room has a broken window and poor ventilation',
+    'Requesting room near the mess for convenience',
+  ];
+
+  const getRandomReason = () => reasons[Math.floor(Math.random() * reasons.length)];
+  const getRandomStatus = () => {
+    const r = Math.random();
+    if (r < 0.35) return 'PENDING';
+    if (r < 0.6) return 'COMPLETED';
+    return 'REJECTED';
+  };
+
+  for (const student of studentsWithRooms) {
+    const currentRoom = roomMap.get(`${student.block}-${student.roomNumber}`);
+    if (!currentRoom) continue;
+
+    // Find a compatible room (same gender, different room, has available beds)
+    const genderMap: Record<string, string> = { MALE: 'BOYS', FEMALE: 'GIRLS' };
+    const targetGender = genderMap[student.gender ?? ''];
+    const compatibleRooms = rooms.filter(
+      (r) =>
+        r.hostelGender === targetGender &&
+        String(r._id) !== String(currentRoom._id) &&
+        r.occupiedBeds < r.totalBeds,
+    );
+
+    if (compatibleRooms.length === 0) continue;
+    const targetRoom = compatibleRooms[Math.floor(Math.random() * compatibleRooms.length)];
+
+    requests.push({
+      studentId: student._id,
+      currentRoomId: currentRoom._id,
+      requestedRoomId: targetRoom._id,
+      reason: getRandomReason(),
+      status: getRandomStatus(),
+      reviewedBy: undefined as unknown,
+      reviewedAt: undefined as unknown,
+      rejectionReason: undefined as unknown,
+      completedAt: undefined as unknown,
+      createdAt: new Date(now.getTime() - Math.floor(Math.random() * 14) * 86400000),
+    });
+  }
+
+  for (const req of requests) {
+    if (req.status === 'COMPLETED') {
+      req.reviewedBy = warden._id;
+      req.reviewedAt = new Date((req.createdAt as Date).getTime() + Math.floor(Math.random() * 3) * 86400000);
+      req.completedAt = req.reviewedAt;
+    } else if (req.status === 'REJECTED') {
+      req.reviewedBy = warden._id;
+      req.reviewedAt = new Date((req.createdAt as Date).getTime() + Math.floor(Math.random() * 3) * 86400000);
+      req.rejectionReason = ['Room not available at this time', 'Request does not meet transfer criteria', 'Insufficient justification — please reapply with details'][Math.floor(Math.random() * 3)];
+    }
+    // PENDING requests have no review info
+  }
+
+  // Clean up undefined fields
+  const cleanRequests = requests.map((r) => {
+    const clean: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(r)) {
+      if (v !== undefined) clean[k] = v;
+    }
+    return clean;
+  });
+
+  if (cleanRequests.length > 0) {
+    await RoomChange.insertMany(cleanRequests);
+  }
+
+  return { created: cleanRequests.length };
 }
 
 // ---------------------------------------------------------------------------
@@ -2118,85 +2901,105 @@ async function seed() {
 
   const summary: Record<string, { created: number; updated?: number }> = {};
 
-  console.log('[1/20] Seeding users...');
+  console.log('[1/23] Seeding users...');
   summary.users = await seedUsersData();
   console.log(`  All users have password: ${DEV_PASSWORD}\n`);
 
-  console.log('[2/20] Seeding FAQ entries...');
+  console.log('[2/23] Seeding FAQ entries...');
   summary.faqEntries = await seedFaqEntries();
   console.log(`  FAQ entries: ${summary.faqEntries.created} created, ${summary.faqEntries.updated} updated\n`);
 
-  console.log('[3/20] Seeding category defaults...');
+  console.log('[3/23] Seeding category defaults...');
   summary.categoryDefaults = await seedCategoryDefaults();
   console.log(`  Categories: ${summary.categoryDefaults.created} created, ${summary.categoryDefaults.updated} updated\n`);
 
-  console.log('[4/20] Seeding fee records...');
+  console.log('[4/23] Seeding fee records...');
   summary.feeRecords = await seedFeeRecords();
   console.log(`  Fees: ${summary.feeRecords.created} created, ${summary.feeRecords.updated} updated\n`);
 
-  console.log('[5/20] Seeding rooms...');
+  console.log('[5/23] Seeding rooms...');
   summary.rooms = await seedRooms();
   console.log(`  Rooms: ${summary.rooms.created} created, ${summary.rooms.updated} updated\n`);
 
-  console.log('[6/20] Seeding leaves...');
+  console.log('[6/25] Seeding leaves...');
   summary.leaves = await seedLeaves();
   console.log(`  Leaves: ${summary.leaves.created} created\n`);
 
-  console.log('[7/20] Seeding notices...');
+  console.log('[7/25] Seeding gate passes...');
+  summary.gatePasses = await seedGatePasses();
+  console.log(`  Gate passes: ${summary.gatePasses.created} created\n`);
+
+  console.log('[8/25] Seeding notices...');
   summary.notices = await seedNotices();
   console.log(`  Notices: ${summary.notices.created} created\n`);
 
-  console.log('[8/20] Seeding complaints...');
+  console.log('[8/23] Seeding complaints...');
   summary.complaints = await seedComplaints();
   console.log(`  Complaints: ${summary.complaints.created} created\n`);
 
-  console.log('[9/20] Seeding notifications...');
+  console.log('[9/23] Seeding notifications...');
   summary.notifications = await seedNotifications();
   console.log(`  Notifications: ${summary.notifications.created} created\n`);
 
-  console.log('[10/20] Seeding mess menus...');
+  console.log('[10/23] Seeding mess menus...');
   summary.messMenus = await seedMessMenus();
   console.log(`  Mess menus: ${summary.messMenus.created} created, ${summary.messMenus.updated} updated\n`);
 
-  console.log('[11/20] Seeding visitors...');
+  console.log('[11/23] Seeding visitors...');
   summary.visitors = await seedVisitors();
   console.log(`  Visitors: ${summary.visitors.created} created\n`);
 
-  console.log('[12/20] Seeding laundry slots...');
+  console.log('[12/23] Seeding laundry slots...');
   summary.laundrySlots = await seedLaundrySlots();
   console.log(`  Laundry slots: ${summary.laundrySlots.created} created\n`);
 
-  console.log('[13/20] Seeding lost & found...');
+  console.log('[13/23] Seeding lost & found...');
   summary.lostFound = await seedLostFound();
   console.log(`  Lost & found items: ${summary.lostFound.created} created\n`);
 
-  console.log('[14/20] Seeding feedback...');
+  console.log('[14/23] Seeding feedback...');
   summary.feedback = await seedFeedback();
   console.log(`  Feedback: ${summary.feedback.created} created\n`);
 
-  console.log('[15/20] Seeding chat messages...');
+  console.log('[15/23] Seeding chat messages...');
   summary.chatMessages = await seedChatMessages();
   console.log(`  Chat messages: ${summary.chatMessages.created} created\n`);
 
-  console.log('[16/20] Seeding assets...');
+  console.log('[16/23] Seeding assets...');
   summary.assets = await seedAssets();
   console.log(`  Assets: ${summary.assets.created} created\n`);
 
-  console.log('[17/20] Seeding wellness checks...');
+  console.log('[17/23] Seeding wellness checks...');
   summary.wellnessChecks = await seedWellnessChecks();
   console.log(`  Wellness checks: ${summary.wellnessChecks.created} created\n`);
 
-  console.log('[18/20] Seeding emergency alerts...');
+  console.log('[18/23] Seeding emergency alerts...');
   summary.emergencyAlerts = await seedEmergencyAlerts();
   console.log(`  Emergency alerts: ${summary.emergencyAlerts.created} created\n`);
 
-  console.log('[19/20] Seeding SOS alerts...');
+  console.log('[19/23] Seeding SOS alerts...');
   summary.sosAlerts = await seedSosAlerts();
   console.log(`  SOS alerts: ${summary.sosAlerts.created} created\n`);
 
-  console.log('[20/20] Seeding gate scans...');
+  console.log('[20/23] Seeding gate scans...');
   summary.gateScans = await seedGateScans();
   console.log(`  Gate scans: ${summary.gateScans.created} created\n`);
+
+  console.log('[21/23] Seeding inspections...');
+  summary.inspections = await seedInspections();
+  console.log(`  Inspections: ${summary.inspections.created} created\n`);
+
+  console.log('[22/23] Seeding audit events...');
+  summary.auditEvents = await seedAuditEvents();
+  console.log(`  Audit events: ${summary.auditEvents.created} created\n`);
+
+  console.log('[23/24] Seeding inventory...');
+  summary.inventory = await seedInventory();
+  console.log(`  Inventory items: ${summary.inventory.created} created\n`);
+
+  console.log('[24/24] Seeding room changes...');
+  summary.roomChanges = await seedRoomChanges();
+  console.log(`  Room changes: ${summary.roomChanges.created} created\n`);
 
   console.log('=== Seed Summary ===');
   for (const [name, counts] of Object.entries(summary)) {

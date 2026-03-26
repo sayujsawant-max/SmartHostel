@@ -7,7 +7,7 @@ import { AnimatedCounter } from '@/components/motion/AnimatedCounter';
 import PageHeader from '@components/ui/PageHeader';
 import { PageSkeleton } from '@components/Skeleton';
 import { apiFetch } from '@services/api';
-import { showError } from '@/utils/toast';
+
 import {
   AreaChart,
   Area,
@@ -143,7 +143,7 @@ export default function ComplaintAnalyticsPage() {
     async function fetchData() {
       try {
         const res = await apiFetch('/admin/analytics');
-        const d = res?.data ?? res;
+        const d = (res?.data ?? res) as Partial<{ weeklyData: WeekData[]; categoryData: CategoryData[]; resolutionData: ResolutionBucket[]; hotspots: BlockHotspot[] }> | undefined;
         if (d?.weeklyData) setWeeklyData(d.weeklyData);
         if (d?.categoryData) setCategoryData(d.categoryData);
         if (d?.resolutionData) setResolutionData(d.resolutionData);

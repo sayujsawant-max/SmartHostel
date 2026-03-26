@@ -45,7 +45,7 @@ export function useOptimisticMutation<TData, TVariables extends { path: string; 
     },
     onError: (_err, _variables, context) => {
       // Roll back on error
-      if (context && 'previous' in context) {
+      if (context && typeof context === 'object' && 'previous' in context) {
         qc.setQueryData(options.queryKey, (context as { previous: TData }).previous);
       }
     },
