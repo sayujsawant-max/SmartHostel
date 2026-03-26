@@ -63,14 +63,14 @@ export async function override(req: Request, res: Response) {
   });
 }
 
-export async function getOverrides(_req: Request, res: Response) {
+export async function getOverrides(req: Request, res: Response) {
   const overrides = await overrideService.getPendingOverrides();
-  res.json({ success: true, data: overrides });
+  res.json({ success: true, data: overrides, correlationId: req.correlationId });
 }
 
-export async function getOverrideStats(_req: Request, res: Response) {
+export async function getOverrideStats(req: Request, res: Response) {
   const stats = await overrideService.getOverrideStats();
-  res.json({ success: true, data: stats });
+  res.json({ success: true, data: stats, correlationId: req.correlationId });
 }
 
 export async function reviewOverride(req: Request<{ id: string }>, res: Response) {

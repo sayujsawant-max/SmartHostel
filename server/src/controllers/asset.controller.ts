@@ -95,7 +95,7 @@ export async function logMaintenance(req: Request<{ id: string }>, res: Response
     });
   }
 
-  const log = await assetService.logMaintenance(req.params.id, parsed.data.description);
+  const log = await assetService.logMaintenance(req.params.id, parsed.data.description, parsed.data.cost);
 
   res.status(201).json({
     success: true,

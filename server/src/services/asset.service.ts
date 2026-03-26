@@ -124,15 +124,18 @@ export async function updateAsset(assetId: string, data: Partial<{
   return asset;
 }
 
-export async function logMaintenance(assetId: string, notes: string) {
+export async function logMaintenance(assetId: string, notes: string, cost?: number) {
+  const updateFields: Record<string, unknown> = {
+    lastMaintenanceDate: new Date(),
+    notes,
+  };
+  if (cost !== undefined) {
+    updateFields.lastMaintenanceCost = cost;
+  }
+
   const asset = await Asset.findByIdAndUpdate(
     assetId,
-    {
-      $set: {
-        lastMaintenanceDate: new Date(),
-        notes,
-      },
-    },
+    { $set: updateFields },
     { returnDocument: 'after' },
   );
 
@@ -140,7 +143,7 @@ export async function logMaintenance(assetId: string, notes: string) {
     throw new AppError('NOT_FOUND', 'Asset not found', 404);
   }
 
-  logger.info({ assetId }, 'Asset maintenance logged');
+  logger.info({ assetId, cost }, 'Asset maintenance logged');
 
   return asset;
 }

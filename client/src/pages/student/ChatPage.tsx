@@ -67,7 +67,7 @@ export default function ChatPage() {
   async function fetchConversations() {
     try {
       setLoading(true);
-      const res = await apiFetch<Conversation[]>('/assistant/conversations');
+      const res = await apiFetch<Conversation[]>('/chat/conversations');
       setConversations(res.data ?? []);
     } catch {
       showError('Failed to load conversations');
@@ -79,7 +79,7 @@ export default function ChatPage() {
   async function fetchMessages(conversationId: string) {
     try {
       setMessagesLoading(true);
-      const res = await apiFetch<Message[]>(`/assistant/conversations/${conversationId}/messages`);
+      const res = await apiFetch<Message[]>(`/chat/messages/${conversationId}`);
       setMessages(res.data ?? []);
     } catch {
       showError('Failed to load messages');
@@ -116,9 +116,9 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, optimisticMessage]);
 
     try {
-      await apiFetch(`/assistant/conversations/${selectedConversation.id}/messages`, {
+      await apiFetch(`/chat/messages`, {
         method: 'POST',
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ partnerId: selectedConversation.id, text }),
       });
       showSuccess('Message sent');
     } catch {

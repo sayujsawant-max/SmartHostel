@@ -12,16 +12,26 @@ const createInspectionSchema = z.object({
   issues: z.array(z.string()).optional(),
 });
 
-export async function listInspections(_req: Request, res: Response) {
-  const inspections = await Inspection.find()
-    .populate('inspectedBy', 'name email')
-    .sort({ date: -1 })
-    .lean();
+export async function listInspections(req: Request, res: Response) {
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 50));
+  const skip = (page - 1) * limit;
+
+  const [inspections, total] = await Promise.all([
+    Inspection.find()
+      .populate('inspectedBy', 'name email')
+      .sort({ date: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Inspection.countDocuments(),
+  ]);
 
   res.json({
     success: true,
     data: inspections,
-    correlationId: _req.correlationId,
+    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    correlationId: req.correlationId,
   });
 }
 
@@ -33,10 +43,10 @@ export async function createInspection(req: Request, res: Response) {
     });
   }
 
-  const status =
-    parsed.data.score >= 60
-      ? InspectionStatus.COMPLETED
-      : InspectionStatus.FAILED;
+  // Score provided at creation means inspection is already done
+  const status = parsed.data.score >= 60
+    ? InspectionStatus.COMPLETED
+    : InspectionStatus.FAILED;
 
   const inspection = await Inspection.create({
     ...parsed.data,
