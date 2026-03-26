@@ -15,7 +15,11 @@ interface UsePWAReturn {
 export function usePWA(): UsePWAReturn {
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstalled, setIsInstalled] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(
+    () =>
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (navigator as unknown as { standalone?: boolean }).standalone === true,
+  );
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
@@ -46,14 +50,6 @@ export function usePWA(): UsePWAReturn {
     window.addEventListener('appinstalled', handleAppInstalled);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-
-    // Check if already in standalone mode (already installed)
-    if (
-      window.matchMedia('(display-mode: standalone)').matches ||
-      (navigator as any).standalone === true
-    ) {
-      setIsInstalled(true);
-    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstall);

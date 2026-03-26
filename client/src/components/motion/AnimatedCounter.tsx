@@ -40,7 +40,10 @@ export function AnimatedCounter({
 
   // Reduced motion: show final value immediately whenever target changes
   useEffect(() => {
-    if (reduced) setDisplay(target);
+    if (reduced) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reduced-motion sync is intentional
+      setDisplay(target);
+    }
   }, [reduced, target]);
 
   useEffect(() => {

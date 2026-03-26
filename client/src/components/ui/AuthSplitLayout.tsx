@@ -18,7 +18,7 @@ interface AuthSplitLayoutProps {
 export default function AuthSplitLayout({
   children,
   icon,
-  title: _title,
+  title: _title, // eslint-disable-line @typescript-eslint/no-unused-vars
   subtitle,
 }: AuthSplitLayoutProps) {
   return (

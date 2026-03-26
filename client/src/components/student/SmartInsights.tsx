@@ -32,6 +32,7 @@ interface Insight {
 export default function SmartInsights({ complaints, leaves, fees }: InsightData) {
   const insights = useMemo(() => {
     const items: Insight[] = [];
+    // eslint-disable-next-line react-hooks/purity -- Date.now() inside useMemo is stable per render
     const now = Date.now();
     const DAY = 86_400_000;
 

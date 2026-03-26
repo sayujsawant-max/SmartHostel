@@ -21,15 +21,12 @@ function getStorageKey(role: string) {
   return `smarthostel-onboarding-${role}`;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useOnboarding(role: string) {
-  const [showTour, setShowTour] = useState(false);
-
-  useEffect(() => {
+  const [showTour, setShowTour] = useState(() => {
     const seen = localStorage.getItem(getStorageKey(role));
-    if (!seen) {
-      setShowTour(true);
-    }
-  }, [role]);
+    return !seen;
+  });
 
   const startTour = useCallback(() => {
     setShowTour(true);
@@ -159,7 +156,6 @@ export default function OnboardingTour({ steps, role, onComplete }: OnboardingTo
   }, [step]);
 
   useEffect(() => {
-    updateRect();
     const onScroll = () => updateRect();
     const onResize = () => updateRect();
     window.addEventListener('scroll', onScroll, true);

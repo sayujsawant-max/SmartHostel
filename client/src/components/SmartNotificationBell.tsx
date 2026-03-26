@@ -117,18 +117,19 @@ export default function SmartNotificationBell() {
 
   /* ---- Fetch ---------------------------------------------------- */
 
-  const fetchNotifications = useCallback(async () => {
-    try {
-      const res = await apiFetch<NotificationItem[]>('/notifications');
-      setNotifications(res.data);
-    } catch {
-      showError('Failed to load notifications');
-    }
-  }, []);
-
   useEffect(() => {
+    let cancelled = false;
+    async function fetchNotifications() {
+      try {
+        const res = await apiFetch<NotificationItem[]>('/notifications');
+        if (!cancelled) setNotifications(res.data);
+      } catch {
+        if (!cancelled) showError('Failed to load notifications');
+      }
+    }
     fetchNotifications();
-  }, [fetchNotifications]);
+    return () => { cancelled = true; };
+  }, []);
 
   /* ---- WebSocket ------------------------------------------------ */
 

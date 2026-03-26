@@ -75,10 +75,10 @@ export default function OccupancyHeatmapPage() {
       try {
         const res = await apiFetch<{ rooms: Room[] }>('/admin/occupancy/rooms');
         const raw = res.data;
-        const data = Array.isArray(raw) ? raw : (raw as any)?.rooms ?? [];
+        const data = Array.isArray(raw) ? raw : (raw as { rooms?: Room[] })?.rooms ?? [];
         setRooms(data);
-      } catch (err: any) {
-        showError(err?.message ?? 'Failed to load room data');
+      } catch (err: unknown) {
+        showError(err instanceof Error ? err.message : 'Failed to load room data');
       } finally {
         setLoading(false);
       }

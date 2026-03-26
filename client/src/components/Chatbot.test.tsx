@@ -1,23 +1,26 @@
 // @vitest-environment jsdom
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import Chatbot from './Chatbot';
 
 // Mock motion/react — jsdom doesn't run animations, so pass through as plain elements
-vi.mock('motion/react', () => {
-  const React = require('react');
+vi.mock('motion/react', async () => {
+  const React = await vi.importActual<typeof import('react')>('react');
   const motion = new Proxy(
     {},
     {
       get: (_target: object, prop: string) =>
         React.forwardRef((props: Record<string, unknown>, ref: unknown) => {
           const {
-            initial: _i, animate: _a, exit: _e, transition: _t,
-            whileHover: _wh, whileTap: _wt, variants: _v,
-            layout: _l, layoutId: _li, custom: _c,
+            initial, animate, exit, transition,
+            whileHover, whileTap, variants,
+            layout, layoutId, custom,
             ...rest
           } = props;
+          void initial; void animate; void exit; void transition;
+          void whileHover; void whileTap; void variants;
+          void layout; void layoutId; void custom;
           return React.createElement(prop, { ...rest, ref });
         }),
     },

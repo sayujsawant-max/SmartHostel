@@ -62,24 +62,19 @@ function FloatingShape({
   );
 }
 
+const PARTICLE_COUNT = 50;
+const INITIAL_PARTICLES = Array.from({ length: PARTICLE_COUNT }, () => ({
+  x: (Math.random() - 0.5) * 12,
+  y: (Math.random() - 0.5) * 8,
+  z: (Math.random() - 0.5) * 6,
+  speed: 0.2 + Math.random() * 0.5,
+  offset: Math.random() * Math.PI * 2,
+}));
+
 function Particles() {
-  const count = 50;
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
-
-  const particles = useMemo(() => {
-    const temp = [];
-    for (let i = 0; i < count; i++) {
-      temp.push({
-        x: (Math.random() - 0.5) * 12,
-        y: (Math.random() - 0.5) * 8,
-        z: (Math.random() - 0.5) * 6,
-        speed: 0.2 + Math.random() * 0.5,
-        offset: Math.random() * Math.PI * 2,
-      });
-    }
-    return temp;
-  }, []);
+  const particles = INITIAL_PARTICLES;
 
   useFrame(({ clock }) => {
     if (!meshRef.current) return;
@@ -98,7 +93,7 @@ function Particles() {
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, PARTICLE_COUNT]}>
       <sphereGeometry args={[1, 8, 8]} />
       <meshBasicMaterial color="#a78bfa" transparent opacity={0.4} />
     </instancedMesh>

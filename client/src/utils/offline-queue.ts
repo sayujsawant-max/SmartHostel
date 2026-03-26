@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import React from 'react';
@@ -229,12 +229,13 @@ function OfflineBanner() {
   const { isOnline, queueSize, sync } = useOfflineStatus();
   const [syncing, setSyncing] = useState(false);
   const [justReconnected, setJustReconnected] = useState(false);
-  const [wasOffline, setWasOffline] = useState(false);
+  const wasOfflineRef = useRef(false);
 
   useEffect(() => {
     if (!isOnline) {
-      setWasOffline(true);
-    } else if (wasOffline) {
+      wasOfflineRef.current = true;
+    } else if (wasOfflineRef.current) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reconnect sync must trigger re-render
       setJustReconnected(true);
       setSyncing(true);
 
@@ -242,11 +243,11 @@ function OfflineBanner() {
         setSyncing(false);
         setTimeout(() => {
           setJustReconnected(false);
-          setWasOffline(false);
+          wasOfflineRef.current = false;
         }, 3000);
       });
     }
-  }, [isOnline, wasOffline, sync]);
+  }, [isOnline, sync]);
 
   const showBanner = !isOnline || justReconnected;
 

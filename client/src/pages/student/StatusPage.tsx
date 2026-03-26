@@ -220,6 +220,7 @@ export default function StatusPage() {
       .finally(() => setLoading(false));
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- async data fetch is standard React pattern
   useEffect(() => { loadData(); }, []);
 
   if (loading) return <PageSkeleton />;

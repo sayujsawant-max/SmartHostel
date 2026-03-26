@@ -94,7 +94,7 @@ export default function PaymentsPage() {
         theme: { color: 'hsl(173, 78%, 24%)' },
       };
 
-      const rzp = new (window as any).Razorpay(options);
+      const rzp = new (window as unknown as { Razorpay: new (opts: Record<string, unknown>) => { open(): void } }).Razorpay(options);
       rzp.open();
     } catch (err) {
       showError(err, 'Failed to initiate payment');

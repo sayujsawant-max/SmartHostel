@@ -163,13 +163,12 @@ function SettingRow({
 
 export default function AccessibilityPanel() {
   const [open, setOpen] = useState(false);
-  const [prefs, setPrefs] = useState<A11yPrefs>(DEFAULT_PREFS);
+  const [prefs, setPrefs] = useState<A11yPrefs>(() => loadPrefs());
 
-  // Load and apply preferences on mount
+  // Apply preferences on mount
   useEffect(() => {
-    const loaded = loadPrefs();
-    setPrefs(loaded);
-    applyPrefs(loaded);
+    applyPrefs(prefs);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only on mount
   }, []);
 
   const updatePref = useCallback(

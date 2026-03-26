@@ -1,14 +1,15 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-vi.mock('motion/react', () => {
-  const React = require('react');
+vi.mock('motion/react', async () => {
+  const React = await vi.importActual<typeof import('react')>('react');
   const motion = new Proxy(
     {},
     {
       get: (_target: object, prop: string) =>
         React.forwardRef((props: Record<string, unknown>, ref: unknown) => {
-          const { initial: _i, animate: _a, exit: _e, transition: _t, ...rest } = props;
+          const { initial, animate, exit, transition, ...rest } = props;
+          void initial; void animate; void exit; void transition;
           return React.createElement(prop, { ...rest, ref });
         }),
     },

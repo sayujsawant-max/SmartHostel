@@ -62,10 +62,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     updateResolved(t);
   }
 
-  // Apply on mount
+  // Apply on mount (initial resolve is handled by lazy useState init above)
   useEffect(() => {
-    updateResolved(theme);
-  }, [theme, updateResolved]);
+    const resolved = resolveTheme(theme);
+    document.documentElement.classList.toggle('dark', resolved === 'dark');
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only on mount
+  }, []);
 
   // Listen for system preference changes when in 'system' mode
   useEffect(() => {
@@ -94,6 +96,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useTheme(): ThemeContextValue {
   const ctx = useContext(ThemeContext);
   if (!ctx) throw new Error('useTheme must be used within a ThemeProvider');

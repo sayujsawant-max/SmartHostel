@@ -90,23 +90,23 @@ export default function EmergencyPage() {
     try {
       setLoading(true);
       const res = await apiFetch('/admin/emergency-alerts?status=ACTIVE');
-      const raw: any = res.data;
+      const raw = res.data;
       // Extract array from various possible response shapes
       let list: ActiveAlert[] = [];
       if (Array.isArray(raw)) {
-        list = raw;
-      } else if (Array.isArray(raw?.alerts)) {
-        list = raw.alerts;
+        list = raw as ActiveAlert[];
+      } else if (raw && typeof raw === 'object' && Array.isArray((raw as { alerts?: unknown }).alerts)) {
+        list = (raw as { alerts: ActiveAlert[] }).alerts;
       }
       // Normalize fields: API returns _id/UPPERCASE, frontend expects id/lowercase
       setActiveAlerts(
-        list.map((a: any) => ({
-          id: a._id ?? a.id ?? '',
+        list.map((a) => ({
+          id: (a as unknown as { _id?: string })._id ?? a.id ?? '',
           type: (a.type ?? '').toLowerCase() as AlertType,
           title: a.title ?? '',
           description: a.description ?? '',
           severity: (a.severity ?? '').toLowerCase() as Severity,
-          target: a.targetValue ?? a.targetScope ?? 'all',
+          target: (a as unknown as { targetValue?: string }).targetValue ?? (a as unknown as { targetScope?: string }).targetScope ?? 'all',
           createdAt: a.createdAt ?? '',
           status: a.status ?? '',
         })),
