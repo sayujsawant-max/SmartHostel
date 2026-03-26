@@ -2,8 +2,6 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import bcrypt from 'bcryptjs';
 import { User } from '@models/user.model.js';
-import { GateScan } from '@models/gate-scan.model.js';
-import { GatePass } from '@models/gate-pass.model.js';
 
 import app from '../app.js';
 
