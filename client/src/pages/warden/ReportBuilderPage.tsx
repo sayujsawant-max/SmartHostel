@@ -212,8 +212,8 @@ export default function ReportBuilderPage() {
   const [ready, setReady] = useState(false);
   const [selectedType, setSelectedType] = useState<ReportType>('occupancy');
   const [chartType, setChartType] = useState<ChartType>('bar');
-  const [dateFrom, setDateFrom] = useState('2026-02-01');
-  const [dateTo, setDateTo] = useState('2026-03-24');
+  const [dateFrom, setDateFrom] = useState('2026-03-01');
+  const [dateTo, setDateTo] = useState('2026-04-04');
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});
   const [selectedColumns, setSelectedColumns] = useState<Set<string>>(new Set());
   const [csvLoading, setCsvLoading] = useState(false);

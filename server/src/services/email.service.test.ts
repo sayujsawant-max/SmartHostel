@@ -96,7 +96,7 @@ describe('email.service', () => {
       const { sendLeaveApprovalEmail } = await import('./email.service.js');
       await sendLeaveApprovalEmail(
         { name: 'John Doe', email: 'john@example.com' },
-        { startDate: '2026-03-25', endDate: '2026-03-27', status: 'APPROVED' },
+        { startDate: '2026-04-05', endDate: '2026-04-07', status: 'APPROVED' },
       );
 
       // Function should not throw regardless of transporter state
@@ -117,8 +117,8 @@ describe('email.service', () => {
       const result = await sendLeaveApprovalEmail(
         { name: 'Jane', email: 'jane@example.com' },
         {
-          startDate: '2026-04-01',
-          endDate: '2026-04-03',
+          startDate: '2026-04-10',
+          endDate: '2026-04-12',
           status: 'REJECTED',
           reason: 'Insufficient notice period',
         },
