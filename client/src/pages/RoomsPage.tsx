@@ -53,6 +53,13 @@ const ROOM_PHOTOS: Record<string, string> = {
   NORMAL_NON_AC: 'https://images.unsplash.com/photo-1626178793926-22b28830aa30?w=400&h=250&fit=crop',
 };
 
+const ROOM_GRADIENTS: Record<string, string> = {
+  DELUXE_AC: 'from-amber-400 via-orange-500 to-rose-500',
+  DELUXE_NON_AC: 'from-purple-500 via-pink-500 to-rose-500',
+  NORMAL_AC: 'from-cyan-400 via-blue-500 to-indigo-600',
+  NORMAL_NON_AC: 'from-emerald-400 via-teal-500 to-cyan-600',
+};
+
 const spring = { type: 'spring' as const, stiffness: 400, damping: 25 };
 
 const STAT_ICONS = [DoorOpen, BedDouble, Building2, Users];
@@ -518,6 +525,8 @@ function RoomCard({ room }: { room: Room }) {
   const bedsLeft = room.totalBeds - room.occupiedBeds;
   const photoKey = `${room.roomType}_${room.acType}`;
   const photo = room.photos[0] || ROOM_PHOTOS[photoKey] || ROOM_PHOTOS.NORMAL_NON_AC;
+  const gradient = ROOM_GRADIENTS[photoKey] || ROOM_GRADIENTS.NORMAL_NON_AC;
+  const [imgError, setImgError] = useState(false);
   const occupancyPct = (room.occupiedBeds / room.totalBeds) * 100;
 
   return (
@@ -528,13 +537,21 @@ function RoomCard({ room }: { room: Room }) {
     >
       <div className="rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] overflow-hidden shadow-sm group-hover:shadow-lg group-hover:border-indigo-500/20 transition-all duration-300 card-glow">
         {/* Image */}
-        <div className="relative h-40 overflow-hidden">
-          <img
-            src={photo}
-            alt={`Room ${room.roomNumber}`}
-            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-            loading="lazy"
-          />
+        <div className={`relative h-40 overflow-hidden bg-gradient-to-br ${gradient}`}>
+          {!imgError && (
+            <img
+              src={photo}
+              alt={`Room ${room.roomNumber}`}
+              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+              loading="lazy"
+              onError={() => setImgError(true)}
+            />
+          )}
+          {imgError && (
+            <div className="w-full h-full flex items-center justify-center">
+              <BedDouble className="w-16 h-16 text-white/40" />
+            </div>
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
 
           {/* Shimmer overlay on hover */}
