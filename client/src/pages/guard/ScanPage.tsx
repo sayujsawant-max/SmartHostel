@@ -202,6 +202,7 @@ export default function ScanPage() {
     if (inputMode !== 'camera') return;
 
     let scanner: Html5Qrcode | null = null;
+    let scannerStarted = false;
     let cancelled = false;
     let startTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -233,6 +234,7 @@ export default function ScanPage() {
         },
         () => { /* ignore scan failures */ },
       ).then(() => {
+        scannerStarted = true;
         if (!cancelled) {
           hintTimeoutRef.current = setTimeout(() => setShowPassCodeHint(true), 5000);
         }
@@ -250,7 +252,9 @@ export default function ScanPage() {
       if (hintTimeoutRef.current) clearTimeout(hintTimeoutRef.current);
       if (slowTimeoutRef.current) clearTimeout(slowTimeoutRef.current);
       if (longPressRef.current) clearTimeout(longPressRef.current);
-      scanner?.stop().catch(() => {});
+      if (scanner && scannerStarted) {
+        scanner.stop().catch(() => {});
+      }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputMode]);
