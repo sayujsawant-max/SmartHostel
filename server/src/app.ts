@@ -66,7 +66,7 @@ app.use(
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", 'data:', 'blob:', 'https://res.cloudinary.com'],
+        imgSrc: ["'self'", 'data:', 'blob:', 'https://res.cloudinary.com', 'https://images.unsplash.com'],
         connectSrc: ["'self'", 'https://accounts.google.com', 'wss:', 'ws:'],
         fontSrc: ["'self'"],
         objectSrc: ["'none'"],
