@@ -43,3 +43,24 @@ export { sendMessageSchema } from './schemas/chat.schema.js';
 export type { SendMessageInput } from './schemas/chat.schema.js';
 export { createAssetSchema } from './schemas/asset.schema.js';
 export type { CreateAssetInput } from './schemas/asset.schema.js';
+export {
+  hostelConfigSchema,
+  updateHostelConfigSchema,
+  hostelInfoSchema,
+  brandingSchema,
+  roomTypeConfigSchema,
+  blockConfigSchema,
+  featureFlagsSchema,
+  pricingConfigSchema,
+  DEFAULT_HOSTEL_CONFIG,
+} from './schemas/hostel-config.schema.js';
+export type {
+  HostelConfig,
+  UpdateHostelConfigInput,
+  HostelInfo,
+  Branding,
+  RoomTypeConfig,
+  BlockConfig,
+  FeatureFlags,
+  PricingConfig,
+} from './schemas/hostel-config.schema.js';

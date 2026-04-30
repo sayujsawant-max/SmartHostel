@@ -1,7 +1,23 @@
 import type { CreateRoomInput } from '@smarthostel/shared';
 import { Room } from '@models/room.model.js';
+import * as hostelConfigService from '@services/hostel-config.service.js';
 import { AppError } from '@utils/app-error.js';
 import { logger } from '@utils/logger.js';
+
+async function assertRoomTypeConfigured(roomType: string, acType: string): Promise<void> {
+  const config = await hostelConfigService.getConfig();
+  const expectedKey = `${roomType}_${acType}`;
+  const match = config.roomTypes.find((rt) => rt.key === expectedKey && rt.isActive);
+  if (!match) {
+    const active = config.roomTypes.filter((rt) => rt.isActive).map((rt) => rt.key);
+    throw new AppError(
+      'VALIDATION_ERROR',
+      `Room type "${roomType}" with AC type "${acType}" is not configured. Active types: ${active.join(', ') || 'none'}`,
+      400,
+      { field: 'roomType' },
+    );
+  }
+}
 
 export interface RoomFilters {
   hostelGender?: string;
@@ -27,6 +43,8 @@ export async function getRoomById(id: string) {
 }
 
 export async function createRoom(data: CreateRoomInput, correlationId?: string) {
+  await assertRoomTypeConfigured(data.roomType, data.acType);
+
   const existing = await Room.findOne({ block: data.block, roomNumber: data.roomNumber });
   if (existing) throw new AppError('CONFLICT', 'Room already exists in this block', 409);
 
@@ -40,6 +58,12 @@ export async function createRoom(data: CreateRoomInput, correlationId?: string) 
 }
 
 export async function updateRoom(id: string, data: Partial<CreateRoomInput> & { occupiedBeds?: number }, correlationId?: string) {
+  if (data.roomType || data.acType) {
+    const current = await Room.findById(id).lean();
+    if (!current) throw new AppError('NOT_FOUND', 'Room not found', 404);
+    await assertRoomTypeConfigured(data.roomType ?? current.roomType, data.acType ?? current.acType);
+  }
+
   const room = await Room.findByIdAndUpdate(id, { $set: data }, { returnDocument: 'after', runValidators: true });
   if (!room) throw new AppError('NOT_FOUND', 'Room not found', 404);
 

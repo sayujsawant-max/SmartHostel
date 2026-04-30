@@ -1,5 +1,5 @@
 import mongoose, { Schema, type Document } from 'mongoose';
-import { RoomType, RoomAcType, HostelGender } from '@smarthostel/shared';
+import { RoomAcType, HostelGender } from '@smarthostel/shared';
 
 export interface IRoom extends Document {
   block: string;
@@ -27,11 +27,7 @@ const roomSchema = new Schema<IRoom>(
       required: true,
       enum: [HostelGender.BOYS, HostelGender.GIRLS],
     },
-    roomType: {
-      type: String,
-      required: true,
-      enum: [RoomType.DELUXE, RoomType.NORMAL],
-    },
+    roomType: { type: String, required: true, trim: true },
     acType: {
       type: String,
       required: true,
