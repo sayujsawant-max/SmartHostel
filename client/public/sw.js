@@ -1,4 +1,8 @@
-const CACHE_NAME = 'smarthostel-v1';
+// Bump on each deploy so old caches get evicted in `activate`. Without this
+// bump, the previous deploy's index.html stays in cache and references hashed
+// asset filenames that no longer exist on the new deploy — users see a blank
+// white screen until they hard-refresh.
+const CACHE_NAME = 'smarthostel-v2';
 const APP_SHELL = ['/', '/index.html'];
 
 // Install: pre-cache app shell
@@ -23,17 +27,22 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: network-first for API, cache-first for static assets
+// Fetch strategy — three lanes:
+//   1. API: network-first (cached GETs are an offline fallback only)
+//   2. SPA navigations / index.html: network-first so a fresh deploy's shell
+//      reaches users immediately (cached shell would point at stale asset
+//      hashes that 404 on the new deploy → blank screen)
+//   3. Hashed static assets (.js/.css/.png/etc.): cache-first — Vite's
+//      content-hashed filenames are immutable, safe to cache forever
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Network-first for API calls
+  // 1. Network-first for API calls
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Clone and cache successful GET responses
           if (request.method === 'GET' && response.ok) {
             const clone = response.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
@@ -45,12 +54,30 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-first for static assets
+  // 2. Network-first for SPA navigations + the bare HTML shell
+  const isNavigation =
+    request.mode === 'navigate' ||
+    (request.method === 'GET' && request.headers.get('accept')?.includes('text/html'));
+  if (isNavigation) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match('/index.html').then((c) => c ?? caches.match('/')))
+    );
+    return;
+  }
+
+  // 3. Cache-first for hashed static assets
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;
       return fetch(request).then((response) => {
-        // Cache successful GET responses for static assets
         if (request.method === 'GET' && response.ok) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
