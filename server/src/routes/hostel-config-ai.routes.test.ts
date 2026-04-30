@@ -14,6 +14,7 @@ vi.mock('@config/env.js', async () => {
 
 import { User } from '@models/user.model.js';
 import { HostelConfigModel } from '@models/hostel-config.model.js';
+import { Resource } from '@models/resource.model.js';
 import app from '../app.js';
 
 const TEST_PASSWORD = 'password123';
@@ -217,5 +218,69 @@ describe('Hostel-config AI — local fallback intent parsing', () => {
     expect(res.status).toBe(200);
     expect(res.body.data.actions).toEqual([]);
     expect(res.body.data.reply).toMatch(/AC rooms|disable|primary color|rename/i);
+  });
+
+  it('returns the current resources array in every response', async () => {
+    await Resource.create({
+      key: 'YOGA',
+      label: 'Yoga',
+      slots: [{ dayOfWeek: 1, startTime: '18:00', durationMinutes: 60 }],
+      capacity: 10,
+      allowedRoles: ['STUDENT'],
+      bookingWindowDays: 14,
+      isActive: true,
+    });
+    const cookies = await loginAs('WARDEN_ADMIN', 'admin@example.com');
+
+    const res = await chat(cookies, 'hello');
+    expect(res.status).toBe(200);
+    expect(res.body.data.resources).toBeInstanceOf(Array);
+    expect(res.body.data.resources).toHaveLength(1);
+    expect(res.body.data.resources[0].key).toBe('YOGA');
+  });
+});
+
+describe('Hostel-config AI — resource intents (local fallback)', () => {
+  beforeEach(async () => {
+    await Resource.create({
+      key: 'YOGA',
+      label: 'Yoga Session',
+      slots: [{ dayOfWeek: 1, startTime: '18:00', durationMinutes: 60 }],
+      capacity: 10,
+      allowedRoles: ['STUDENT'],
+      bookingWindowDays: 14,
+      isActive: true,
+    });
+  });
+
+  it('"Remove resource YOGA" deletes the resource', async () => {
+    const cookies = await loginAs('WARDEN_ADMIN', 'admin@example.com');
+
+    const res = await chat(cookies, 'Remove resource YOGA');
+    expect(res.status).toBe(200);
+    expect(res.body.data.actions[0].tool).toBe('remove_resource');
+    expect(res.body.data.actions[0].ok).toBe(true);
+
+    expect(await Resource.countDocuments({})).toBe(0);
+    expect(res.body.data.resources).toEqual([]);
+  });
+
+  it('"Set YOGA capacity to 25" updates capacity', async () => {
+    const cookies = await loginAs('WARDEN_ADMIN', 'admin@example.com');
+
+    const res = await chat(cookies, 'Set YOGA capacity to 25');
+    expect(res.status).toBe(200);
+    expect(res.body.data.actions[0].tool).toBe('set_resource_capacity');
+    expect(res.body.data.actions[0].args).toEqual({ key: 'YOGA', capacity: 25 });
+
+    const resource = await Resource.findOne({ key: 'YOGA' }).lean();
+    expect(resource!.capacity).toBe(25);
+  });
+
+  it('does not match capacity-set when the resource key is unknown', async () => {
+    const cookies = await loginAs('WARDEN_ADMIN', 'admin@example.com');
+
+    const res = await chat(cookies, 'Set GHOST capacity to 25');
+    expect(res.body.data.actions).toEqual([]);
   });
 });

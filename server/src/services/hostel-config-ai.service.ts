@@ -3,8 +3,17 @@ import type {
   ChatCompletionMessageParam,
   ChatCompletionTool,
 } from 'openai/resources/chat/completions.js';
-import type { HostelConfig, UpdateHostelConfigInput, FeatureFlags } from '@smarthostel/shared';
+import type {
+  HostelConfig,
+  UpdateHostelConfigInput,
+  FeatureFlags,
+  CreateResourceInput,
+  UpdateResourceInput,
+  ResourceSlotTemplate,
+} from '@smarthostel/shared';
 import * as hostelConfigService from '@services/hostel-config.service.js';
+import * as resourceService from '@services/resource.service.js';
+import { Resource, type IResource } from '@models/resource.model.js';
 import { env } from '@config/env.js';
 import { logger } from '@utils/logger.js';
 import { AppError } from '@utils/app-error.js';
@@ -25,6 +34,7 @@ export interface AiChatResult {
   reply: string;
   actions: AiChatAction[];
   config: HostelConfig;
+  resources: IResource[];
 }
 
 /* ── Tool definitions (OpenAI function-calling) ───────────────── */
@@ -196,14 +206,123 @@ const tools: ChatCompletionTool[] = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'add_resource',
+      description: 'Create a new bookable resource (yoga, gym slot, study room, etc.). Slots use weekly recurrence: dayOfWeek 0=Sun..6=Sat, startTime in 24h "HH:MM", and a duration in minutes.',
+      parameters: {
+        type: 'object',
+        properties: {
+          key: { type: 'string', description: 'Uppercase id, e.g. YOGA' },
+          label: { type: 'string', description: 'Display name, e.g. Yoga Session' },
+          description: { type: 'string' },
+          slots: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                dayOfWeek: { type: 'number', minimum: 0, maximum: 6 },
+                startTime: { type: 'string', description: 'HH:MM (24h)' },
+                durationMinutes: { type: 'number', minimum: 15, maximum: 480 },
+              },
+              required: ['dayOfWeek', 'startTime', 'durationMinutes'],
+              additionalProperties: false,
+            },
+            minItems: 1,
+          },
+          capacity: { type: 'number', minimum: 1, maximum: 500 },
+          allowedRoles: {
+            type: 'array',
+            items: { type: 'string', enum: ['STUDENT', 'WARDEN_ADMIN', 'GUARD', 'MAINTENANCE'] },
+          },
+          bookingWindowDays: { type: 'number', minimum: 1, maximum: 90 },
+        },
+        required: ['key', 'label', 'slots', 'capacity'],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'update_resource',
+      description: 'Update properties of an existing resource. Pass only the fields to change.',
+      parameters: {
+        type: 'object',
+        properties: {
+          key: { type: 'string' },
+          label: { type: 'string' },
+          description: { type: 'string' },
+          capacity: { type: 'number', minimum: 1, maximum: 500 },
+          bookingWindowDays: { type: 'number', minimum: 1, maximum: 90 },
+          isActive: { type: 'boolean' },
+        },
+        required: ['key'],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'remove_resource',
+      description: 'Delete a resource by key. Future confirmed bookings are auto-cancelled.',
+      parameters: {
+        type: 'object',
+        properties: { key: { type: 'string' } },
+        required: ['key'],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'add_resource_slot',
+      description: 'Append a recurring weekly slot to an existing resource.',
+      parameters: {
+        type: 'object',
+        properties: {
+          key: { type: 'string' },
+          dayOfWeek: { type: 'number', minimum: 0, maximum: 6 },
+          startTime: { type: 'string' },
+          durationMinutes: { type: 'number', minimum: 15, maximum: 480 },
+        },
+        required: ['key', 'dayOfWeek', 'startTime', 'durationMinutes'],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'set_resource_capacity',
+      description: 'Update the per-slot capacity of a resource.',
+      parameters: {
+        type: 'object',
+        properties: {
+          key: { type: 'string' },
+          capacity: { type: 'number', minimum: 1, maximum: 500 },
+        },
+        required: ['key', 'capacity'],
+        additionalProperties: false,
+      },
+    },
+  },
 ];
 
 /* ── Tool handlers ─────────────────────────────────────────────── */
 
 interface ToolContext {
   current: HostelConfig;
+  resources: IResource[];
   actorId: string;
   correlationId?: string;
+}
+
+async function refreshResources(ctx: ToolContext): Promise<void> {
+  ctx.resources = await Resource.find().sort({ label: 1 });
 }
 
 async function applyUpdate(
@@ -323,6 +442,50 @@ const handlers: Record<string, ToolHandler> = {
     await applyUpdate(ctx, { blocks: next });
     return `Removed block ${name}.`;
   },
+
+  async add_resource(args, ctx) {
+    const input = args as CreateResourceInput;
+    await resourceService.createResource(input, ctx.actorId, ctx.correlationId);
+    await refreshResources(ctx);
+    return `Created resource ${input.key.toUpperCase()} with ${input.slots.length} slot${input.slots.length === 1 ? '' : 's'}, capacity ${input.capacity}.`;
+  },
+
+  async update_resource(args, ctx) {
+    const { key, ...patch } = args as { key: string } & UpdateResourceInput;
+    await resourceService.updateResource(key, patch, ctx.actorId, ctx.correlationId);
+    await refreshResources(ctx);
+    return `Updated resource ${key.toUpperCase()}: ${Object.keys(patch).join(', ') || 'no fields'}.`;
+  },
+
+  async remove_resource(args, ctx) {
+    const key = args.key as string;
+    await resourceService.deleteResource(key, ctx.actorId, ctx.correlationId);
+    await refreshResources(ctx);
+    return `Removed resource ${key.toUpperCase()}.`;
+  },
+
+  async add_resource_slot(args, ctx) {
+    const key = (args.key as string).toUpperCase();
+    const newSlot: ResourceSlotTemplate = {
+      dayOfWeek: args.dayOfWeek as number,
+      startTime: args.startTime as string,
+      durationMinutes: args.durationMinutes as number,
+    };
+    const resource = ctx.resources.find((r) => r.key === key);
+    if (!resource) return `Resource "${key}" not found.`;
+    const nextSlots = [...resource.slots, newSlot];
+    await resourceService.updateResource(key, { slots: nextSlots }, ctx.actorId, ctx.correlationId);
+    await refreshResources(ctx);
+    return `Added slot to ${key}: day ${newSlot.dayOfWeek} at ${newSlot.startTime} (${newSlot.durationMinutes} min).`;
+  },
+
+  async set_resource_capacity(args, ctx) {
+    const key = args.key as string;
+    const capacity = args.capacity as number;
+    await resourceService.updateResource(key, { capacity }, ctx.actorId, ctx.correlationId);
+    await refreshResources(ctx);
+    return `Set ${key.toUpperCase()} capacity to ${capacity}.`;
+  },
 };
 
 /* ── OpenAI orchestration ─────────────────────────────────────── */
@@ -335,10 +498,11 @@ function getOpenAI(): OpenAI | null {
   return openai;
 }
 
-function buildSystemPrompt(config: HostelConfig): string {
+function buildSystemPrompt(config: HostelConfig, resources: IResource[]): string {
   return [
-    'You are the SmartHostel admin AI. The warden is the user and you can edit the hostel configuration on their behalf via the provided tools.',
-    'You MUST use a tool whenever the user asks for a configuration change. Do not just describe — call the tool. After the tool returns, give a short confirmation in plain English.',
+    'You are the SmartHostel admin AI. The warden is the user and you can edit the hostel configuration and bookable resources on their behalf via the provided tools.',
+    'You MUST use a tool whenever the user asks for a change. Do not just describe — call the tool. After the tool returns, give a short confirmation in plain English.',
+    'When the user asks to "add" a new bookable activity (yoga, gym, study room, etc.), call `add_resource`. Convert times like "6pm" to "18:00", and weekday names ("Monday", "Mon") to dayOfWeek numbers (0=Sun..6=Sat). Default duration is 60 minutes if unspecified. Default bookingWindowDays is 14.',
     'If the request is ambiguous, ask one short clarifying question instead of guessing.',
     'Hex colors must be valid 6- or 3-digit hex like #1e40af. Currency is ISO 4217.',
     '',
@@ -362,6 +526,20 @@ function buildSystemPrompt(config: HostelConfig): string {
       null,
       2,
     ),
+    '',
+    'CURRENT RESOURCES:',
+    JSON.stringify(
+      resources.map((r) => ({
+        key: r.key,
+        label: r.label,
+        capacity: r.capacity,
+        slots: r.slots,
+        allowedRoles: r.allowedRoles,
+        isActive: r.isActive,
+      })),
+      null,
+      2,
+    ),
   ].join('\n');
 }
 
@@ -370,7 +548,7 @@ async function runOpenAI(input: AiChatInput, ctx: ToolContext): Promise<AiChatRe
   if (!client) throw new AppError('AI_NOT_CONFIGURED', 'OpenAI is not configured', 503);
 
   const messages: ChatCompletionMessageParam[] = [
-    { role: 'system', content: buildSystemPrompt(ctx.current) },
+    { role: 'system', content: buildSystemPrompt(ctx.current, ctx.resources) },
     ...input.history.slice(-6).map((m) => ({ role: m.role, content: m.content })),
     { role: 'user', content: input.message },
   ];
@@ -432,7 +610,7 @@ async function runOpenAI(input: AiChatInput, ctx: ToolContext): Promise<AiChatRe
 
   if (!finalReply) finalReply = actions.map((a) => a.detail).join(' ') || 'Done.';
 
-  return { reply: finalReply, actions, config: ctx.current };
+  return { reply: finalReply, actions, config: ctx.current, resources: ctx.resources };
 }
 
 /* ── Local fallback (regex-based) ─────────────────────────────── */
@@ -514,7 +692,16 @@ async function runLocalFallback(input: AiChatInput, ctx: ToolContext): Promise<A
   else if ((m = lower.match(/(?:change|set|update)\s+(?:security\s+)?deposit\s+(?:to|=)\s+([\d,]+)/))) {
     await call('update_pricing', { securityDeposit: Number(m[1].replace(/,/g, '')) });
   }
-  // 6. Feature toggle
+  // 6. Resource: "remove resource KEY"
+  else if ((m = msg.match(/(?:remove|delete)\s+resource\s+([A-Z][A-Z0-9_]*)/i))) {
+    await call('remove_resource', { key: m[1].toUpperCase() });
+  }
+  // 7. Resource: "set KEY capacity to NUM"
+  else if ((m = msg.match(/(?:set|change|update)\s+([A-Z][A-Z0-9_]*)\s+capacity\s+(?:to|=)\s+([\d,]+)/i))
+      && ctx.resources.some((r) => r.key === m![1].toUpperCase())) {
+    await call('set_resource_capacity', { key: m[1].toUpperCase(), capacity: Number(m[2].replace(/,/g, '')) });
+  }
+  // 8. Feature toggle
   else if ((m = lower.match(/\b(disable|turn\s+off|enable|turn\s+on)\b\s+([a-z\s-]+?)(?:\s|$|\.|,)/))) {
     const enabled = !m[1].startsWith('dis') && !m[1].includes('off');
     const feature = findFeatureKey(m[2]);
@@ -523,11 +710,11 @@ async function runLocalFallback(input: AiChatInput, ctx: ToolContext): Promise<A
 
   let reply: string;
   if (actions.length === 0) {
-    reply = "I couldn't match that request to an action without an AI key. Try things like: 'Change AC rooms to 8500', 'Disable laundry', 'Set primary color to #10b981', or 'Rename hostel to Acme'.";
+    reply = "I couldn't match that request to an action without an AI key. Try things like: 'Change AC rooms to 8500', 'Disable laundry', 'Set primary color to #10b981', 'Rename hostel to Acme', or 'Remove resource YOGA'.";
   } else {
     reply = actions.map((a) => a.detail).join(' ');
   }
-  return { reply, actions, config: ctx.current };
+  return { reply, actions, config: ctx.current, resources: ctx.resources };
 }
 
 /* ── Public entry point ───────────────────────────────────────── */
@@ -537,9 +724,13 @@ export async function chat(
   actorId: string,
   correlationId?: string,
 ): Promise<AiChatResult> {
-  const initial = await hostelConfigService.getConfig();
+  const [initial, resources] = await Promise.all([
+    hostelConfigService.getConfig(),
+    Resource.find().sort({ label: 1 }),
+  ]);
   const ctx: ToolContext = {
     current: initial.toObject() as HostelConfig,
+    resources,
     actorId,
     correlationId,
   };
