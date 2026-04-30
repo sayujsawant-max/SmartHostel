@@ -18,6 +18,7 @@ import {
   BarChart3,
   ShieldCheck,
   Settings,
+  SlidersHorizontal,
   LogOut,
   Menu,
   Home,
@@ -63,6 +64,7 @@ const navLinks = [
   { label: 'Report Builder', to: '/warden/report-builder', icon: FileBarChart },
   { label: 'Emergency', to: '/warden/emergency', icon: AlertOctagon },
   { label: 'Users', to: '/warden/users', icon: ShieldCheck },
+  { label: 'Hostel Config', to: '/warden/hostel-config', icon: SlidersHorizontal },
   { label: 'Settings', to: '/warden/settings', icon: Settings },
 ] as const;
 
