@@ -13,6 +13,7 @@ import type {
 } from '@smarthostel/shared';
 import * as hostelConfigService from '@services/hostel-config.service.js';
 import * as resourceService from '@services/resource.service.js';
+import * as feeService from '@services/fee.service.js';
 import { Resource, type IResource } from '@models/resource.model.js';
 import { env } from '@config/env.js';
 import { logger } from '@utils/logger.js';
@@ -310,6 +311,43 @@ const tools: ChatCompletionTool[] = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'configure_payments',
+      description: 'Configure the online payment gateway. Use provider="RAZORPAY" with real keys for production, or provider="MOCK" for demo/testing without a Razorpay account. Set enabled=false to turn payments off entirely.',
+      parameters: {
+        type: 'object',
+        properties: {
+          provider: { type: 'string', enum: ['NONE', 'RAZORPAY', 'MOCK'] },
+          enabled: { type: 'boolean' },
+          keyId: { type: 'string', description: 'Razorpay public key id, e.g. rzp_test_xxxxx' },
+          keySecret: { type: 'string', description: 'Razorpay key secret. Stored encrypted on the server, never returned to clients.' },
+        },
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'issue_fees_to_all',
+      description: 'Issue the same fee to every student in the hostel. Useful for "charge ₹5000 mess fee for May to all students".',
+      parameters: {
+        type: 'object',
+        properties: {
+          feeType: { type: 'string', enum: ['HOSTEL_FEE', 'MESS_FEE', 'MAINTENANCE_FEE'] },
+          amount: { type: 'number', minimum: 1 },
+          dueDate: { type: 'string', description: 'ISO date string, e.g. 2026-05-15' },
+          semester: { type: 'string', description: 'Free-text label, e.g. "Spring 2026"' },
+          academicYear: { type: 'string', description: 'e.g. 2025-2026' },
+          currency: { type: 'string' },
+        },
+        required: ['feeType', 'amount', 'dueDate', 'semester', 'academicYear'],
+        additionalProperties: false,
+      },
+    },
+  },
 ];
 
 /* ── Tool handlers ─────────────────────────────────────────────── */
@@ -486,6 +524,35 @@ const handlers: Record<string, ToolHandler> = {
     await refreshResources(ctx);
     return `Set ${key.toUpperCase()} capacity to ${capacity}.`;
   },
+
+  async configure_payments(args, ctx) {
+    const patch: Partial<UpdateHostelConfigInput['payments']> = {};
+    if (typeof args.provider === 'string') patch.provider = args.provider as 'NONE' | 'RAZORPAY' | 'MOCK';
+    if (typeof args.enabled === 'boolean') patch.enabled = args.enabled;
+    if (typeof args.keyId === 'string') patch.keyId = args.keyId;
+    if (typeof args.keySecret === 'string' && args.keySecret) patch.keySecret = args.keySecret;
+    if (Object.keys(patch).length === 0) return 'No payment fields provided.';
+    await applyUpdate(ctx, { payments: patch });
+    const visible: string[] = [];
+    if (patch.provider) visible.push(`provider=${patch.provider}`);
+    if (patch.enabled !== undefined) visible.push(`enabled=${patch.enabled}`);
+    if (patch.keyId !== undefined) visible.push(`keyId=${patch.keyId || '(empty)'}`);
+    if (patch.keySecret) visible.push('keySecret=updated');
+    return `Updated payments: ${visible.join(', ')}.`;
+  },
+
+  async issue_fees_to_all(args, _ctx) {
+    const feeType = args.feeType as 'HOSTEL_FEE' | 'MESS_FEE' | 'MAINTENANCE_FEE';
+    const count = await feeService.issueFeesToAll({
+      feeType,
+      amount: args.amount as number,
+      dueDate: args.dueDate as string,
+      semester: args.semester as string,
+      academicYear: args.academicYear as string,
+      currency: args.currency as string | undefined,
+    });
+    return `Issued ${feeType} of ${args.amount} to ${count} student${count === 1 ? '' : 's'} (due ${args.dueDate as string}).`;
+  },
 };
 
 /* ── OpenAI orchestration ─────────────────────────────────────── */
@@ -513,6 +580,14 @@ function buildSystemPrompt(config: HostelConfig, resources: IResource[]): string
         branding: config.branding,
         pricing: config.pricing,
         features: config.features,
+        payments: config.payments
+          ? {
+              provider: config.payments.provider,
+              enabled: config.payments.enabled,
+              keyId: config.payments.keyId,
+              keySecretConfigured: Boolean(config.payments.keySecret),
+            }
+          : { provider: 'NONE', enabled: false },
         roomTypes: config.roomTypes.map((rt) => ({
           key: rt.key,
           label: rt.label,

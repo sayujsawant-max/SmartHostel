@@ -52,6 +52,8 @@ export {
   blockConfigSchema,
   featureFlagsSchema,
   pricingConfigSchema,
+  paymentsConfigSchema,
+  PAYMENT_PROVIDERS,
   DEFAULT_HOSTEL_CONFIG,
 } from './schemas/hostel-config.schema.js';
 export type {
@@ -63,6 +65,8 @@ export type {
   BlockConfig,
   FeatureFlags,
   PricingConfig,
+  PaymentsConfig,
+  PaymentProvider,
 } from './schemas/hostel-config.schema.js';
 export {
   createResourceSchema,

@@ -8,6 +8,7 @@ import type {
   BlockConfig,
   FeatureFlags,
   PricingConfig,
+  PaymentsConfig,
 } from '@smarthostel/shared';
 
 export const HOSTEL_CONFIG_SINGLETON_KEY = 'default';
@@ -77,6 +78,7 @@ const featureFlagsSubSchema = new Schema<FeatureFlags>(
     gamification: { type: Boolean, required: true, default: true },
     roomMatching: { type: Boolean, required: true, default: true },
     wellness: { type: Boolean, required: true, default: true },
+    payments: { type: Boolean, required: true, default: true },
   },
   { _id: false },
 );
@@ -85,6 +87,21 @@ const pricingSubSchema = new Schema<PricingConfig>(
   {
     securityDeposit: { type: Number, required: true, min: 0 },
     currency: { type: String, required: true, default: 'INR' },
+  },
+  { _id: false },
+);
+
+const paymentsSubSchema = new Schema<PaymentsConfig>(
+  {
+    provider: {
+      type: String,
+      required: true,
+      enum: ['NONE', 'RAZORPAY', 'MOCK'],
+      default: 'NONE',
+    },
+    enabled: { type: Boolean, required: true, default: false },
+    keyId: { type: String, default: '' },
+    keySecret: { type: String, default: '', select: false },
   },
   { _id: false },
 );
@@ -98,6 +115,11 @@ const hostelConfigSchema = new Schema<IHostelConfig>(
     blocks: { type: [blockSubSchema], default: [] },
     features: { type: featureFlagsSubSchema, required: true },
     pricing: { type: pricingSubSchema, required: true },
+    payments: {
+      type: paymentsSubSchema,
+      required: true,
+      default: () => ({ provider: 'NONE', enabled: false, keyId: '', keySecret: '' }),
+    },
     updatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
   },
   {
@@ -111,6 +133,20 @@ hostelConfigSchema.set('toJSON', {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transform: (_doc: Document, ret: any) => {
     delete ret.__v;
+    if (ret.payments && typeof ret.payments === 'object') {
+      delete ret.payments.keySecret;
+    }
+    return ret;
+  },
+});
+
+hostelConfigSchema.set('toObject', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  transform: (_doc: Document, ret: any) => {
+    delete ret.__v;
+    if (ret.payments && typeof ret.payments === 'object') {
+      delete ret.payments.keySecret;
+    }
     return ret;
   },
 });

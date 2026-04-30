@@ -51,11 +51,23 @@ export const featureFlagsSchema = z.object({
   gamification: z.boolean(),
   roomMatching: z.boolean(),
   wellness: z.boolean(),
+  payments: z.boolean(),
 });
 
 export const pricingConfigSchema = z.object({
   securityDeposit: z.number().min(0),
   currency: z.string().length(3).regex(/^[A-Z]{3}$/, 'Use ISO 4217 code like INR'),
+});
+
+export const PAYMENT_PROVIDERS = ['NONE', 'RAZORPAY', 'MOCK'] as const;
+export type PaymentProvider = (typeof PAYMENT_PROVIDERS)[number];
+
+export const paymentsConfigSchema = z.object({
+  provider: z.enum(PAYMENT_PROVIDERS),
+  enabled: z.boolean(),
+  keyId: z.string().max(120).default(''),
+  // Server-only — never returned by GET /hostel-config (masked to last 4 chars).
+  keySecret: z.string().max(200).default(''),
 });
 
 export const hostelConfigSchema = z.object({
@@ -65,6 +77,7 @@ export const hostelConfigSchema = z.object({
   blocks: z.array(blockConfigSchema).max(50),
   features: featureFlagsSchema,
   pricing: pricingConfigSchema,
+  payments: paymentsConfigSchema,
 });
 
 export const updateHostelConfigSchema = z.object({
@@ -74,6 +87,7 @@ export const updateHostelConfigSchema = z.object({
   blocks: z.array(blockConfigSchema).max(50).optional(),
   features: featureFlagsSchema.partial().optional(),
   pricing: pricingConfigSchema.partial().optional(),
+  payments: paymentsConfigSchema.partial().optional(),
 });
 
 export type HostelInfo = z.infer<typeof hostelInfoSchema>;
@@ -82,6 +96,7 @@ export type RoomTypeConfig = z.infer<typeof roomTypeConfigSchema>;
 export type BlockConfig = z.infer<typeof blockConfigSchema>;
 export type FeatureFlags = z.infer<typeof featureFlagsSchema>;
 export type PricingConfig = z.infer<typeof pricingConfigSchema>;
+export type PaymentsConfig = z.infer<typeof paymentsConfigSchema>;
 export type HostelConfig = z.infer<typeof hostelConfigSchema>;
 export type UpdateHostelConfigInput = z.infer<typeof updateHostelConfigSchema>;
 
@@ -120,9 +135,16 @@ export const DEFAULT_HOSTEL_CONFIG: HostelConfig = {
     gamification: true,
     roomMatching: true,
     wellness: true,
+    payments: true,
   },
   pricing: {
     securityDeposit: 5000,
     currency: 'INR',
+  },
+  payments: {
+    provider: 'NONE',
+    enabled: false,
+    keyId: '',
+    keySecret: '',
   },
 };

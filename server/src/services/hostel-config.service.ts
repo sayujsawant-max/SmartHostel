@@ -6,7 +6,20 @@ import { logger } from '@utils/logger.js';
 
 export async function getConfig(): Promise<IHostelConfig> {
   const existing = await HostelConfigModel.findOne({ key: HOSTEL_CONFIG_SINGLETON_KEY });
-  if (existing) return existing;
+  if (existing) {
+    // Backfill new optional fields on legacy docs (payments block, payments feature flag).
+    let mutated = false;
+    if (!existing.payments) {
+      existing.set('payments', { provider: 'NONE', enabled: false, keyId: '', keySecret: '' });
+      mutated = true;
+    }
+    if (existing.features && existing.features.payments == null) {
+      existing.set('features.payments', true);
+      mutated = true;
+    }
+    if (mutated) await existing.save();
+    return existing;
+  }
 
   const created = await HostelConfigModel.create({
     key: HOSTEL_CONFIG_SINGLETON_KEY,
@@ -14,6 +27,19 @@ export async function getConfig(): Promise<IHostelConfig> {
   });
   logger.info({ eventType: 'HOSTEL_CONFIG_SEEDED', configId: created._id.toString() }, 'Hostel config seeded with defaults');
   return created;
+}
+
+/**
+ * Fetch the config with the (normally `select: false`) Razorpay keySecret
+ * included. Server-only — never pass the result back to a client.
+ */
+export async function getConfigWithSecret(): Promise<IHostelConfig> {
+  await getConfig(); // ensure singleton + backfill
+  const doc = await HostelConfigModel
+    .findOne({ key: HOSTEL_CONFIG_SINGLETON_KEY })
+    .select('+payments.keySecret');
+  if (!doc) throw new AppError('NOT_FOUND', 'Hostel config not found', 404);
+  return doc;
 }
 
 export async function updateConfig(
@@ -43,6 +69,14 @@ export async function updateConfig(
   if (input.pricing) {
     for (const [k, v] of Object.entries(input.pricing)) {
       set[`pricing.${k}`] = v;
+    }
+  }
+  if (input.payments) {
+    for (const [k, v] of Object.entries(input.payments)) {
+      // Don't overwrite an existing keySecret with empty string — wardens
+      // re-saving the form leave the masked field blank.
+      if (k === 'keySecret' && (v === '' || v == null)) continue;
+      set[`payments.${k}`] = v;
     }
   }
   if (input.roomTypes) {

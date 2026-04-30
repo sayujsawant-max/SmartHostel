@@ -32,6 +32,7 @@ import {
   HeartPulse,
   FileBarChart,
   AlertOctagon,
+  IndianRupee,
 } from 'lucide-react';
 
 const spring = { type: 'spring' as const, stiffness: 400, damping: 28 };
@@ -60,6 +61,7 @@ const navLinks: readonly NavLink[] = [
   { label: 'Mess Menu', to: '/warden/mess-menu', icon: UtensilsCrossed, feature: 'mess' },
   { label: 'Laundry', to: '/warden/laundry', icon: Shirt, feature: 'laundry' },
   { label: 'Visitors', to: '/warden/visitors', icon: UserCheck, feature: 'visitors' },
+  { label: 'Fees', to: '/warden/fees', icon: IndianRupee, feature: 'payments' },
   { label: 'Room Changes', to: '/warden/room-changes', icon: ArrowLeftRight },
   { label: 'Reports', to: '/warden/reports', icon: BarChart3 },
   { label: 'KPI', to: '/warden/kpi', icon: TrendingUp },

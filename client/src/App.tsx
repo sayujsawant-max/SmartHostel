@@ -81,6 +81,7 @@ const WardenWellnessDashboardPage = lazy(() => import('@pages/warden/WellnessDas
 const WardenReportBuilderPage = lazy(() => import('@pages/warden/ReportBuilderPage'));
 const WardenEmergencyPage = lazy(() => import('@pages/warden/EmergencyPage'));
 const WardenHostelConfigPage = lazy(() => import('@pages/warden/HostelConfigPage'));
+const WardenFeesManagePage = lazy(() => import('@pages/warden/FeesManagePage'));
 
 // Guard pages
 const GuardVisitorCheckPage = lazy(() => import('@pages/guard/VisitorCheckPage'));
@@ -224,6 +225,7 @@ function AppRoutes() {
               <Route path="/warden/report-builder" element={<WardenReportBuilderPage />} />
               <Route path="/warden/emergency" element={<WardenEmergencyPage />} />
               <Route path="/warden/hostel-config" element={<WardenHostelConfigPage />} />
+              <Route path="/warden/fees" element={<WardenFeesManagePage />} />
             </Route>
           </Route>
 

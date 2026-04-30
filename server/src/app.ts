@@ -55,6 +55,8 @@ import resourceRoutes, {
   bookingRouter as resourceBookingRoutes,
   adminResourceRouter as adminResourceRoutes,
 } from '@/routes/resource.routes.js';
+import paymentRoutes from '@/routes/payment.routes.js';
+import feeRoutes from '@/routes/fee.routes.js';
 
 const app = express();
 
@@ -70,13 +72,13 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
+        scriptSrc: ["'self'", 'https://checkout.razorpay.com'],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:', 'blob:', 'https://res.cloudinary.com', 'https://images.unsplash.com'],
-        connectSrc: ["'self'", 'https://accounts.google.com', 'wss:', 'ws:'],
+        connectSrc: ["'self'", 'https://accounts.google.com', 'https://*.razorpay.com', 'wss:', 'ws:'],
         fontSrc: ["'self'"],
         objectSrc: ["'none'"],
-        frameSrc: ["'self'", 'https://accounts.google.com'],
+        frameSrc: ["'self'", 'https://accounts.google.com', 'https://api.razorpay.com', 'https://*.razorpay.com'],
         baseUri: ["'self'"],
         formAction: ["'self'"],
         frameAncestors: ["'none'"],
@@ -177,6 +179,8 @@ app.use('/api/admin/hostel-config-ai', hostelConfigAiRoutes);
 app.use('/api/resources', resourceRoutes);
 app.use('/api/resource-bookings', resourceBookingRoutes);
 app.use('/api/admin/resources', adminResourceRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/fees', feeRoutes);
 
 // Test-only routes for RBAC integration testing (static import, only registered in test)
 if (env.NODE_ENV === 'test') {

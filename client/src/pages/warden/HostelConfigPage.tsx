@@ -23,6 +23,7 @@ import {
   Save,
   Plus,
   Trash2,
+  CreditCard,
 } from 'lucide-react';
 
 const inputCls =
@@ -48,6 +49,7 @@ const FEATURE_LABELS: Record<keyof FeatureFlags, string> = {
   gamification: 'Gamification',
   roomMatching: 'Room Matching',
   wellness: 'Wellness',
+  payments: 'Payments',
 };
 
 function emptyRoomType(): RoomTypeConfig {
@@ -87,6 +89,15 @@ export default function HostelConfigPage() {
           pricing: config.pricing,
           roomTypes: config.roomTypes,
           blocks: config.blocks,
+          payments: config.payments
+            ? {
+                provider: config.payments.provider,
+                enabled: config.payments.enabled,
+                keyId: config.payments.keyId ?? '',
+                // Empty keySecret is treated as "no change" by the server.
+                keySecret: config.payments.keySecret ?? '',
+              }
+            : undefined,
         }),
       });
       setConfig(res.data.config);
@@ -259,6 +270,84 @@ export default function HostelConfigPage() {
               value={config.pricing.currency}
               onChange={(e) =>
                 update('pricing', { ...config.pricing, currency: e.target.value.toUpperCase() })
+              }
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Payments */}
+      <section className={sectionCls}>
+        <h3 className={headingCls}>
+          <CreditCard className="w-4 h-4" /> Payments
+        </h3>
+        <p className="text-xs text-[hsl(var(--muted-foreground))]">
+          Choose <b>RAZORPAY</b> with your test/live keys for real online payments, or <b>MOCK</b>{' '}
+          for the demo (no Razorpay account required). The key secret is write-only — leave the
+          field blank to keep the current value.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className={labelCls}>Provider</label>
+            <select
+              className={inputCls}
+              value={config.payments?.provider ?? 'NONE'}
+              onChange={(e) =>
+                update('payments', {
+                  ...(config.payments ?? { provider: 'NONE', enabled: false, keyId: '', keySecret: '' }),
+                  provider: e.target.value as 'NONE' | 'RAZORPAY' | 'MOCK',
+                })
+              }
+            >
+              <option value="NONE">None (disabled)</option>
+              <option value="RAZORPAY">Razorpay</option>
+              <option value="MOCK">Mock (test/demo)</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Enabled</label>
+            <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[hsl(var(--border))]">
+              <input
+                type="checkbox"
+                checked={config.payments?.enabled ?? false}
+                onChange={(e) =>
+                  update('payments', {
+                    ...(config.payments ?? { provider: 'NONE', enabled: false, keyId: '', keySecret: '' }),
+                    enabled: e.target.checked,
+                  })
+                }
+                className="h-4 w-4 accent-indigo-600 cursor-pointer"
+              />
+              <span className="text-sm">Online payments accepted</span>
+            </label>
+          </div>
+          <div>
+            <label className={labelCls}>Razorpay Key ID</label>
+            <input
+              className={inputCls}
+              value={config.payments?.keyId ?? ''}
+              placeholder="rzp_test_xxxxxxxxxx"
+              onChange={(e) =>
+                update('payments', {
+                  ...(config.payments ?? { provider: 'NONE', enabled: false, keyId: '', keySecret: '' }),
+                  keyId: e.target.value,
+                })
+              }
+            />
+          </div>
+          <div className="md:col-span-3">
+            <label className={labelCls}>Razorpay Key Secret (write-only)</label>
+            <input
+              className={inputCls}
+              type="password"
+              autoComplete="off"
+              value={config.payments?.keySecret ?? ''}
+              placeholder="Leave blank to keep current secret"
+              onChange={(e) =>
+                update('payments', {
+                  ...(config.payments ?? { provider: 'NONE', enabled: false, keyId: '', keySecret: '' }),
+                  keySecret: e.target.value,
+                })
               }
             />
           </div>

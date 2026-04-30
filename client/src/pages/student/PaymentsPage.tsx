@@ -25,12 +25,13 @@ interface PayableFee {
 
 interface PaymentHistory {
   _id: string;
-  feeType: string;
   amount: number;
   currency: string;
   paidAt: string;
-  paymentId: string;
-  method: string;
+  providerPaymentId?: string;
+  method?: string;
+  provider: 'RAZORPAY' | 'MOCK';
+  feeId?: { feeType?: string; semester?: string; academicYear?: string } | null;
 }
 
 const FEE_LABELS: Record<string, string> = {
@@ -49,27 +50,63 @@ export default function PaymentsPage() {
   const [payingId, setPayingId] = useState<string | null>(null);
   const [tab, setTab] = useState<'pending' | 'history'>('pending');
 
-  useEffect(() => {
+  const fetchAll = () => {
     Promise.all([
-      apiFetch<PayableFee[]>('/assistant/fees?status=UNPAID,OVERDUE'),
-      apiFetch<PaymentHistory[]>('/assistant/payment-history'),
+      apiFetch<{ fees: PayableFee[] }>('/payments/payable'),
+      apiFetch<{ payments: PaymentHistory[] }>('/payments/history'),
     ])
       .then(([payRes, histRes]) => {
-        setPayable(Array.isArray(payRes.data) ? payRes.data : []);
-        setHistory(Array.isArray(histRes.data) ? histRes.data : []);
+        setPayable(payRes.data?.fees ?? []);
+        setHistory(histRes.data?.payments ?? []);
       })
       .catch(err => showError(err, 'Failed to load payment data'))
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { fetchAll(); }, []);
+
+  const refreshAfterPaid = async (paidFeeId: string) => {
+    setPayable(prev => prev.filter(f => f._id !== paidFeeId));
+    try {
+      const histRes = await apiFetch<{ payments: PaymentHistory[] }>('/payments/history');
+      setHistory(histRes.data?.payments ?? []);
+    } catch {
+      // ignore — UI will catch up on next reload
+    }
+  };
 
   const handlePay = async (fee: PayableFee) => {
     setPayingId(fee._id);
     try {
-      const res = await apiFetch<{ orderId: string; amount: number; currency: string; key: string }>('/payments/create-order', {
+      const res = await apiFetch<{
+        paymentId: string;
+        orderId: string;
+        amount: number;
+        currency: string;
+        key: string;
+        provider: 'RAZORPAY' | 'MOCK';
+      }>('/payments/create-order', {
         method: 'POST',
         body: JSON.stringify({ feeId: fee._id }),
         headers: { 'Content-Type': 'application/json' },
       });
+
+      // MOCK provider: skip Razorpay Checkout entirely and verify server-side.
+      // This lets the demo work end-to-end without a real Razorpay account.
+      if (res.data.provider === 'MOCK') {
+        await apiFetch('/payments/verify', {
+          method: 'POST',
+          body: JSON.stringify({
+            razorpay_order_id: res.data.orderId,
+            razorpay_payment_id: `pay_mock_${Date.now()}`,
+            razorpay_signature: 'mock-signature',
+          }),
+          headers: { 'Content-Type': 'application/json' },
+        });
+        showSuccess('Payment successful (test mode)');
+        await refreshAfterPaid(fee._id);
+        return;
+      }
 
       const options = {
         key: res.data.key,
@@ -86,7 +123,7 @@ export default function PaymentsPage() {
               headers: { 'Content-Type': 'application/json' },
             });
             showSuccess('Payment successful!');
-            setPayable(prev => prev.filter(f => f._id !== fee._id));
+            await refreshAfterPaid(fee._id);
           } catch (err) {
             showError(err, 'Payment verification failed');
           }
@@ -94,7 +131,12 @@ export default function PaymentsPage() {
         theme: { color: 'hsl(173, 78%, 24%)' },
       };
 
-      const rzp = new (window as unknown as { Razorpay: new (opts: Record<string, unknown>) => { open(): void } }).Razorpay(options);
+      const w = window as unknown as { Razorpay?: new (opts: Record<string, unknown>) => { open(): void } };
+      if (!w.Razorpay) {
+        showError(new Error('Razorpay checkout failed to load'), 'Razorpay unavailable');
+        return;
+      }
+      const rzp = new w.Razorpay(options);
       rzp.open();
     } catch (err) {
       showError(err, 'Failed to initiate payment');
@@ -219,20 +261,25 @@ export default function PaymentsPage() {
               <EmptyState variant="compact" title="No payment history" description="Your payment history will appear here." />
             ) : (
               <div className="space-y-2">
-                {history.map((pay, i) => (
-                  <motion.div key={pay._id} initial={{ opacity: 0, x: -10, filter: 'blur(6px)' }} animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }} transition={{ delay: i * 0.04 }}>
-                    <div className="card-glow accent-line flex items-center gap-3 p-3.5 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
-                      <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center shrink-0">
-                        <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-400" />
+                {history.map((pay, i) => {
+                  const feeType = pay.feeId?.feeType ?? 'PAYMENT';
+                  const idTail = pay.providerPaymentId?.slice(-8) ?? '';
+                  const methodLabel = pay.provider === 'MOCK' ? 'test mode' : (pay.method ?? 'card');
+                  return (
+                    <motion.div key={pay._id} initial={{ opacity: 0, x: -10, filter: 'blur(6px)' }} animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }} transition={{ delay: i * 0.04 }}>
+                      <div className="card-glow accent-line flex items-center gap-3 p-3.5 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))]">
+                        <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center shrink-0">
+                          <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-[hsl(var(--foreground))]">{FEE_LABELS[feeType] ?? feeType}</p>
+                          <p className="text-[10px] text-[hsl(var(--muted-foreground))]">{new Date(pay.paidAt).toLocaleDateString('en-IN')} · {methodLabel}{idTail ? ` · ${idTail}` : ''}</p>
+                        </div>
+                        <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">₹{pay.amount.toLocaleString('en-IN')}</span>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[hsl(var(--foreground))]">{FEE_LABELS[pay.feeType] ?? pay.feeType}</p>
-                        <p className="text-[10px] text-[hsl(var(--muted-foreground))]">{new Date(pay.paidAt).toLocaleDateString('en-IN')} · {pay.method} · {pay.paymentId?.slice(-8)}</p>
-                      </div>
-                      <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">₹{pay.amount.toLocaleString('en-IN')}</span>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  );
+                })}
               </div>
             )}
           </motion.div>
