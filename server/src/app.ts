@@ -50,6 +50,7 @@ import inspectionRoutes from '@/routes/inspection.routes.js';
 import auditTrailRoutes from '@/routes/audit-trail.routes.js';
 import inventoryRoutes from '@/routes/inventory.routes.js';
 import hostelConfigRoutes from '@/routes/hostel-config.routes.js';
+import hostelConfigAiRoutes from '@/routes/hostel-config-ai.routes.js';
 
 const app = express();
 
@@ -168,6 +169,7 @@ app.use('/api/admin/inspections', inspectionRoutes);
 app.use('/api/admin/audit-trail', auditTrailRoutes);
 app.use('/api/maintenance/inventory', inventoryRoutes);
 app.use('/api/hostel-config', hostelConfigRoutes);
+app.use('/api/admin/hostel-config-ai', hostelConfigAiRoutes);
 
 // Test-only routes for RBAC integration testing (static import, only registered in test)
 if (env.NODE_ENV === 'test') {

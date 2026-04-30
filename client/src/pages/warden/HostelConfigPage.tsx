@@ -11,6 +11,7 @@ import { motion } from '@components/ui/motion';
 import PageHeader from '@components/ui/PageHeader';
 import { PageSkeleton } from '@components/Skeleton';
 import { usePageTitle } from '@hooks/usePageTitle';
+import HostelConfigAiChat from '@components/HostelConfigAiChat';
 import {
   Building2,
   Palette,
@@ -117,6 +118,8 @@ export default function HostelConfigPage() {
           </motion.button>
         }
       />
+
+      <HostelConfigAiChat onConfigChange={setConfig} />
 
       {/* Hostel info */}
       <section className={sectionCls}>
