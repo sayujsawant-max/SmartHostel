@@ -12,6 +12,7 @@ import PageHeader from '@components/ui/PageHeader';
 import { PageSkeleton } from '@components/Skeleton';
 import { usePageTitle } from '@hooks/usePageTitle';
 import HostelConfigAiChat from '@components/HostelConfigAiChat';
+import { useHostelConfig } from '@context/HostelConfigContext';
 import {
   Building2,
   Palette,
@@ -59,18 +60,16 @@ function emptyBlock(): BlockConfig {
 
 export default function HostelConfigPage() {
   usePageTitle('Hostel Configuration');
-  const [config, setConfig] = useState<HostelConfig | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { config: globalConfig, setConfig: setGlobalConfig, loading: globalLoading } = useHostelConfig();
+  const [config, setConfig] = useState<HostelConfig | null>(globalConfig);
   const [saving, setSaving] = useState(false);
 
+  // Sync local edits when the provider's config changes (e.g. AI chat refresh).
   useEffect(() => {
-    apiFetch<{ config: HostelConfig }>('/hostel-config')
-      .then((res) => setConfig(res.data.config))
-      .catch((err) => showError(err, 'Failed to load hostel config'))
-      .finally(() => setLoading(false));
-  }, []);
+    if (globalConfig) setConfig(globalConfig);
+  }, [globalConfig]);
 
-  if (loading || !config) return <PageSkeleton />;
+  if (globalLoading || !config) return <PageSkeleton />;
 
   const update = <K extends keyof HostelConfig>(key: K, value: HostelConfig[K]) => {
     setConfig({ ...config, [key]: value });
@@ -91,6 +90,7 @@ export default function HostelConfigPage() {
         }),
       });
       setConfig(res.data.config);
+      setGlobalConfig(res.data.config);
       showSuccess('Hostel configuration saved');
     } catch (err) {
       showError(err, 'Failed to save configuration');
@@ -119,7 +119,7 @@ export default function HostelConfigPage() {
         }
       />
 
-      <HostelConfigAiChat onConfigChange={setConfig} />
+      <HostelConfigAiChat onConfigChange={(next) => { setConfig(next); setGlobalConfig(next); }} />
 
       {/* Hostel info */}
       <section className={sectionCls}>

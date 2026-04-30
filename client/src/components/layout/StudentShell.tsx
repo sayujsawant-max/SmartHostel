@@ -1,5 +1,7 @@
 import { Outlet, NavLink, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@hooks/useAuth';
+import { useHostelConfig } from '@context/HostelConfigContext';
+import type { FeatureFlags } from '@smarthostel/shared';
 import NotificationBell from '@components/NotificationBell';
 import ThemeToggle from '@components/ThemeToggle';
 import SosButton from '@components/SosButton';
@@ -7,19 +9,30 @@ import { motion } from '@components/ui/motion';
 import { pageTransition } from '@/utils/motion';
 import { Home, Zap, UtensilsCrossed, Shirt, HelpCircle, LogOut, User } from 'lucide-react';
 
-const tabs = [
+type Tab = {
+  label: string;
+  to: string;
+  icon: typeof Home;
+  prefetch: () => Promise<unknown>;
+  feature?: keyof FeatureFlags;
+};
+
+const tabs: readonly Tab[] = [
   { label: 'Dashboard', to: '/student/status', icon: Home, prefetch: () => import('@pages/student/StatusPage') },
   { label: 'Actions', to: '/student/actions', icon: Zap, prefetch: () => import('@pages/student/ActionsPage') },
-  { label: 'Menu', to: '/student/mess-menu', icon: UtensilsCrossed, prefetch: () => import('@pages/student/MessMenuPage') },
-  { label: 'Laundry', to: '/student/laundry', icon: Shirt, prefetch: () => import('@pages/student/LaundryBookingPage') },
+  { label: 'Menu', to: '/student/mess-menu', icon: UtensilsCrossed, prefetch: () => import('@pages/student/MessMenuPage'), feature: 'mess' },
+  { label: 'Laundry', to: '/student/laundry', icon: Shirt, prefetch: () => import('@pages/student/LaundryBookingPage'), feature: 'laundry' },
   { label: 'Help', to: '/student/faq', icon: HelpCircle, prefetch: () => import('@pages/student/FaqPage') },
-] as const;
+];
 
 const spring = { type: 'spring' as const, stiffness: 500, damping: 30 };
 
 export default function StudentShell() {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const { config, isFeatureEnabled } = useHostelConfig();
+  const hostelName = config?.hostel.name ?? 'SmartHostel';
+  const visibleTabs = tabs.filter((t) => !t.feature || isFeatureEnabled(t.feature));
 
   return (
     <div className="min-h-screen flex flex-col bg-[hsl(var(--background))]">
@@ -42,7 +55,7 @@ export default function StudentShell() {
             </svg>
           </motion.div>
           <div>
-            <h1 className="text-base font-bold text-[hsl(var(--foreground))] leading-tight">SmartHostel</h1>
+            <h1 className="text-base font-bold text-[hsl(var(--foreground))] leading-tight">{hostelName}</h1>
             <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium leading-tight">Student Portal</p>
           </div>
         </Link>
@@ -97,7 +110,7 @@ export default function StudentShell() {
         transition={{ duration: 0.35, delay: 0.1 }}
         className="fixed bottom-0 left-0 right-0 flex glass-strong border-t border-[hsl(var(--border))] shadow-lg z-40"
       >
-        {tabs.map((tab) => {
+        {visibleTabs.map((tab) => {
           const isActive = location.pathname.startsWith(tab.to);
           const Icon = tab.icon;
           return (

@@ -5,6 +5,7 @@ import './app.css';
 import ErrorBoundary from '@components/ErrorBoundary';
 import { ThemeProvider } from '@context/ThemeContext';
 import { AuthProvider } from '@context/AuthContext';
+import { HostelConfigProvider } from '@context/HostelConfigContext';
 import { queryClient } from '@/lib/query-client';
 import { reportWebVitals } from '@utils/web-vitals';
 import App from './App.tsx';
@@ -14,9 +15,11 @@ createRoot(document.getElementById('root')!).render(
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
+          <HostelConfigProvider>
+            <AuthProvider>
+              <App />
+            </AuthProvider>
+          </HostelConfigProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>

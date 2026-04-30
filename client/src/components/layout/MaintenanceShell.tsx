@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@hooks/useAuth';
+import { useHostelConfig } from '@context/HostelConfigContext';
 import NotificationBell from '@components/NotificationBell';
 import ThemeToggle from '@components/ThemeToggle';
 import { motion, AnimatePresence } from 'motion/react';
@@ -29,6 +30,8 @@ const navLinks = [
 function SidebarContent({ onLogout }: { onLogout: () => void }) {
   const location = useLocation();
   const { user } = useAuth();
+  const { config } = useHostelConfig();
+  const hostelName = config?.hostel.name ?? 'SmartHostel';
 
   return (
     <div className="flex flex-col h-full">
@@ -44,7 +47,7 @@ function SidebarContent({ onLogout }: { onLogout: () => void }) {
             <Wrench className="w-4.5 h-4.5 text-white" />
           </motion.div>
           <div>
-            <h1 className="text-base font-bold text-[hsl(var(--foreground))] leading-tight">SmartHostel</h1>
+            <h1 className="text-base font-bold text-[hsl(var(--foreground))] leading-tight">{hostelName}</h1>
             <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium leading-tight">Maintenance</p>
           </div>
         </div>
@@ -134,6 +137,8 @@ export default function MaintenanceShell() {
   const { logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
+  const { config } = useHostelConfig();
+  const hostelName = config?.hostel.name ?? 'SmartHostel';
 
   const handleLogout = () => void logout();
 
@@ -191,7 +196,7 @@ export default function MaintenanceShell() {
           >
             <Menu className="w-6 h-6" />
           </motion.button>
-          <h1 className="ml-3 flex-1 text-lg font-bold text-[hsl(var(--foreground))]">SmartHostel</h1>
+          <h1 className="ml-3 flex-1 text-lg font-bold text-[hsl(var(--foreground))]">{hostelName}</h1>
           <ThemeToggle />
           <NotificationBell />
         </motion.header>

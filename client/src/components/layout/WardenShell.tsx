@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@hooks/useAuth';
+import { useHostelConfig } from '@context/HostelConfigContext';
 import NotificationBell from '@components/NotificationBell';
 import ThemeToggle from '@components/ThemeToggle';
 import { motion, AnimatePresence } from '@components/ui/motion';
@@ -43,15 +44,22 @@ const prefetchMap: Record<string, () => Promise<unknown>> = {
   '/warden/rooms': () => import('@pages/warden/RoomsManagePage'),
 };
 
-const navLinks = [
+type NavLink = {
+  label: string;
+  to: string;
+  icon: typeof LayoutDashboard;
+  feature?: keyof import('@smarthostel/shared').FeatureFlags;
+};
+
+const navLinks: readonly NavLink[] = [
   { label: 'Dashboard', to: '/warden/dashboard', icon: LayoutDashboard },
   { label: 'Students', to: '/warden/students', icon: Users },
-  { label: 'Complaints', to: '/warden/complaints', icon: AlertCircle },
-  { label: 'Notices', to: '/warden/notices', icon: Megaphone },
+  { label: 'Complaints', to: '/warden/complaints', icon: AlertCircle, feature: 'complaints' },
+  { label: 'Notices', to: '/warden/notices', icon: Megaphone, feature: 'notices' },
   { label: 'Rooms', to: '/warden/rooms', icon: BedDouble },
-  { label: 'Mess Menu', to: '/warden/mess-menu', icon: UtensilsCrossed },
-  { label: 'Laundry', to: '/warden/laundry', icon: Shirt },
-  { label: 'Visitors', to: '/warden/visitors', icon: UserCheck },
+  { label: 'Mess Menu', to: '/warden/mess-menu', icon: UtensilsCrossed, feature: 'mess' },
+  { label: 'Laundry', to: '/warden/laundry', icon: Shirt, feature: 'laundry' },
+  { label: 'Visitors', to: '/warden/visitors', icon: UserCheck, feature: 'visitors' },
   { label: 'Room Changes', to: '/warden/room-changes', icon: ArrowLeftRight },
   { label: 'Reports', to: '/warden/reports', icon: BarChart3 },
   { label: 'KPI', to: '/warden/kpi', icon: TrendingUp },
@@ -59,18 +67,21 @@ const navLinks = [
   { label: 'Communications', to: '/warden/communications', icon: Send },
   { label: 'Audit Trail', to: '/warden/audit-trail', icon: History },
   { label: 'Occupancy Map', to: '/warden/occupancy-heatmap', icon: MapIcon },
-  { label: 'Complaint Analytics', to: '/warden/complaint-analytics', icon: PieChart },
-  { label: 'Wellness', to: '/warden/wellness', icon: HeartPulse },
+  { label: 'Complaint Analytics', to: '/warden/complaint-analytics', icon: PieChart, feature: 'complaints' },
+  { label: 'Wellness', to: '/warden/wellness', icon: HeartPulse, feature: 'wellness' },
   { label: 'Report Builder', to: '/warden/report-builder', icon: FileBarChart },
-  { label: 'Emergency', to: '/warden/emergency', icon: AlertOctagon },
+  { label: 'Emergency', to: '/warden/emergency', icon: AlertOctagon, feature: 'sos' },
   { label: 'Users', to: '/warden/users', icon: ShieldCheck },
   { label: 'Hostel Config', to: '/warden/hostel-config', icon: SlidersHorizontal },
   { label: 'Settings', to: '/warden/settings', icon: Settings },
-] as const;
+];
 
 function SidebarContent({ onLogout }: { onLogout: () => void }) {
   const location = useLocation();
   const { user } = useAuth();
+  const { config, isFeatureEnabled } = useHostelConfig();
+  const hostelName = config?.hostel.name ?? 'SmartHostel';
+  const visibleLinks = navLinks.filter((l) => !l.feature || isFeatureEnabled(l.feature));
 
   return (
     <div className="flex flex-col h-full">
@@ -86,7 +97,7 @@ function SidebarContent({ onLogout }: { onLogout: () => void }) {
             <Home className="w-4.5 h-4.5 text-white" />
           </motion.div>
           <div>
-            <h1 className="text-base font-bold text-[hsl(var(--foreground))] leading-tight">SmartHostel</h1>
+            <h1 className="text-base font-bold text-[hsl(var(--foreground))] leading-tight">{hostelName}</h1>
             <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium leading-tight">Warden Portal</p>
           </div>
         </div>
@@ -94,7 +105,7 @@ function SidebarContent({ onLogout }: { onLogout: () => void }) {
 
       {/* Navigation */}
       <nav className="flex-1 py-3 space-y-0.5 px-2 overflow-y-auto scrollbar-none">
-        {navLinks.map((link, idx) => {
+        {visibleLinks.map((link, idx) => {
           const isActive = location.pathname.startsWith(link.to);
           const Icon = link.icon;
           return (
@@ -177,6 +188,8 @@ export default function WardenShell() {
   const { logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
+  const { config } = useHostelConfig();
+  const hostelName = config?.hostel.name ?? 'SmartHostel';
 
   const handleLogout = () => void logout();
 
@@ -234,7 +247,7 @@ export default function WardenShell() {
           >
             <Menu className="w-6 h-6" />
           </motion.button>
-          <h1 className="ml-3 flex-1 text-lg font-bold text-[hsl(var(--foreground))]">SmartHostel</h1>
+          <h1 className="ml-3 flex-1 text-lg font-bold text-[hsl(var(--foreground))]">{hostelName}</h1>
           <ThemeToggle />
           <NotificationBell />
         </motion.header>
