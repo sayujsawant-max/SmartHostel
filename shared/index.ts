@@ -64,3 +64,17 @@ export type {
   FeatureFlags,
   PricingConfig,
 } from './schemas/hostel-config.schema.js';
+export {
+  createResourceSchema,
+  updateResourceSchema,
+  resourceSlotTemplateSchema,
+  resourceRoleSchema,
+  bookSlotSchema,
+  RESOURCE_KEY_REGEX,
+} from './schemas/resource.schema.js';
+export type {
+  CreateResourceInput,
+  UpdateResourceInput,
+  ResourceSlotTemplate,
+  BookSlotInput,
+} from './schemas/resource.schema.js';

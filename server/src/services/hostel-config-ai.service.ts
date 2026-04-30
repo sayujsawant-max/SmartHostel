@@ -437,11 +437,6 @@ async function runOpenAI(input: AiChatInput, ctx: ToolContext): Promise<AiChatRe
 
 /* ── Local fallback (regex-based) ─────────────────────────────── */
 
-const FEATURE_KEYS: Array<keyof FeatureFlags> = [
-  'laundry', 'mess', 'gatePass', 'complaints', 'leaves', 'notices',
-  'lostFound', 'sos', 'visitors', 'gamification', 'roomMatching', 'wellness',
-];
-
 function findFeatureKey(token: string): keyof FeatureFlags | null {
   const t = token.toLowerCase().replace(/[\s-]/g, '');
   const map: Record<string, keyof FeatureFlags> = {
