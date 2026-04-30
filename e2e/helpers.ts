@@ -47,6 +47,10 @@ const API_BASE = 'http://localhost:5000/api';
 /**
  * Login via the REST API. Returns the cookie header string
  * (e.g. "accessToken=…; refreshToken=…") for use in subsequent requests.
+ *
+ * Sets an Origin header so the server's CSRF middleware (which requires
+ * Origin/Referer to match an allowed origin on state-changing methods)
+ * accepts the request.
  */
 export async function loginViaApi(
   request: APIRequestContext,
@@ -54,6 +58,7 @@ export async function loginViaApi(
   password: string,
 ): Promise<string> {
   const res = await request.post(`${API_BASE}/auth/login`, {
+    headers: { Origin: 'http://localhost:5173' },
     data: { email, password },
   });
   expect(res.ok()).toBeTruthy();
@@ -76,7 +81,7 @@ export async function createLeaveViaApi(
   data: { type: string; startDate: string; endDate: string; reason: string },
 ): Promise<{ _id: string; status: string; [k: string]: unknown }> {
   const res = await request.post(`${API_BASE}/leaves`, {
-    headers: { cookie: cookies },
+    headers: { cookie: cookies, Origin: 'http://localhost:5173' },
     data,
   });
   expect(res.ok()).toBeTruthy();
@@ -94,7 +99,7 @@ export async function approveLeaveViaApi(
   leaveId: string,
 ): Promise<string> {
   const res = await request.patch(`${API_BASE}/leaves/${leaveId}/approve`, {
-    headers: { cookie: cookies },
+    headers: { cookie: cookies, Origin: 'http://localhost:5173' },
   });
   expect(res.ok()).toBeTruthy();
   const body = await res.json();

@@ -24,6 +24,10 @@ export default defineConfig({
       port: 5000,
       reuseExistingServer: !process.env.CI,
       timeout: 30_000,
+      // Bypass auth rate limiters for E2E runs: Playwright drives many login
+      // attempts per session (warden + student per test, plus retries) which
+      // otherwise trips the 10-per-15-min auth limit and breaks every test.
+      env: { E2E_BYPASS_RATE_LIMIT: 'true' },
     },
     {
       command: 'npm run dev --workspace=client',

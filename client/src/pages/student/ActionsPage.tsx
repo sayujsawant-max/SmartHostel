@@ -16,6 +16,7 @@ import {
   Search,
   Home,
   ChevronRight,
+  CalendarCheck,
 } from 'lucide-react';
 
 interface Leave {
@@ -84,6 +85,14 @@ const actions = [
     icon: Home,
     color: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400',
     ring: 'group-hover:ring-indigo-200 dark:group-hover:ring-indigo-800/40',
+  },
+  {
+    to: '/student/bookings',
+    title: 'Bookings',
+    desc: 'Yoga, gym, study rooms, and more',
+    icon: CalendarCheck,
+    color: 'bg-fuchsia-100 text-fuchsia-600 dark:bg-fuchsia-950/40 dark:text-fuchsia-400',
+    ring: 'group-hover:ring-fuchsia-200 dark:group-hover:ring-fuchsia-800/40',
   },
 ];
 

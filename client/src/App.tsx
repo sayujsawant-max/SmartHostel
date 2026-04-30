@@ -56,6 +56,7 @@ const DocumentsPage = lazy(() => import('@pages/student/DocumentsPage'));
 const PaymentsPage = lazy(() => import('@pages/student/PaymentsPage'));
 const ChatPage = lazy(() => import('@pages/student/ChatPage'));
 const FeedbackPage = lazy(() => import('@pages/student/FeedbackPage'));
+const BookingsPage = lazy(() => import('@pages/student/BookingsPage'));
 
 // Warden pages
 const WardenDashboardPage = lazy(() => import('@pages/warden/DashboardPage'));
@@ -194,6 +195,7 @@ function AppRoutes() {
               <Route path="/student/payments" element={<PaymentsPage />} />
               <Route path="/student/chat" element={<ChatPage />} />
               <Route path="/student/feedback" element={<FeedbackPage />} />
+              <Route path="/student/bookings" element={<BookingsPage />} />
             </Route>
           </Route>
 
