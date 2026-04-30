@@ -14,6 +14,7 @@ import type {
 import * as hostelConfigService from '@services/hostel-config.service.js';
 import * as resourceService from '@services/resource.service.js';
 import * as feeService from '@services/fee.service.js';
+import * as occupancyService from '@services/occupancy.service.js';
 import { Resource, type IResource } from '@models/resource.model.js';
 import { env } from '@config/env.js';
 import { logger } from '@utils/logger.js';
@@ -331,6 +332,20 @@ const tools: ChatCompletionTool[] = [
   {
     type: 'function',
     function: {
+      name: 'forecast_occupancy',
+      description: 'Read-only — return the forecasted physical occupancy for the next N days based on approved leaves and historical day-of-week patterns. Use when the warden asks "what is occupancy next week / next month / on May 15".',
+      parameters: {
+        type: 'object',
+        properties: {
+          forecastDays: { type: 'number', minimum: 7, maximum: 90, description: 'How many days forward to forecast. Default 14.' },
+        },
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
       name: 'issue_fees_to_all',
       description: 'Issue the same fee to every student in the hostel. Useful for "charge ₹5000 mess fee for May to all students".',
       parameters: {
@@ -539,6 +554,25 @@ const handlers: Record<string, ToolHandler> = {
     if (patch.keyId !== undefined) visible.push(`keyId=${patch.keyId || '(empty)'}`);
     if (patch.keySecret) visible.push('keySecret=updated');
     return `Updated payments: ${visible.join(', ')}.`;
+  },
+
+  async forecast_occupancy(args, _ctx) {
+    const forecastDays = (args.forecastDays as number | undefined) ?? 14;
+    const result = await occupancyService.getOccupancyTimeline({ lookbackDays: 30, forecastDays });
+    const { summary } = result;
+    const parts = [
+      `Forecast for the next ${forecastDays} days (${summary.totalStudents} students total):`,
+      `today ${summary.todayPresent} present`,
+      `next-week avg ${summary.nextWeekAvgForecast}`,
+    ];
+    if (summary.nextMonthLow) {
+      parts.push(`low ${summary.nextMonthLow.forecast} on ${summary.nextMonthLow.date}`);
+    }
+    if (summary.nextMonthHigh) {
+      parts.push(`peak ${summary.nextMonthHigh.forecast} on ${summary.nextMonthHigh.date}`);
+    }
+    parts.push(`${summary.approvedFutureLeaves} approved future leaves drive the dip`);
+    return parts.join('; ') + '.';
   },
 
   async issue_fees_to_all(args, _ctx) {

@@ -44,3 +44,10 @@ export async function getRoomGrid(req: Request, res: Response) {
     correlationId: req.correlationId,
   });
 }
+
+export async function getTimeline(req: Request, res: Response) {
+  const lookbackDays = req.query.lookbackDays ? Number(req.query.lookbackDays) : undefined;
+  const forecastDays = req.query.forecastDays ? Number(req.query.forecastDays) : undefined;
+  const result = await occupancyService.getOccupancyTimeline({ lookbackDays, forecastDays });
+  res.json({ success: true, data: result, correlationId: req.correlationId });
+}

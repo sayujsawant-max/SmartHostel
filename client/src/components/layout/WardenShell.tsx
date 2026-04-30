@@ -69,6 +69,7 @@ const navLinks: readonly NavLink[] = [
   { label: 'Communications', to: '/warden/communications', icon: Send },
   { label: 'Audit Trail', to: '/warden/audit-trail', icon: History },
   { label: 'Occupancy Map', to: '/warden/occupancy-heatmap', icon: MapIcon },
+  { label: 'Forecast', to: '/warden/forecast', icon: TrendingUp },
   { label: 'Complaint Analytics', to: '/warden/complaint-analytics', icon: PieChart, feature: 'complaints' },
   { label: 'Wellness', to: '/warden/wellness', icon: HeartPulse, feature: 'wellness' },
   { label: 'Report Builder', to: '/warden/report-builder', icon: FileBarChart },

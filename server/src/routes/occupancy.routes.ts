@@ -12,5 +12,6 @@ router.get('/overview', occupancyController.getOverview);
 router.get('/blocks', occupancyController.getBlockOccupancy);
 router.get('/blocks/:block/floors', occupancyController.getFloorOccupancy);
 router.get('/rooms', occupancyController.getRoomGrid);
+router.get('/timeline', occupancyController.getTimeline);
 
 export default router;
